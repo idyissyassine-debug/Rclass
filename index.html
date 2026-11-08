@@ -1276,6 +1276,53 @@ function demoDecor(){try{document.body.className=document.body.className.replace
    <li><b>Détails</b> · تفاصيل : sauvegarde, programme annuel, vacances, et « Fonctions affichées » pour masquer ce que vous n'utilisez pas.</li></ol>`:""}</div>`)}
 
 /* ---------- Import des emplois du temps (PDF) ---------- */
+/* ---------- Emploi du temps du professeur (grille jours × heures) ---------- */
+function mergeTokens(W){const rows=[];W.slice().sort((a,b)=>a.y-b.y||a.x0-b.x0).forEach(w=>{let r=rows.find(r=>Math.abs(r.y-w.y)<2.5);if(!r){r={y:w.y,it:[]};rows.push(r)}r.it.push(w)});const L=[];
+  for(const r of rows){r.it.sort((a,b)=>a.x0-b.x0);let cur=null;for(const w of r.it){if(cur&&w.dir!=="rtl"&&cur.dir!=="rtl"&&w.x0-cur.x1<Math.max(3,.55*Math.min(cur.h,w.h))){cur.t+=(w.x0-cur.x1>1.5?" ":"")+w.t;cur.x1=w.x1;cur.x=(cur.x0+cur.x1)/2}else{cur&&L.push(cur);cur={...w}}}cur&&L.push(cur)}return L}
+const TT_RX=/^(\d{1,2})(?:\s*[h:.]\s*(\d{2}))?\s*h?\s*(?:[-–—à\/]|to)\s*(\d{1,2})(?:\s*[h:.]\s*(\d{2}))?\s*h?$/i,TT_R1=/^(\d{1,2})\s*(?:[h:.]\s*(\d{2})\s*h?|h)$/i;
+const p2t=(h,m)=>String(+h).padStart(2,"0")+":"+(m||"00");
+function ttTime(t){t=String(t).trim();let m=t.match(TT_RX);if(m&&+m[1]<24&&+m[3]<24){const s=p2t(m[1],m[2]),e=p2t(m[3],m[4]);return e>s?{s,e}:{s:e,e:s}}
+  m=t.match(TT_R1);if(m&&+m[1]<24)return {s:p2t(m[1],m[2])};if(/^0?\.\d+$/.test(t)){const mi=Math.round(+t*48)*30;return {s:p2t(Math.floor(mi/60),String(mi%60).padStart(2,"0"))}}return null}
+const CLS_RX=/(?:^|[^A-Za-z0-9])(\d\s*[A-Za-z]{2,6}\s*[-_.]?\s*\d{1,2})(?![0-9])/,CLS_STRICT=/^\d\s*[A-Za-z]{2,6}\s*[-_.]?\s*\d{1,2}$/;
+const clsNorm=t=>String(t).replace(/[\s_.]+/g,"").toUpperCase().replace(/^(\d)([A-Z]+)-?(\d+)$/,"$1$2-$3");
+const clsIn=t=>{const m=String(t).match(CLS_RX);return m?clsNorm(m[1]):null};
+const lvOfCls=n=>{const m=String(n).match(/^([1-3])(APIC|AC|ASC|ASCG|APC|AEC|ASIC)?/i);return m&&(m[2]||/^[1-3]AC/i.test(n))?m[1]+"AC":"Autre"};
+const medGap=a=>{const g=[];a=[...a].sort((x,y)=>x-y);for(let i=1;i<a.length;i++)if(a[i]-a[i-1]>1e-6)g.push(a[i]-a[i-1]);g.sort((x,y)=>x-y);return g.length?g[Math.floor(g.length/2)]:1};
+function teacherGrid(W){const out={};const add=(n,d,s,e)=>{const o=out[n]=out[n]||{name:n,sl:[]};if(d)o.sl.push({d,s,e})};
+  W.filter(w=>CLS_STRICT.test(w.t.trim())).forEach(w=>add(clsNorm(w.t),0));
+  const days=W.filter(w=>ctDayOf(w.t));
+  if(new Set(days.map(d=>ctDayOf(d.t))).size>=3){
+    const sx=Math.max(...days.map(d=>d.x))-Math.min(...days.map(d=>d.x)),sy=Math.max(...days.map(d=>d.y))-Math.min(...days.map(d=>d.y));const cols=sx>=sy;
+    const A=w=>cols?w.x:w.y,B=w=>cols?w.y:w.x;
+    const groups=[];days.slice().sort((a,b)=>B(a)-B(b)).forEach(d=>{const tol=Math.max(.45,(d.h||1)*.8);let g=groups.find(g=>Math.abs(g.b-B(d))<tol);if(!g){g={b:B(d),ds:[]};groups.push(g)}g.ds.push(d)});
+    const G=groups.filter(g=>new Set(g.ds.map(d=>ctDayOf(d.t))).size>=3).sort((a,b)=>a.b-b.b);
+    G.forEach((g,gi)=>{const b0=g.b,b1=gi+1<G.length?G[gi+1].b:1e9;const dA=g.ds.map(d=>({a:A(d),d:ctDayOf(d.t)})).sort((x,y)=>x.a-y.a);const colSp=medGap(dA.map(x=>x.a));const minA=dA[0].a;
+      let T=W.filter(w=>B(w)>b0&&B(w)<b1&&!ctDayOf(w.t)&&A(w)<minA-.3*colSp).map(w=>({b:B(w),...(ttTime(w.t)||{})})).filter(x=>x.s).sort((x,y)=>x.b-y.b);
+      T=T.filter((x,i)=>!i||x.b-T[i-1].b>1e-3);if(!T.length)return;const rowSp=medGap(T.map(x=>x.b));
+      T.forEach((x,i)=>{if(!x.e){const nx=T[i+1];x.e=nx&&nx.s>x.s?nx.s:p2t(+x.s.slice(0,2)+1,x.s.slice(3))}});
+      W.filter(w=>B(w)>b0+.2*rowSp&&B(w)<b1&&!ctDayOf(w.t)&&!ttTime(w.t)).forEach(w=>{const n=clsIn(w.t);if(!n)return;
+        const dd=dA.slice().sort((x,y)=>Math.abs(x.a-A(w))-Math.abs(y.a-A(w)))[0];if(Math.abs(dd.a-A(w))>.62*colSp)return;
+        const tt=T.map(x=>({x,dist:Math.abs(x.b-B(w))})).sort((p,q)=>p.dist-q.dist);if(tt[0].dist>.75*rowSp)return;
+        let pick=[tt[0].x];if(tt[1]&&tt[0].dist>.25*rowSp&&Math.abs(tt[0].dist-tt[1].dist)<.25*rowSp&&Math.abs(tt[0].x.b-tt[1].x.b)<1.6*rowSp)pick=[tt[0].x,tt[1].x];
+        pick.forEach(x=>add(n,dd.d,x.s,x.e))})})}
+  return Object.values(out).map(o=>{const L=o.sl.sort((a,b)=>(a.d-b.d)||a.s.localeCompare(b.s));const sl=[];for(const x of L){const l=sl[sl.length-1];if(l&&l.d===x.d&&(l.e===x.s||l.s===x.s)){if(x.e>l.e)l.e=x.e}else sl.push({...x})}
+    return {key:ctKey(o.name),name:o.name,level:lvOfCls(o.name),ct:[],slots:sl}})}
+const rowsToItems=R=>{const W=[];R.forEach((r,y)=>r.forEach((t,x)=>{t=String(t||"").trim();if(t)W.push({t,x:x+.5,y:y+.5,x0:x,x1:x+1,h:.6})}));return W};
+async function docxItems(file){const get=await unzipXlsx(await file.arrayBuffer());const xml=await get("word/document.xml");if(!xml)return [];const NS="http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+  const doc=new DOMParser().parseFromString(xml,"application/xml");const W=[];let y0=0;const kids=(n,ln)=>[...n.childNodes].filter(k=>k.localName===ln);
+  for(const tbl of doc.getElementsByTagNameNS(NS,"tbl")){const rows=kids(tbl,"tr");const above={};
+    rows.forEach((tr,r)=>{let c=0;for(const tc of kids(tr,"tc")){const pr=kids(tc,"tcPr")[0];const gs=pr&&kids(pr,"gridSpan")[0];const span=gs?(+gs.getAttributeNS(NS,"val")||1):1;const vm=pr&&kids(pr,"vMerge")[0];
+      let t=kids(tc,"p").map(p=>[...p.getElementsByTagNameNS(NS,"t")].map(z=>z.textContent).join("")).filter(Boolean).join(" ").trim();
+      if(vm){if(!t&&above[c])t=above[c];above[c]=t}else delete above[c];
+      if(t)W.push({t,x:c+span/2,y:y0+r+.5,x0:c,x1:c+span,h:.6});c+=span}});y0+=rows.length+2}
+  return W}
+async function ttFileParse(f){const nm=f.name.toLowerCase();
+  if(/\.pdf$/.test(nm)||f.type==="application/pdf"){const P=await pdfPages(f);const A=ctFromPages(P);const B=[];P.forEach(W=>B.push(...teacherGrid(mergeTokens(W))));return ttMerge(A,B)}
+  if(/\.docx$/.test(nm)){if(!window.DecompressionStream)throw new Error("navigateur trop ancien pour lire .docx");return ttMerge([],teacherGrid(await docxItems(f)))}
+  const R=await readTable(f);const rows=R.extra&&R.extra.length>R.length?R.extra:R;return ttMerge([],teacherGrid(rowsToItems(rows)))}
+function ttMerge(A,B){const m={};A.forEach(x=>m[x.key]={...x,slots:null});
+  B.forEach(x=>{const o=m[x.key];if(o){if(x.slots.length)o.slots=x.slots}else m[x.key]=x});return Object.values(m)}
+
 async function loadPdfJs(){if(window.__pdfjs)return window.__pdfjs;const B="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/";
   const m=await import(B+"pdf.min.mjs");m.GlobalWorkerOptions.workerSrc=B+"pdf.worker.min.mjs";return window.__pdfjs=m}
 const ctHM=z=>{const m=String(z).trim().match(/^(\d{1,2})\s*[:hH]\s*(\d{2})$/);return m?String(+m[1]).padStart(2,"0")+":"+m[2]:""};
@@ -1285,9 +1332,12 @@ const CT_SUBJ=[[/رياض|math/i,"الرياضيات"],[/فيز|كيمي|physi/i
 const ctSubj=t=>{const x=String(t).replace(/\s/g,"");for(const [r,n] of CT_SUBJ)if(r.test(x))return n;return String(t).replace(/\s+/g," ").trim()||"?"};
 const ctLabel=t=>/^[1-3]\s*[A-Z]{2,6}\s*-?\s*\d{1,2}$/i.test(String(t).trim());
 const ctName=t=>String(t).replace(/\s/g,"").toUpperCase().replace(/^(\d[A-Z]+)-?(\d+)$/,"$1-$2");
-async function ctPdfParse(file){const pj=await loadPdfJs();const doc=await pj.getDocument({data:new Uint8Array(await file.arrayBuffer()),isEvalSupported:false}).promise;const out=[];
+async function pdfPages(file){const pj=await loadPdfJs();const doc=await pj.getDocument({data:new Uint8Array(await file.arrayBuffer()),isEvalSupported:false}).promise;const P=[];
   for(let p=1;p<=doc.numPages;p++){const pg=await doc.getPage(p);const H=pg.getViewport({scale:1}).height;const tc=await pg.getTextContent();
-    const W=tc.items.filter(i=>i.str&&i.str.trim()).map(i=>({t:i.str.trim(),x:i.transform[4]+(i.width||0)/2,y:H-i.transform[5]}));
+    P.push(tc.items.filter(i=>i.str&&i.str.trim()).map(i=>{const x0=i.transform[4],x1=x0+(i.width||0);return {t:i.str.trim(),x:(x0+x1)/2,y:H-i.transform[5],x0,x1,h:Math.abs(i.transform[3])||i.height||10,dir:i.dir}}))}
+  return P}
+function ctFromPages(P){const out=[];
+  for(const W of P){
     const labs=W.filter(w=>ctLabel(w.t)).sort((a,b)=>a.y-b.y);
     labs.forEach((L,i)=>{const y0=L.y-10,y1=i+1<labs.length?labs[i+1].y-10:1e9;let B=W.filter(w=>w.y>=y0&&w.y<y1);
       const stop=B.filter(w=>/ساتذ|سندين|الئحة|لائحة|املادة|المادة/.test(w.t)).map(w=>w.y);if(stop.length){const ys=Math.min(...stop);B=B.filter(w=>w.y<ys-2)}
@@ -1310,34 +1360,34 @@ async function ctPdfParse(file){const pj=await loadPdfJs();const doc=await pj.ge
 function ctPcSlots(ct,subj){const L=ct.filter(x=>subj?x[3]===subj:isPC(x[3])).map(x=>({d:x[0],s:x[1],e:x[2]})).sort((a,b)=>(a.d-b.d)||a.s.localeCompare(b.s));const o=[];
   for(const x of L){const l=o[o.length-1];if(l&&l.d===x.d&&l.e===x.s)l.e=x.e;else o.push({...x})}return o}
 const slotTxt=L=>L.length?L.map(x=>DAYS[x.d]+" "+x.s+(x.e?"–"+x.e:"")).join(", "):"aucun";
-function ctImpCard(){const I=S.ctImp;let h=`<div class="card form" id="ctImpCard"><h2>Importer les emplois du temps (PDF)</h2>
-  <span class="hint">Fichier PDF « جدول حصص القسم » (un tableau par classe). Rclass crée les classes manquantes, enregistre l'emploi du temps de chaque classe (matières et salles) et vos horaires de séances (selon votre matière).</span>
-  <div class="tools"><label class="btn primary" for="ctPdf" style="cursor:pointer">📄 Choisir le PDF</label><input type="file" id="ctPdf" accept="application/pdf,.pdf" multiple hidden></div>`;
-  if(I&&I.busy)h+=`<span class="hint">Lecture du PDF…</span>`;
+function ctImpCard(){const I=S.ctImp;let h=`<div class="card form" id="ctImpCard"><h2>Importer un emploi du temps · استيراد استعمال الزمن</h2>
+  <span class="hint">Votre emploi du temps de professeur (tableau jours × heures avec les noms des classes) ou les emplois du temps des classes « جدول حصص القسم ». PDF, Word (.docx), Excel ou CSV. Rclass crée les classes manquantes et vos séances de la semaine.</span>
+  <div class="tools"><label class="btn primary" for="ctPdf" style="cursor:pointer">📄 Choisir le fichier</label><input type="file" id="ctPdf" accept="application/pdf,.pdf,.docx,.xlsx,.xls,.ods,.csv" multiple hidden></div>`;
+  if(I&&I.busy)h+=`<span class="hint">Lecture du fichier…</span>`;
   if(I&&I.err)h+=`<div class="flag">${esc(I.err)}</div>`;
   if(I&&I.list&&I.list.length){const on=I.list.filter(x=>x.on);const subs=[...new Set(I.list.flatMap(x=>x.ct.map(y=>y[3])))].sort();
-    h+=`<label>Ma matière (pour créer mes horaires de séances)<select id="ctSubj">${subs.map(m=>`<option ${m===I.subj?"selected":""}>${esc(m)}</option>`).join("")}</select></label>`;
-    h+=`<div style="display:grid;gap:6px">${I.list.map((x,i)=>{const c=x.cid&&S.classes[x.cid];const pc=ctPcSlots(x.ct,I.subj);const cur=c?(c.slots||[]).slice().sort((a,b)=>(a.d-b.d)||a.s.localeCompare(b.s)):[];const same=c&&slotTxt(cur)===slotTxt(pc);
+    if(subs.length&&I.list.some(x=>x.ct.length&&!(x.slots&&x.slots.length)))h+=`<label>Ma matière (pour créer mes horaires de séances)<select id="ctSubj">${subs.map(m=>`<option ${m===I.subj?"selected":""}>${esc(m)}</option>`).join("")}</select></label>`;
+    h+=`<div style="display:grid;gap:6px">${I.list.map((x,i)=>{const c=x.cid&&S.classes[x.cid];const prof=!!(x.slots&&x.slots.length);const pc=prof?x.slots:ctPcSlots(x.ct,I.subj);const cur=c?(c.slots||[]).slice().sort((a,b)=>(a.d-b.d)||a.s.localeCompare(b.s)):[];const same=c&&slotTxt(cur)===slotTxt(pc);
       return `<div style="border:1px solid var(--line);border-radius:10px;padding:8px;display:grid;gap:4px;${x.on?"":"opacity:.55"}">
       <label class="ctrow" style="font-weight:700"><input type="checkbox" data-cti="${i}" ${x.on?"checked":""}> ${esc(c?c.name:x.name)} <span class="hint" style="font-weight:400">${c?"classe existante · emploi du temps mis à jour":"nouvelle classe ("+esc(x.level)+")"}</span></label>
-      <span class="hint">${x.ct.length} heures de cours · vos horaires · <bdi>${esc(I.subj)}</bdi> · ${esc(slotTxt(pc))}</span>
+      <span class="hint">${x.ct.length?x.ct.length+" heures de cours · ":""}${prof?"emploi du temps du professeur":x.ct.length?"vos horaires · <bdi>"+esc(I.subj)+"</bdi>":"aucun horaire trouvé"} : ${esc(slotTxt(pc))}</span>
       ${c&&!same?`<label class="ctrow" style="font-size:.85rem"><input type="checkbox" data-ctu="${i}" ${x.upd?"checked":""}> Remplacer mes horaires actuels (${esc(slotTxt(cur))})</label>`:""}
       ${c&&same?`<span class="hint">✓ Vos horaires sont déjà identiques.</span>`:""}</div>`}).join("")}</div>
     <div class="tools"><button class="btn primary" data-act="ctGo" ${on.length?"":"disabled"}>Importer ${on.length} classe${on.length>1?"s":""}</button><button class="btn" data-act="ctAll">Tout cocher</button><button class="btn" data-act="ctNone">Tout décocher</button><button class="btn" data-act="ctCancel">Annuler</button></div>`}
   return h+`</div>`}
 async function ctPdfFiles(fs){S.ctImp={busy:true};render();const all=[];
-  try{for(const f of fs){const L=await ctPdfParse(f);L.forEach(x=>{const i=all.findIndex(y=>y.key===x.key);if(i>=0)all[i]=x;else all.push(x)})}}
-  catch(e){S.ctImp={err:/import|fetch|module|Failed/i.test(String(e&&e.message))?"Impossible de charger le lecteur PDF : connectez-vous à Internet une première fois.":"Lecture du PDF impossible ("+((e&&e.message)||"erreur")+")."};return render()}
-  const L=all.filter(x=>x.ct.length);
-  if(!L.length){S.ctImp={err:"Aucun emploi du temps reconnu dans ce PDF (il faut des tableaux « جدول حصص القسم » avec le nom de la classe, les heures et les salles)."};return render()}
+  try{for(const f of fs){const L=await ttFileParse(f);L.forEach(x=>{const i=all.findIndex(y=>y.key===x.key);if(i<0)return all.push(x);const o=all[i];all[i]={...o,...x,ct:x.ct.length?x.ct:o.ct,slots:x.slots&&x.slots.length?x.slots:o.slots}})}}
+  catch(e){S.ctImp={err:/import|fetch|module|Failed/i.test(String(e&&e.message))?"Impossible de charger le lecteur PDF : connectez-vous à Internet une première fois.":"Lecture du fichier impossible ("+((e&&e.message)||"erreur")+")."};return render()}
+  const L=all.filter(x=>x.ct.length||(x.slots&&x.slots.length)||all.some(y=>y.ct.length||(y.slots&&y.slots.length)));
+  if(!L.length){S.ctImp={err:all.length?"Classes trouvées ("+all.map(x=>x.name).join(", ")+") mais aucun horaire reconnu : il faut un tableau avec les jours (Lundi…Samedi) et les heures (08–09h, 8h-9h, 08:00-09:00…).":"Aucun emploi du temps reconnu : il faut un tableau avec les jours, les heures et les noms des classes (ex. 1APIC-1, 2AC-3)."};return render()}
   const byKey={};for(const id in S.classes)byKey[ctKey(S.classes[id].name)]=id;
   L.sort((a,b)=>a.name.localeCompare(b.name));
-  const subs=[...new Set(L.flatMap(x=>x.ct.map(y=>y[3])))];S.ctImp={subj:subs.find(isPC)||subs[0],list:L.map(x=>{const cid=byKey[x.key]||null;const c=cid&&S.classes[cid];const lv=(x.key.match(/^([1-3])/)||[])[1];return {...x,cid,level:lv?lv+"AC":"Autre",on:true,upd:!c||!(c.slots||[]).length||true}})};render();
+  const subs=[...new Set(L.flatMap(x=>x.ct.map(y=>y[3])))];S.ctImp={subj:subs.find(isPC)||subs[0],list:L.map(x=>{const cid=byKey[x.key]||null;const lv=(x.key.match(/^([1-3])/)||[])[1];return {...x,cid,level:x.level&&x.level!=="Autre"?x.level:lv?lv+"AC":"Autre",on:true,upd:true}})};render();
   const el=$("#ctImpCard");if(el)el.scrollIntoView({block:"start"})}
 async function ctCommit(){const I=S.ctImp;if(!I||!I.list)return;let nNew=0,nUp=0,first=null;
-  for(const x of I.list.filter(y=>y.on)){const pc=ctPcSlots(x.ct,I.subj);let c=x.cid&&S.classes[x.cid];
-    if(c){c.ct=x.ct;c.ctAt=today();if(x.upd)c.slots=pc;nUp++}
-    else{const id=uid();c={id,name:x.name,level:x.level,students:[],settings:{...DEF},created:today(),ct:x.ct,ctAt:today(),slots:pc};S.classes[id]=c;nNew++;first=first||id}
+  for(const x of I.list.filter(y=>y.on)){const pc=x.slots&&x.slots.length?x.slots:ctPcSlots(x.ct,I.subj);let c=x.cid&&S.classes[x.cid];
+    if(c){if(x.ct.length){c.ct=x.ct;c.ctAt=today()}if(x.upd&&pc.length)c.slots=pc;nUp++}
+    else{const id=uid();c={id,name:x.name,level:x.level,students:[],settings:{...DEF},created:today(),slots:pc,...(x.ct.length?{ct:x.ct,ctAt:today()}:{})};S.classes[id]=c;nNew++;first=first||id}
     await saveClass(c)}
   S.ctImp=null;toast((nNew?nNew+" classe"+(nNew>1?"s":"")+" créée"+(nNew>1?"s":""):"")+(nNew&&nUp?" · ":"")+(nUp?nUp+" emploi"+(nUp>1?"s":"")+" du temps mis à jour":""));
   if(first&&(!S.cid||!S.classes[S.cid]||isDemo(S.classes[S.cid])))return selectClass(first);render()}
