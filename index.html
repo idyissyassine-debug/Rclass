@@ -1480,6 +1480,24 @@ function ocrClsFix(L){const known=new Set(["APIC","AC","ASCG","APC"]);for(const 
     x.name=m[1]+lt+"-"+m[3];x.key=ctKey(x.name);x.level=lvOfCls(x.name)});
   const o={};L.forEach(x=>{const p=o[x.key];if(!p)o[x.key]=x;else{p.slots=[...(p.slots||[]),...(x.slots||[])];p.ct=p.ct.length?p.ct:x.ct}});return Object.values(o)}
 
+/* ---------- Emploi du temps de classe en « séances » (الحصة 1…4) ---------- */
+const SUBJ_CODE={PC:"الفيزياء والكيمياء",M:"الرياضيات",MATH:"الرياضيات",MATHS:"الرياضيات",FR:"الفرنسية",AR:"العربية",ANG:"الإنجليزية",EN:"الإنجليزية",SVT:"علوم الحياة والأرض",HG:"الاجتماعيات",IIS:"التربية الإسلامية",IS:"التربية الإسلامية",EI:"التربية الإسلامية",EPS:"التربية البدنية",INF:"المعلوميات",INFO:"المعلوميات",TEC:"التكنولوجيا",TECH:"التكنولوجيا",AMZ:"الأمازيغية",MUS:"التربية الموسيقية",ART:"التربية التشكيلية",AP:"التربية التشكيلية"};
+function subjOfCell(t){const x=ND(t).replace(/[|]/g," ");const m=x.match(/(?:^|[\s_|])(?:G\d[_\s-]*)?([A-Za-z]{1,5})(?:[_\s-]*(?:sa[il1|]{1,2}e|salle|sal|s)\s*\.?\s*(\d{1,2}))?\s*$/i);if(!m)return null;const k=m[1].toUpperCase();const sj=SUBJ_CODE[k]||(k==="EPS"?SUBJ_CODE.EPS:null);if(!sj)return null;return {m:sj,room:m[2]?"SALLE"+m[2]:""}}
+function sessionGrid(W){const heads=W.filter(w=>/الحصة|حصة|^s[ée]ance$/i.test(w.t));if(heads.length<4)return [];
+  const hy=heads.map(h=>h.y).sort((a,b)=>a-b)[Math.floor(heads.length/2)];const H=heads.filter(h=>Math.abs(h.y-hy)<Math.max(20,(h.h||10)*1.5));if(H.length<4)return [];
+  const rtl=H.some(h=>/[؀-ۿ]/.test(h.t));const am=W.filter(w=>/صباح|matin/i.test(w.t)),pm=W.filter(w=>/مسا|مسم|soir|apr[èe]s/i.test(w.t));
+  const blk=h=>{if(am.length&&pm.length){const da=Math.min(...am.map(a=>Math.abs(a.x-h.x))),dp=Math.min(...pm.map(a=>Math.abs(a.x-h.x)));return da<=dp?0:1}return null};
+  let B0=H.filter(h=>blk(h)===0),B1=H.filter(h=>blk(h)===1);if(!B0.length&&!B1.length){const S=H.slice().sort((a,b)=>rtl?b.x-a.x:a.x-b.x);const half=Math.ceil(S.length/2);B0=S.slice(0,half);B1=S.slice(half)}
+  const T=[];[[B0,8],[B1,14]].forEach(([bl,h0])=>bl.slice().sort((a,b)=>rtl?b.x-a.x:a.x-b.x).forEach((h,i)=>T.push({x:h.x,s:p2t(h0+i),e:p2t(h0+i+1)})));
+  const sp=medGap(T.map(t=>t.x));
+  let days=W.filter(w=>ctDayOf(w.t)&&w.y>hy);const ix={};days.forEach(d=>{const k=ctDayOf(d.t);if(!ix[k])ix[k]=d});const ks=Object.keys(ix).map(Number).sort((a,b)=>a-b);if(ks.length<2)return [];
+  let n=0,sa=0,sk=0,skk=0,ska=0;ks.forEach(k=>{const a=ix[k].y;n++;sa+=a;sk+=k;skk+=k*k;ska+=k*a});const sl=(n*ska-sk*sa)/(n*skk-sk*sk),c0=(sa-sl*sk)/n;if(!isFinite(sl)||sl<=0)return [];
+  const DY=[];for(let k=1;k<=6;k++)DY.push({d:k,y:ix[k]?ix[k].y:c0+sl*k});
+  const lab=W.filter(w=>clsIn(w.t)&&w.y<hy).sort((a,b)=>a.y-b.y)[0]||W.filter(w=>clsIn(w.t))[0];if(!lab)return [];const name=clsIn(lab.t);
+  const ct=[];W.filter(w=>w.y>hy+sl*.3&&w.y<c0+sl*6.6).forEach(w=>{const sj=subjOfCell(w.t);if(!sj)return;const dd=DY.slice().sort((p,q)=>Math.abs(p.y-w.y)-Math.abs(q.y-w.y))[0];if(Math.abs(dd.y-w.y)>sl*.6)return;
+    const tt=T.slice().sort((p,q)=>Math.abs(p.x-w.x)-Math.abs(q.x-w.x))[0];if(!tt||Math.abs(tt.x-w.x)>sp*.6)return;if(!ct.some(c=>c[0]===dd.d&&c[1]===tt.s))ct.push([dd.d,tt.s,tt.e,sj.m,sj.room])});
+  ct.sort((a,b)=>(a[0]-b[0])||a[1].localeCompare(b[1]));return ct.length?[{key:ctKey(name),name,level:lvOfCls(name),ct,slots:null}]:[]}
+
 /* ---------- Emploi du temps du professeur (grille jours × heures) ---------- */
 function mergeTokens(W){const it=W.map(w=>({...w,y0:w.y0??w.y-w.h/2,y1:w.y1??w.y+w.h/2})).sort((a,b)=>a.x0-b.x0);const L=[];
   for(const w of it){const ov=c=>Math.min(c.y1,w.y1)-Math.max(c.y0,w.y0);const c=w.dir==="rtl"?null:L.filter(c=>c.dir!=="rtl"&&ov(c)>=.4*Math.min(c.y1-c.y0,w.y1-w.y0)&&w.x0-c.x1<Math.max(3,.55*Math.min(c.h,w.h))).sort((a,b)=>b.x1-a.x1)[0];
@@ -1550,8 +1568,8 @@ async function docxItems(file){const get=await unzipXlsx(await file.arrayBuffer(
   return W}
 async function ttFileParse(f){const nm=f.name.toLowerCase();
   if(/^image\//.test(f.type)||/\.(jpe?g|png|webp|bmp|gif|heic)$/.test(nm)){const W=await ocrItems(f,(st,pr)=>{const el=$("#ctBusy");if(el)el.textContent=(/load|init/i.test(st)?"Préparation de la lecture d'image (la 1re fois, téléchargement ≈ 10 Mo)… ":"Lecture de l'image… ")+(pr?Math.round(pr*100)+" %":"")});
-    const A=ctFromPages([W]);const B=teacherGrid(mergeTokens(W),W.grid);return ocrClsFix(ttMerge(A,B)).map(x=>({...x,ocr:true}))}
-  if(/\.pdf$/.test(nm)||f.type==="application/pdf"){const P=await pdfPages(f);const A=ctFromPages(P);const B=[];P.forEach(W=>B.push(...teacherGrid(mergeTokens(W))));return ttMerge(A,B)}
+    const M=mergeTokens(W);const A=ctFromPages([W]);const B=teacherGrid(M,W.grid);let R=ttMerge(A,B);if(!R.some(x=>x.ct.length||(x.slots&&x.slots.length)))R=ttMerge(sessionGrid(M),R.filter(x=>!x.ct.length));return ocrClsFix(R).map(x=>({...x,ocr:true}))}
+  if(/\.pdf$/.test(nm)||f.type==="application/pdf"){const P=await pdfPages(f);const A=ctFromPages(P);const B=[];P.forEach(W=>B.push(...teacherGrid(mergeTokens(W))));let R=ttMerge(A,B);if(!R.some(x=>x.ct.length||(x.slots&&x.slots.length))){const C=[];P.forEach(W=>C.push(...sessionGrid(mergeTokens(W))));if(C.length)R=ttMerge(C,[])}return R}
   if(/\.docx$/.test(nm)){if(!window.DecompressionStream)throw new Error("navigateur trop ancien pour lire .docx");return ttMerge([],teacherGrid(await docxItems(f)))}
   const R=await readTable(f);const rows=R.extra&&R.extra.length>R.length?R.extra:R;return ttMerge([],teacherGrid(rowsToItems(rows)))}
 function ttMerge(A,B){const m={};A.forEach(x=>m[x.key]={...x,slots:null});
