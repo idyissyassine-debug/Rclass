@@ -1,0 +1,53 @@
+Rclass – mise en ligne comme application (PWA)
+==============================================
+
+Contenu du dossier (à envoyer tel quel, sans renommer) :
+  index.html            l'application
+  manifest.webmanifest  nom, couleurs et icônes de l'application
+  sw.js                 fonctionnement hors ligne
+  icons/                icônes
+
+Mise en ligne gratuite avec GitHub Pages
+1. Créez un compte sur https://github.com
+2. Bouton « New repository » : nom « rclass », visibilité « Public », puis « Create repository ».
+3. Lien « uploading an existing file » : glissez TOUT le contenu du dossier (y compris le dossier icons), puis « Commit changes ».
+4. Settings > Pages > Source : « Deploy from a branch », branche « main », dossier « / (root) », puis « Save ».
+5. Après 1 à 2 minutes, l'adresse s'affiche : https://VOTRE-NOM.github.io/rclass/
+
+Installation sur le téléphone
+- Android (Chrome) : ouvrez l'adresse, menu ⋮ > « Installer l'application » (ou « Ajouter à l'écran d'accueil »).
+- iPhone (Safari) : ouvrez l'adresse, bouton Partager > « Sur l'écran d'accueil ».
+- Ordinateur (Chrome ou Edge) : icône d'installation à droite de la barre d'adresse.
+
+Après installation
+- L'application fonctionne sans internet.
+- Comptes locaux : vos élèves et vos notes restent uniquement dans l'appareil (rien n'est envoyé sur GitHub).
+- Compte en ligne (☁️) : données privées dans votre projet Firebase, synchronisées entre vos appareils (voir plus bas).
+- Pour récupérer vos données d'une autre version : Détails > « Enregistrer une sauvegarde » dans l'ancienne version,
+  puis Détails > « Restaurer une sauvegarde » dans l'application installée.
+
+Mettre à jour l'application plus tard
+1. Remplacez index.html dans le dépôt GitHub (Add file > Upload files).
+2. Dans sw.js, changez la ligne VERSION (par ex. "rclass-v1" -> "rclass-v2") et envoyez-le aussi.
+3. Ouvrez l'application avec internet : la nouvelle version se charge, vos données restent.
+
+Important
+- Le dépôt est public : n'y mettez jamais de fichier contenant des noms d'élèves (sauvegardes .json, listes...).
+
+
+Compte en ligne synchronisé (Firebase, gratuit)
+===============================================
+Une seule fois, par le propriétaire de l'application :
+1. https://console.firebase.google.com > « Ajouter un projet » (nom : rclass, Google Analytics inutile).
+2. Authentication > Commencer > Sign-in method : activez « Adresse e-mail/Mot de passe » et « Google ».
+3. Authentication > Settings > Authorized domains : ajoutez VOTRE-NOM.github.io
+4. Firestore Database > Créer une base de données > emplacement en Europe > mode production.
+5. Firestore Database > Règles : remplacez tout par le contenu du fichier firestore.rules, puis « Publier ».
+6. Paramètres du projet (roue dentée) > Vos applications > icône Web </> > nom « Rclass » > copiez le bloc firebaseConfig.
+7. (Fait) La configuration du projet rclass-1a70a est intégrée dans Rclass.
+
+Ensuite, chaque utilisateur :
+- crée son compte (e-mail + mot de passe, ou Google) et se connecte sur tous ses appareils ;
+- ne voit que ses propres données (règles Firestore) ;
+- peut copier un compte local existant vers son compte en ligne (« Copier un compte local… »).
+Hors connexion, l'application continue de fonctionner et envoie les modifications au retour d'Internet.

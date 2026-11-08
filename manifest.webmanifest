@@ -1,0 +1,39 @@
+{
+ "name": "Rclass · تدبير القسم",
+ "short_name": "Rclass",
+ "description": "Registre de classe : appel, participation, exercices, cahier, plan de salle, emploi du temps et progression du programme.",
+ "lang": "fr",
+ "dir": "auto",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "orientation": "any",
+ "background_color": "#1f5a47",
+ "theme_color": "#1f5a47",
+ "icons": [
+  {
+   "src": "icons/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icons/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icons/icon-192-maskable.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "maskable"
+  },
+  {
+   "src": "icons/icon-512-maskable.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}
