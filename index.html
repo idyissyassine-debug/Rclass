@@ -1487,7 +1487,7 @@ function mergeTokens(W){const it=W.map(w=>({...w,y0:w.y0??w.y-w.h/2,y1:w.y1??w.y
   return L}
 const TT_RX=/^(?:من\s*)?(\d{1,2})(?:\s*[h:.س]\s*(\d{2}))?\s*[hس]?\s*(?:[-–—à\/]|to|إلى|الى|ل)\s*(\d{1,2})(?:\s*[h:.س]\s*(\d{2}))?\s*[hس]?$/i,TT_R1=/^(\d{1,2})\s*(?:[h:.س]\s*(\d{2})\s*[hس]?|[hس])$/i;
 const p2t=(h,m)=>String(+h).padStart(2,"0")+":"+(m||"00");
-function ttTime(t){t=ND(t).trim().replace(/(\d{1,2})[:.h](\d{2})/g,(m,h,mm)=>h+":"+(["00","15","30","45"].includes(mm)?mm:"00"));let m=t.match(TT_RX);if(m&&+m[1]>=6&&+m[1]<21&&+m[3]>=6&&+m[3]<21&&Math.abs(+m[1]-+m[3])<=4&&+m[1]!==+m[3]){const s=p2t(m[1],m[2]),e=p2t(m[3],m[4]);return e>s?{s,e}:{s:e,e:s}}
+function ttTime(t){t=ND(t).trim().replace(/\s*[-–—_]{2,}\s*/g,"-").replace(/(\d{1,2})[:.h](\d{2})/g,(m,h,mm)=>h+":"+(["00","15","30","45"].includes(mm)?mm:"00"));let m=t.match(TT_RX);if(m&&+m[1]>=6&&+m[1]<21&&+m[3]>=6&&+m[3]<21&&Math.abs(+m[1]-+m[3])<=4&&+m[1]!==+m[3]){const s=p2t(m[1],m[2]),e=p2t(m[3],m[4]);return e>s?{s,e}:{s:e,e:s}}
   m=t.match(TT_R1);if(m&&+m[1]<24)return {s:p2t(m[1],m[2])};if(/^0\.\d+$/.test(t)){const mi=Math.round(+t*48)*30;return {s:p2t(Math.floor(mi/60),String(mi%60).padStart(2,"0"))}}return null}
 const CLS_RX=/(?:^|[^A-Za-z0-9])(\d\s*[A-Za-z]{2,6}\s*[-_.]?\s*\d{1,2})(?![0-9])/,CLS_STRICT=/^\d\s*[A-Za-z]{2,6}\s*[-_.]?\s*\d{1,2}$/;
 const clsNorm=t=>String(t).replace(/[\s_.]+/g,"").toUpperCase().replace(/^(\d)([A-Z]+)-?(\d+)$/,"$1$2-$3");
@@ -1573,7 +1573,7 @@ function ctFromPages(P){const out=[];
     const labs=W.filter(w=>ctLabel(w.t)).sort((a,b)=>a.y-b.y);
     labs.forEach((L,i)=>{const y0=L.y-10,y1=i+1<labs.length?labs[i+1].y-10:1e9;let B=W.filter(w=>w.y>=y0&&w.y<y1);
       const stop=B.filter(w=>/ساتذ|سندين|الئحة|لائحة|املادة|المادة/.test(w.t)).map(w=>w.y);if(stop.length){const ys=Math.min(...stop);B=B.filter(w=>w.y<ys-2)}
-      const heads=B.filter(w=>/^\d{1,2}[:hH]\d{2}\s*-\s*\d{1,2}[:hH]\d{2}$/.test(w.t)).map(w=>{const [a,b]=w.t.split("-").map(ctHM);return {x:w.x,y:w.y,s:a<b?a:b,e:a<b?b:a}}).sort((a,b)=>a.s.localeCompare(b.s));
+      const heads=B.map(w=>({w,t:ttTime(w.t)})).filter(o=>o.t&&o.t.e).map(o=>({x:o.w.x,y:o.w.y,s:o.t.s,e:o.t.e})).sort((a,b)=>a.s.localeCompare(b.s));
       if(!heads.length)return;const hy=Math.max(...heads.map(h=>h.y));
       const days=B.filter(w=>w.y>hy&&ctDayOf(w.t)).map(w=>({y:w.y,d:ctDayOf(w.t)}));
       const isRoom=t=>/^(SALLE\s*\d+|SAL\s*\d+|S\s*\d+|T\s*\d+|LABO?\s*\d*|TERRAIN\s*\d*|GYM\w*|SPORT\w*)$/i.test(t);
