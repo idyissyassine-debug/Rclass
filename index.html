@@ -1463,11 +1463,11 @@ async function imgCanvas(f){const url=URL.createObjectURL(f);try{const im=await 
   const k=Math.min(3,2200/Math.max(im.naturalWidth,im.naturalHeight));const W=Math.round(im.naturalWidth*k),H=Math.round(im.naturalHeight*k);
   let cv=imgProc(im,W,H);if(Math.abs(cv._skew)>=.25){const r=document.createElement("canvas");r.width=W;r.height=H;const g=r.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,W,H);g.translate(W/2,H/2);g.rotate(-cv._skew*Math.PI/180);g.drawImage(im,-W/2,-H/2,W,H);cv=imgProc(r,W,H)}
   return cv}finally{URL.revokeObjectURL(url)}}
-const OCR_D={Z:"2",z:"2",S:"3",s:"3",B:"3",l:"1",L:"1",I:"1",i:"1",J:"1",j:"1",T:"1","|":"1","!":"1","]":"1",d:"1","1":"1","2":"2","3":"3"};
+const OCR_D={Z:"2",z:"2",S:"3",s:"3",B:"3",l:"1",L:"1",I:"1",i:"1",J:"1",j:"1",T:"1",H:"1","|":"1","!":"1","]":"1",d:"1","1":"1","2":"2","3":"3"};
 const ocrFix=t=>{t=String(t).replace(/[“”"'`’]/g,"").replace(/[-–—]+/g,"-").replace(/(^|[^A-Za-z])O(?=\d)/g,"$10").replace(/(\d)O(?![A-Za-z])/g,"$10").replace(/^[|_]+|[|_]+$/g,"").trim();if(/^[\u0600-\u06FF]{1,2}\d{1,2}$|^\d{1,2}[\u0600-\u06FF]{1,2}$/.test(t))t=t.replace(/[\u0600-\u06FF]/g,"")+"h";
   if(/\d{1,2}\s*[:.]\s*\d{2}/.test(t))t=t.replace(/^[^\d]+|[^\dh]+$/g,"").replace(/\s*([:.])\s*/g,"$1");
   t=t.replace(/(\d{2})\s+(\d{2})(?=\s*[-–—])/,"$1:$2").replace(/([-–—]\s*\d{2})\s+(\d{2})$/,"$1:$2");
-  const m=t.match(/^([ZzSsBLlIiJjT|!\]d1-3])\s*([A-Za-z(]{3,5}?)[\s-]*([0-9Il|\]!]{0,2})$/);if(m&&lev(m[2].toUpperCase().replace("(","C"),"APIC")<=2){const tr=m[3]?(/^\d+$/.test(m[3])?m[3]:m[3].replace(/[Il|\]!]/g,"1").slice(0,1)):"";return OCR_D[m[1]]+"APIC"+(tr?" "+tr:"")}return t};
+  const m=t.match(/^([ZzSsBLlIiJjTH|!\]d1-3])\s*([A-Za-z(]{3,5}?)[\s-]*([0-9Il|\]!]{0,2})$/);const L_=m?m[2].toUpperCase().replace("(","C"):"";if(m&&(lev(L_,"APIC")<=1||(lev(L_,"APIC")<=2&&/P/.test(L_)))){const tr=m[3]?(/^\d+$/.test(m[3])?m[3]:m[3].replace(/[Il|\]!]/g,"1").slice(0,1)):"";return OCR_D[m[1]]+"APIC"+(tr?" "+tr:"")}return t};
 async function ocrItems(f,onP){const T=await loadTess();const cv=await imgCanvas(f);
   const run=async langs=>{const w=await T.createWorker(langs,1,{logger:m=>{if(onP&&m&&m.status)onP(m.status,m.progress)}});
     try{try{await w.setParameters({tessedit_pageseg_mode:"11"})}catch(e){}const {data}=await w.recognize(cv);let words=data.words;if(!words||!words.length){words=[];(data.blocks||[]).forEach(b=>(b.paragraphs||[]).forEach(p=>(p.lines||[]).forEach(l=>words.push(...(l.words||[])))))}return words}finally{try{await w.terminate()}catch(e){}}};
@@ -1499,9 +1499,13 @@ function teacherGrid(W,grid){const out={};const add=(n,d,s,e)=>{const o=out[n]=o
   let days=W.filter(w=>ctDayOf(w.t));
   if(new Set(days.map(d=>ctDayOf(d.t))).size<3&&grid){const sy=gridDays(W,grid,days);if(sy){W=W.filter(w=>!ctDayOf(w.t)).concat(sy);days=sy}}
   if(new Set(days.map(d=>ctDayOf(d.t))).size>=3){
-    const sx=Math.max(...days.map(d=>d.x))-Math.min(...days.map(d=>d.x)),sy=Math.max(...days.map(d=>d.y))-Math.min(...days.map(d=>d.y));const cols=sx>=sy;
-    const A=w=>cols?w.x:w.y,B=w=>cols?w.y:w.x;
-    const groups=[];days.slice().sort((a,b)=>B(a)-B(b)).forEach(d=>{const tol=Math.max(.45,(d.h||1)*.8);let g=groups.find(g=>Math.abs(g.b-B(d))<tol);if(!g){g={b:B(d),ds:[]};groups.push(g)}g.ds.push(d)});
+    const grp=cl=>{const Bf=w=>cl?w.y:w.x;const gs=[];days.slice().sort((a,b)=>Bf(a)-Bf(b)).forEach(d=>{const tol=Math.max(.45,(d.h||1)*.8);let g=gs.find(g=>Math.abs(g.b-Bf(d))<tol);if(!g){g={b:Bf(d),ds:[]};gs.push(g)}g.ds.push(d)});return gs};
+    const score=gs=>Math.max(0,...gs.map(g=>new Set(g.ds.map(d=>ctDayOf(d.t))).size));const gT=grp(true),gF=grp(false);const cols=score(gT)>score(gF)||(score(gT)===score(gF)&&gT.length<=gF.length);
+    const A=w=>cols?w.x:w.y,B=w=>cols?w.y:w.x;const groups=cols?gT:gF;
+    groups.forEach(g=>{const ix={};g.ds.forEach(d=>{const k=ctDayOf(d.t);if(!ix[k])ix[k]=d});const ks=Object.keys(ix).map(Number).sort((a,b)=>a-b);if(ks.length<3||ks.length>=6)return;
+      let n=0,sa=0,sk=0,skk=0,ska=0;ks.forEach(k=>{const a=A(ix[k]);n++;sa+=a;sk+=k;skk+=k*k;ska+=k*a});const sl=(n*ska-sk*sa)/(n*skk-sk*sk),c0=(sa-sl*sk)/n;
+      if(!isFinite(sl)||!ks.every(k=>Math.abs(A(ix[k])-(c0+sl*k))<Math.abs(sl)*.35))return;const h=ix[ks[0]].h||10;
+      for(let k=1;k<=6;k++)if(!ix[k]){const a=c0+sl*k;const o=cols?{t:DAYN[k],x:a,y:g.b,x0:a-10,x1:a+10,h,syn:1}:{t:DAYN[k],x:g.b,y:a,x0:g.b-10,x1:g.b+10,h,syn:1};g.ds.push(o)}});
     const G=groups.filter(g=>new Set(g.ds.map(d=>ctDayOf(d.t))).size>=3).sort((a,b)=>a.b-b.b);
     G.forEach((g,gi)=>{const b0=g.b,b1=gi+1<G.length?G[gi+1].b:1e9,bP=gi>0?G[gi-1].b:-1e9;const dA=g.ds.map(d=>({a:A(d),d:ctDayOf(d.t)})).sort((x,y)=>x.a-y.a);const colSp=medGap(dA.map(x=>x.a));const minA=dA[0].a,maxA=dA[dA.length-1].a;const tolB=Math.max(.45,(g.ds[0].h||1)*.8);
       let T=W.filter(w=>B(w)>bP&&B(w)<b1&&Math.abs(B(w)-b0)>tolB&&!ctDayOf(w.t)&&(A(w)<minA-.3*colSp||A(w)>maxA+.3*colSp)).map(w=>({b:B(w),...(ttTime(w.t)||{})})).filter(x=>x.s).sort((x,y)=>x.b-y.b);
