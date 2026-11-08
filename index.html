@@ -255,6 +255,12 @@ tr.chk td{background:var(--late-bg,#fff4dc)}
 .profav{width:32px;height:32px;border-radius:50%;background:var(--board);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex:none}
 .proflock{margin-left:auto;font-size:13px}.proferr{color:var(--bad);min-height:18px;font-size:13px;margin:6px 0}
 .mod-off-plk [data-mod~="plk"]{display:none!important}.mod-off-eval [data-mod~="eval"]{display:none!important}.mod-off-plan [data-mod~="plan"]{display:none!important}.mod-off-prog [data-mod~="prog"]{display:none!important}.mod-off-ct [data-mod~="ct"]{display:none!important}.demobar{border:2px dashed var(--board);gap:6px!important}.demobar .tools{gap:6px}.demobar .btn{padding:6px 10px;font-size:.82rem;min-height:0}
+details.fold>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px}details.fold>summary::-webkit-details-marker{display:none}details.fold>summary h2{margin:0;flex:1}details.fold>summary::after{content:"▾";opacity:.6}details.fold[open]>summary::after{content:"▴"}
+.seat.dragging{opacity:.45;outline:2px dashed var(--board)}.seat.dropto{outline:3px solid var(--board);outline-offset:2px}
+.numstrip{display:flex;gap:4px;overflow-x:auto;padding:2px 0 4px;scrollbar-width:thin}.numstrip button{flex:none;min-width:34px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--sheet);color:inherit;font-weight:700;font-size:.85rem;cursor:pointer}.numstrip button.on{background:var(--board);color:#fff;border-color:var(--board)}
+.navb{min-width:38px;padding:4px 10px;font-size:1.2rem;line-height:1}
+@media (min-width:1100px){.wrap{max-width:1040px}}
+.ro input,.ro textarea,.ro .seg button,.ro button.btn:not([data-keep]),.ro button.x,.ro .tag button{pointer-events:none;opacity:.5}.ro form,.ro label[for=pgFile]{display:none!important}.ro select#pgLvl{pointer-events:auto;opacity:1}
 .ctrow{display:flex!important;flex-direction:row!important;align-items:center;gap:8px;flex-wrap:wrap}.ctrow input{width:auto!important;flex:none;margin:0}
 .profsep{font-size:12px;color:var(--muted);margin:14px 0 6px;display:flex;align-items:center;gap:8px}.profsep:before,.profsep:after{content:"";flex:1;border-top:1px solid var(--line)}.profcloud{width:100%;padding:10px}
 .proflab{display:flex;flex-direction:column;gap:4px;font-size:13px;margin:8px 0}.profact{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
@@ -298,10 +304,10 @@ const DEF={wEx:1,wPlus:1,wMinus:1,base:10,step:0.5,latePen:0.5,cahAbs:1,cahInc:0
 
 const S={classes:{},days:{},cid:null,date:today(),tab:"seance",undo:false,sort:{k:"n",d:1},confirmDel:false,pick:null,store:"…",mode:"plan",selStu:null,edSeat:null,edStu:null,follow:true,lastD:1,lastE:"",xid:null,addF:null,wk:null,stu:null,xScope:"all",period:"year",prog:{},pgLvl:null,cancelOpen:false,holEdit:{}};
 let PSUF="";const PR={list:[],cur:null};
-function loadUI(){try{const p=JSON.parse(localStorage.getItem("rc-ui"+PSUF)||"{}");if(p.cid)S.cid=p.cid;if(p.tab)S.tab=p.tab;if(p.mode)S.mode=p.mode;if(p.period)S.period=p.period;if(p.pFrom)S.pFrom=p.pFrom;if(p.pTo)S.pTo=p.pTo;if(typeof p.hdMini==="boolean")S.hdMini=p.hdMini;if(p.theme)S.theme=p.theme}catch(e){}}
+function loadUI(){try{const p=JSON.parse(localStorage.getItem("rc-ui"+PSUF)||"{}");if(p.cid)S.cid=p.cid;if(p.tab)S.tab=p.tab;if(p.mode)S.mode=p.mode;if(p.period)S.period=p.period;if(p.pFrom)S.pFrom=p.pFrom;if(p.pTo)S.pTo=p.pTo;if(typeof p.hdMini==="boolean")S.hdMini=p.hdMini;if(p.theme)S.theme=p.theme;if(p.fold)S.fold=p.fold}catch(e){}}
 loadUI();
 if(typeof S.hdMini!=="boolean"){S.hdMini=null}
-const saveUI=()=>{try{localStorage.setItem("rc-ui"+PSUF,JSON.stringify({cid:S.cid,tab:S.tab,mode:S.mode,period:S.period,pFrom:S.pFrom||"",pTo:S.pTo||"",hdMini:S.hdMini,theme:S.theme||"auto"}))}catch(e){}};
+const saveUI=()=>{try{localStorage.setItem("rc-ui"+PSUF,JSON.stringify({cid:S.cid,tab:S.tab,mode:S.mode,period:S.period,pFrom:S.pFrom||"",pTo:S.pTo||"",fold:S.fold||{},hdMini:S.hdMini,theme:S.theme||"auto"}))}catch(e){}};
 
 function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2200)}
 function setSync(t){$("#sync").textContent=t}
@@ -406,8 +412,8 @@ function dateBlock(d){if(!d)return "";const h=holidayOn(d);if(h)return h.label+"
 function canList(){const L=[];for(const c of classList())for(const k in (c.cancel||{})){const ki=keyInfo(c,k);L.push({c,k,date:ki?ki.date:k,why:c.cancel[k],lab:ki&&!isDate(k)?ki.lab:""})}
   L.sort((a,b)=>b.date.localeCompare(a.date));
   return `<div class="card form"><h2>Séances annulées manuellement · الحصص الملغاة</h2>${L.length?`<span class="hint">Une séance annulée par erreur peut être rétablie ici ou depuis la séance elle-même.</span>${L.map(x=>`<div class="xrow"><div><b>${esc(x.c.name)} · ${fmtD(x.date)}${x.lab?" · "+esc(x.lab):""}</b><span class="hint">${esc(x.why)}</span></div><button class="btn primary" data-act="uncancelX" data-cid="${x.c.id}" data-k="${esc(x.k)}">Rétablir</button></div>`).join("")}`:`<p class="hint" style="margin:0">Aucune séance annulée manuellement. Les séances tombant pendant les vacances et jours fériés sont annulées automatiquement et n'apparaissent pas ici.</p>`}</div>`}
-function holCard(){const L=holList();return `<div class="card form"><h2>Calendrier officiel 2026-2027 · العطل</h2><span class="hint">Les séances officielles qui tombent pendant ces jours sont annulées automatiquement. Les vacances et jours fériés civils sont fixes ; les fêtes religieuses dépendent du croissant lunaire : ajustez leurs dates dès l'annonce officielle.</span>
-  <ul class="notes">${L.map(h=>`<li><div><b style="font-size:.9rem">${esc(h.label)}</b><small>${HOLK[h.kind]}${h.kind==="rel"?" · date estimée, modifiable":" · fixe"}</small>${h.kind==="rel"?`<div class="grid2" style="margin-top:6px"><label class="hint">Du<input type="date" id="holf-${h.id}" data-hol="${h.id}" value="${h.from}" style="background:var(--sheet);border:1px solid var(--line);border-radius:8px;padding:6px 8px;width:100%"></label><label class="hint">Au<input type="date" id="holt-${h.id}" data-hol="${h.id}" value="${h.to}" style="background:var(--sheet);border:1px solid var(--line);border-radius:8px;padding:6px 8px;width:100%"></label></div>`:`<small>${h.from===h.to?fmtD(h.from):"du "+fmtD(h.from)+" au "+fmtD(h.to)}</small>`}</div></li>`).join("")}</ul></div>`}
+function holCard(){const L=holList();return `<details class="card form fold ${holRO()?"ro":""}" data-fold="hol" ${fOpen("hol",false)}><summary><h2>Vacances et jours fériés · العطل</h2></summary>${holLock()}<span class="hint">Séances annulées automatiquement. Fêtes religieuses : dates modifiables.</span>
+  <ul class="notes">${L.map(h=>`<li><div><b style="font-size:.9rem">${esc(h.label)}</b><small>${HOLK[h.kind]}${h.kind==="rel"?" · date estimée, modifiable":" · fixe"}</small>${h.kind==="rel"?`<div class="grid2" style="margin-top:6px"><label class="hint">Du<input type="date" id="holf-${h.id}" data-hol="${h.id}" value="${h.from}" style="background:var(--sheet);border:1px solid var(--line);border-radius:8px;padding:6px 8px;width:100%"></label><label class="hint">Au<input type="date" id="holt-${h.id}" data-hol="${h.id}" value="${h.to}" style="background:var(--sheet);border:1px solid var(--line);border-radius:8px;padding:6px 8px;width:100%"></label></div>`:`<small>${h.from===h.to?fmtD(h.from):"du "+fmtD(h.from)+" au "+fmtD(h.to)}</small>`}</div></li>`).join("")}</ul></details>`}
 function markRec(cid,key){const c=S.classes[cid];if(!c||(c.rec||{})[key])return;c.rec={...(c.rec||{}),[key]:1};saveClass(c)}
 function syncRec(c){if(!c)return;const rec={};for(const k in S.days){const d=S.days[k]||{};if(Object.keys(d.marks||{}).length||d.lesson)rec[k]=1}
   const cur=c.rec||{};if(Object.keys(rec).some(k=>!cur[k])){c.rec={...cur,...rec};saveClass(c)}}
@@ -582,13 +588,17 @@ function clsDetail(c){const P=progPct(c),its=progItems(c),PD=c.plkDone||{};const
   <div data-mod="eval" style="display:grid;gap:8px"><b style="font-size:.95rem">Devoirs</b>
   <div style="display:flex;flex-wrap:wrap;gap:6px">${SLOTS.filter(x=>["year","custom"].includes(S.period||"year")||x[0].startsWith((S.period||"").toUpperCase())).map(x=>{const E=exBySlot(c,x[0]);const v=E?Object.values(E.res||{}).map(r=>r.note).filter(n=>n!=null):[];const av=v.length?v.reduce((a,b)=>a+b,0)/v.length:null;return `<span class="tag" style="padding:4px 10px;${E?"":"opacity:.6"}">${x[1]} : ${E?`<b class="${av!=null&&av<10?"r":"g"}">${av!=null?f1(av):"–"}</b>`:"—"}</span>`}).join("")}</div>
   <div class="tools"><button class="btn primary" data-act="goImport" data-k="ex">Importer des notes de devoir</button><button class="btn" data-act="go" data-to="eval">Voir les analyses</button></div></div></div>`}
+function progFold(){const lv=S.pgLvl||(cls()&&LEVELS.includes(cls().level)?cls().level:"1AC");const n=(((S.prog||{})[lv]||{}).items||[]).length;
+  if(!(S.fold||{}).prog)return `<div class="card form"><div style="display:flex;align-items:center;gap:8px"><h2 style="flex:1;margin:0">Programme annuel · المقرر</h2><button class="btn" data-act="progOpen">Modifier</button></div><span class="hint">${LEVELS.filter(l=>(((S.prog||{})[l]||{}).items||[]).length).map(l=>l+" : "+((S.prog[l].items||[]).length)+" éléments"+(progSrc(l)==="shared"?" (commun)":"")).join(" · ")||"Aucun programme"}</span></div>`;
+  return progModeCard(lv)+progEditor().replace('<div class="card form"><h2>Programme annuel · المقرر</h2>','<div class="card form"><div style="display:flex;align-items:center;gap:8px"><h2 style="flex:1;margin:0">Programme annuel · المقرر</h2><button class="btn" data-keep data-act="progClose">Fermer</button></div>')}
 function progEditor(){const lv=S.pgLvl||(cls()&&LEVELS.includes(cls().level)?cls().level:"1AC");const items=((S.prog||{})[lv]||{}).items||[];
-  return `<div class="card form"><h2>Programme annuel · المقرر</h2><span class="hint">Une liste par niveau, commune à toutes les classes de ce niveau, dans l'ordre de la répartition. Chaque élément a un nom court et un nombre de séances.</span>
+  return `<div class="card form ${progSrc(lv)==="shared"&&!S.isAdmin?"ro":""}"><h2>Programme annuel · المقرر</h2><span class="hint">Une liste par niveau, dans l'ordre de la répartition.</span>
   <label>Niveau<select id="pgLvl">${LEVELS.map(l=>`<option ${l===lv?"selected":""}>${l}</option>`).join("")}</select></label>
   ${lv==="1AC"?(S.pgAsk?`<div class="confirm" style="display:grid;gap:6px"><span>Remplacer le programme 1AC par la programmation officielle (5 périodes, 12 chapitres, séances et tâches) ?</span><div class="tools"><button class="btn primary" data-act="pg1acYes">Oui, charger</button><button class="btn" data-act="pg1acNo">Annuler</button></div></div>`:`<div><button class="btn" data-act="pg1ac">Charger la programmation officielle 1AC (5 périodes)</button></div>`):""}
   ${items.length?`<span class="hint">${items.length} éléments · ${items.reduce((a,i)=>a+nOf(i),0)} séances prévues</span><ol class="prog">${items.map((i,n)=>`<li><span class="ty ${i.ty}">${TY[i.ty]}</span><span class="pt">${i.per?`<span class="tag" style="padding:0 6px;font-size:.7rem">P${i.per}</span> `:""}<b style="font-size:inherit">${esc(i.t)}</b>${i.full?`<br><span class="hint">${esc(i.full)}</span>`:""}</span><span class="tag" style="padding:2px 4px 2px 8px">${nOf(i)} séance${nOf(i)>1?"s":""}<button class="x" style="padding:2px 6px" data-act="pgN" data-n="${n}" data-d="-1" aria-label="Une séance de moins">−</button><button class="x" style="padding:2px 6px;color:var(--ok)" data-act="pgN" data-n="${n}" data-d="1" aria-label="Une séance de plus">+</button></span>${n?`<button class="x" style="color:var(--muted)" data-act="pgUp" data-n="${n}" aria-label="Monter">↑</button>`:""}<button class="x" data-act="pgDel" data-n="${n}" aria-label="Supprimer ${esc(i.t)}">✕</button>${i.ty==="lecon"&&!i.steps?`<button class="btn" data-act="planEd" data-n="${n}" style="padding:3px 8px;font-size:.78rem;${(i.plan||[]).length?"border-color:var(--ok);color:var(--ok)":""}">${(i.plan||[]).length?"✓ ":""}Activités${(i.plan||[]).length?" ("+i.plan.filter(x=>x.kind==="act").length+")":""}</button>`:""}</li>${S.planEd&&S.planEd.id===i.id&&S.planEd.lv===lv?`<li style="display:block">${actPlanEditor(i)}</li>`:""}`).join("")}</ol>`:`<p class="hint" style="margin:0">Aucun élément pour le niveau ${lv}.</p>`}
+  <div class="tools"><label class="btn" for="pgFile" style="cursor:pointer">📄 Importer un fichier (PDF, Word, Excel)</label><input type="file" id="pgFile" accept=".pdf,.docx,.xlsx,.xls,.ods,.csv,.txt,application/pdf" hidden></div>
   <form id="pgForm" class="form" style="padding:0"><label>Type<select id="pgTy"><option value="lecon">Leçon</option><option value="ex">Séance d'exercices / soutien</option><option value="dev">Devoir</option></select></label>
-  <label>Ajouter : un élément par ligne, nom court puis nombre de séances après « ; »<textarea id="pgBulk" placeholder="Atomes ; 2&#10;Ions ; 2&#10;pH ; 1"></textarea></label>
+  <label>Ajouter : un élément par ligne, nom court puis nombre de séances après « ; »<textarea id="pgBulk" placeholder="Atomes ; 2&#10;Ions ; 2&#10;pH ; 1">${esc(S.pgBulk||"")}</textarea></label>
   <div><button class="btn primary" type="submit">Ajouter au programme ${lv}</button></div></form></div>`}
 function progressCard(c){const it=progItems(c),P=progPct(c);if(!P)return "";
   return `<div class="card form"><h2>Avancement du programme</h2><div class="bar20" style="height:10px;border-radius:5px"><i style="width:${P.pc}%"></i></div><b>${P.n} / ${P.t} séances réalisées · ${P.pc} %</b>
@@ -648,7 +658,7 @@ function tfTime(t,ds,end){if(!t)return t;const md=modeOn(ds);if(md==="normal")re
   const j=PERIODS.findIndex(p=>hm2m(t)>=hm2m(p[0])&&hm2m(t)<hm2m(p[1]));if(j>=0)return m2hm(hm2m(R[j][0])+Math.round((hm2m(t)-hm2m(PERIODS[j][0]))*(hm2m(R[j][1])-hm2m(R[j][0]))/60));return t}
 const tfSlot=(sl,ds)=>({...sl,s0:sl.s,e0:sl.e,s:tfTime(sl.s,ds,false),e:sl.e?tfTime(sl.e,ds,true):sl.e});
 function schedCard(){const X=sched(),cur=modeOn(today());
-  return `<details class="card" ${S.schedOpen?"open":""} data-sched="1"><summary class="share" style="cursor:pointer;font-weight:700">Horaire en vigueur · التوقيت : ${MODEL[cur]}${X.mode==="auto"?" (automatique)":""}</summary><div class="share form" style="padding-top:0">
+  return `<details class="card ${holRO()?"ro":""}" ${S.schedOpen?"open":""} data-sched="1"><summary class="share" style="cursor:pointer;font-weight:700">Horaire en vigueur · التوقيت : ${MODEL[cur]}${X.mode==="auto"?" (automatique)":""}</summary><div class="share form" style="padding-top:0">${holLock()}
     <div class="seg" role="group" aria-label="Horaire">${[["normal","Normal"],["hiver","Hiver"],["ramadan","Ramadan"],["auto","Selon les dates"]].map(([v,l])=>`<button data-act="schedMode" data-m="${v}" aria-pressed="${X.mode===v}">${l}</button>`).join("")}</div>
     <span class="hint">Normal : 8h–12h et 14h–18h (sauf samedi après-midi et dimanche). Hiver : l'après-midi passe à 13h30–17h30. Ramadan : horaires de la note ministérielle, modifiables ci-dessous. L'emploi du temps se saisit toujours en horaire normal ; Rclass l'adapte automatiquement.</span>
     ${X.mode==="auto"?`<div class="grid2"><label>Hiver : du<input type="date" data-schd="hiver.from" value="${X.hiver.from}"></label><label>au<input type="date" data-schd="hiver.to" value="${X.hiver.to}"></label><label>Ramadan : du<input type="date" data-schd="ramadan.from" value="${X.ramadan.from}"></label><label>au<input type="date" data-schd="ramadan.to" value="${X.ramadan.to}"></label></div><span class="hint">En dehors de ces périodes, l'horaire normal s'applique. Les séances passées gardent l'horaire de leur date.</span>`:""}
@@ -740,7 +750,8 @@ function planSeance(c,st,numMode){
   if(s){const m=mark(s.id),p=m.p||"P";
     const row=(k,lab)=>`<div class="step ${k}"><span>${lab}</span><button data-act="dec" data-k="${k}" data-id="${s.id}" aria-label="Retirer 1 : ${lab}">−</button><b>${m[k]||0}</b><button data-act="${k}" data-id="${s.id}" aria-label="Ajouter 1 : ${lab}">+</button></div>`;
     const FLs=FL[s.id],sn=(s.notes||[]).filter(n=>n.k===dk());
-    h+=`<div style="height:380px"></div><div class="sheet" role="dialog" aria-label="${esc(s.name)}"><div class="sheethead"><b>${s.num}. ${esc(s.name)}</b><button class="btn" data-act="fiche" data-id="${s.id}">Fiche</button><button class="pres ${p}" data-act="pres" data-id="${s.id}">${presLab(p)}</button><button class="x" data-act="closeSheet" aria-label="Fermer">✕</button></div>
+    h+=`<div style="height:380px"></div><div class="sheet" role="dialog" aria-label="${esc(s.name)}"><div class="sheethead"><button class="btn navb" data-act="stuNav" data-d="-1" aria-label="Élève précédent">‹</button><b>${s.num}. ${esc(s.name)}</b><button class="btn navb" data-act="stuNav" data-d="1" aria-label="Élève suivant">›</button><button class="btn" data-act="fiche" data-id="${s.id}">Fiche</button><button class="pres ${p}" data-act="pres" data-id="${s.id}">${presLab(p)}</button><button class="x" data-act="closeSheet" aria-label="Fermer">✕</button></div>
+      <div class="numstrip">${st.map(x=>`<button data-act="stu" data-id="${x.id}" class="${x.id===s.id?"on":""}">${x.num}</button>`).join("")}</div>
       ${FLs?`<div class="flag">⚑ ${esc(flagTxt(FLs))}</div>`:""}
       <div class="steps" style="${p==="A"?"opacity:.35;pointer-events:none":""}">${row("ex","✓ Exercice")}${row("plus","+ Participation")}${row("minus","− Comportement")}</div>
       <div class="tools">${cahBtn(m,s,p)}<button class="cah ${m.diff?"inc":"none"}" data-act="diff" data-id="${s.id}" ${p==="A"?"disabled":""}>${m.diff?"✓ En difficulté sur la leçon":"Signaler une difficulté"}</button></div>
@@ -753,8 +764,8 @@ function planEditor(c){
   let panel="";
   if(S.edSeat){const [r,t,p]=S.edSeat.split("-");const cur=seats[S.edSeat]||"";const placedAt={};for(const k in seats)placedAt[seats[k]]=k;
     panel=`<label>Rangée ${r}, table ${t}, place ${p}<select id="seatPick"><option value="">— Place libre —</option>${st.map(s=>`<option value="${s.id}" ${s.id===cur?"selected":""}>${s.num}. ${esc(s.name)}${placedAt[s.id]&&s.id!==cur?" (déjà placé)":""}</option>`).join("")}</select></label>`}
-  return `<div class="card form"><h2>Plan de la classe</h2>
-    <p class="hint" style="margin:0">Reproduisez la disposition de la salle. Touchez une place puis choisissez l'élève. Choisir un élève déjà placé échange les deux places.</p>
+  return `<details class="card form fold" data-fold="plan" ${fOpen("plan",false)}><summary><h2>Plan de la classe</h2></summary>
+    <p class="hint" style="margin:0">Glissez un élève vers une autre place (sur téléphone : appui long), ou touchez une place pour choisir.</p>
     <div class="grid2"><label>Rangées (de l'avant au fond)<input type="number" min="1" max="12" id="lyRows" value="${L.rows}"></label>
     <label>Tables par rangée<input type="number" min="1" max="6" id="lyCols" value="${L.cols}"></label>
     <label>Places par table<input type="number" min="1" max="3" id="lyPer" value="${L.per}"></label></div>
@@ -762,9 +773,8 @@ function planEditor(c){
     ${S.cardAsk?`<div class="confirm" style="display:grid;gap:6px"><span>Replacer tous les élèves selon leur numéro de carte ?</span>${(()=>{const L=lay(c);return L.cols!==4||L.per!==2?`<span style="font-weight:400;color:var(--bad)">Attention : ce plan a ${L.cols} table(s) de ${L.per} par rangée. La numérotation des cartes suppose 4 tables de 2 places par rangée : réglez « Tables par rangée » sur 4 et « Places par table » sur 2.</span>`:""})()}<span style="font-weight:400">Ordre : 1re rangée (devant) de gauche à droite, puis la rangée suivante ; la dernière rangée commence aussi tout à gauche. Un numéro de carte absent laisse sa place vide, sauf le n° 3 (carte abîmée, non utilisée) : le n° 4 suit directement le n° 2. Les élèves sans carte restent sans place.</span><div class="tools"><button class="btn primary" data-act="cardSeatYes">Oui, replacer</button><button class="btn" data-act="cardSeatNo">Annuler</button></div></div>`:""}
     <div class="tools"><button class="btn" data-act="clearSeats">Vider le plan</button></div>
     <div class="tools"><button class="btn primary" data-act="planPdf">Plan en PDF (à imprimer)</button><button class="btn" data-act="planPng">Plan en image (PNG)</button></div>
-    <span class="hint">Le PDF contient le plan de la salle avec le nom de chaque élève, puis la liste des élèves avec leur place (rangée, table, place).</span>
-    ${panel}</div>
-  ${seatGrid(c,(key,sid)=>{const s=by[sid];return `<button class="seat ${s?"":"empty"} ${S.edSeat===key?"on":""}" data-act="edSeat" data-key="${key}">${s?`<span class="sn">${s.num}${s.card?` <span style="opacity:.6">#${s.card}</span>`:""}</span><span class="nm">${esc(short(s.name))}</span>`:`<span class="sn">libre</span>`}</button>`})}`;
+    ${panel}
+  ${seatGrid(c,(key,sid)=>{const s=by[sid];return `<button class="seat ${s?"":"empty"} ${S.edSeat===key?"on":""}" data-act="edSeat" data-key="${key}">${s?`<span class="sn">${s.num}${s.card?` <span style="opacity:.6">#${s.card}</span>`:""}</span><span class="nm">${esc(short(s.name))}</span>`:`<span class="sn">libre</span>`}</button>`})}</details>`;
 }
 
 /* ---------- Alerte retards ---------- */
@@ -879,7 +889,9 @@ function history(c,s){const notes=s.notes||[];const keys=new Set();for(const k i
     return {...i,m,lesson:lessonOf(k),notes:notes.filter(n=>n.k===k)}}).sort((a,b)=>b.ord.localeCompare(a.ord))}
 function viewFiche(c,sid){const s=c.students.find(x=>x.id===sid);const T=totals(c).rows.find(r=>r.id===sid)||{};const H=history(c,s);const pl=placeOf(c)[sid];
   const cell=v=>v===undefined||v===null||v===""?"–":v;
-  return `<div><button class="back" data-act="ficheClose">← Retour</button></div>
+  const SL=sorted(c);
+  return `<div style="display:flex;gap:6px;align-items:center"><button class="back" data-act="ficheClose">← Retour</button><span style="flex:1"></span><button class="btn navb" data-act="ficheNav" data-d="-1" aria-label="Élève précédent">‹</button><button class="btn navb" data-act="ficheNav" data-d="1" aria-label="Élève suivant">›</button></div>
+  <div class="numstrip">${SL.map(x=>`<button data-act="fiche" data-id="${x.id}" class="${x.id===s.id?"on":""}">${x.num}</button>`).join("")}</div>
   <div class="card form"><h2>${s.num}. ${esc(s.name)}</h2><span class="hint">${esc(c.name)}${c.level?" · "+esc(c.level):""}${s.massar?" · code Massar "+esc(s.massar):""}${s.card?" · carte Plickers "+s.card:""}${pl?` · rangée ${pl.r}, table ${pl.t}, place ${pl.p}`:""}${s.from?` · vient de ${esc(s.from)}`:""}</span></div>
   <div class="card summary"><div><b class="${T.note>=10?"g":"r"}">${(T.note??0).toFixed(2)}</b><span>Note /20</span></div><div><b class="${T.A?"r":""}">${T.A||0}</b><span>Absences</span></div><div><b class="y">${T.ex||0}</b><span>Exercices</span></div><div><b style="font-size:1.1rem"><span class="g" style="font-size:inherit;text-transform:none;letter-spacing:0">+${T.plus||0}</span> <span class="r" style="font-size:inherit;text-transform:none;letter-spacing:0">−${T.minus||0}</span></b><span>Particip. · conduite</span></div></div>
   ${(()=>{const EX=(c.exams||[]).filter(E=>(E.res||{})[sid]&&exPerOK(c,E)).sort((a,b)=>b.date.localeCompare(a.date));if(!EX.length)return "";return `<div class="card form"><h2>Devoirs · الفروض</h2><ul class="remind">${EX.map(E=>{const r=E.res[sid];return `<li style="display:grid;gap:4px"><span style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><b style="font-size:.9rem">${esc(E.title)}</b><span class="hint">${fmtD(E.date)}</span><b class="${r.note!=null&&r.note<10?"r":"g"}" style="margin-inline-start:auto">${r.note!=null?String(r.note).replace(".",",")+" / 20":"–"}</b></span>${isPion(c)&&(E.comps||[]).length?`<span style="display:flex;flex-wrap:wrap;gap:4px 10px">${E.comps.map((k,i)=>`<span title="${esc(k.name)}">${esc(k.code)} ${lvB((r.comp||[])[i])} <span class="hint">${esc(k.name.slice(0,40))}</span></span>`).join("")}</span>`:""}</li>`}).join("")}</ul></div>`})()}
@@ -1051,16 +1063,16 @@ function viewSeance(c){
   const X=(c.extras||[]).slice().sort((a,b)=>(b.date+b.s).localeCompare(a.date+a.s)),cx=X.find(x=>x.id===S.xid);const SS=sessState(c);const CN=canOf(c,dk(),S.date),CAN=CN&&CN.why;
   const out=`
   <div class="sessbar"><select id="sessSel" aria-label="Choisir la séance">${SD.map(x=>`<option value="${x}" ${x===S.date&&!S.xid?"selected":""}>${fmtD(x)}${x===today()?" · aujourd'hui":""}${canOf(c,x,x)?" · annulée":has(x)?" ✓":""}</option>`).join("")}${X.length?`<optgroup label="Soutien · rattrapage · supplémentaire">${X.map(x=>`<option value="x:${x.id}" ${x.id===S.xid?"selected":""}>${fmtD(x.date)} ${x.s} · ${XS[x.type]}${(c.cancel||{})["X-"+x.id]?" · annulée":has("X-"+x.id)?" ✓":""}</option>`).join("")}</optgroup>`:""}</select><input type="date" id="dateIn" value="${S.date}" aria-label="Autre date" style="flex:0 1 150px;min-width:0;background:var(--sheet);border:1px solid var(--line);border-radius:9px;padding:7px 8px">${isT?"":`<button class="btn primary" data-act="goToday">Aujourd'hui</button>`}</div><!--endbar-->
-  ${SS.ok?"":`<div class="lockmsg">Saisie bloquée · ${esc(SS.msg)}</div>`}
+
   ${S.cancelOpen?`<form class="card form" id="cancelForm"><h2>Annuler cette séance</h2><label>Motif<select id="canR">${CANR.map(r=>`<option>${esc(r)}</option>`).join("")}</select></label><span class="hint">La séance apparaîtra barrée dans l'emploi du temps et ne pourra plus être notée. Vous pourrez la rétablir.</span><div class="tools"><button class="btn danger" type="submit">Confirmer l'annulation</button><button type="button" class="btn" data-act="cancelOpen">Fermer</button></div></form>`:""}
   ${cx?`<div class="past xbanner">${XT[cx.type]} · ${esc(lab)} · ${hrs(cx)}<br><span style="font-weight:400">Faites l'appel puis validez. Les exercices, la participation, le comportement et le cahier notés ici comptent dans la note des activités.</span></div><div class="tools"><button class="btn primary" data-act="valAppel">Valider l'appel</button></div>
   <form class="card form" id="xForm"><h2>Fiche de la séance</h2>
     <label>Objectifs de la séance<textarea id="xObj" style="min-height:70px" placeholder="Ex. : remédier aux difficultés sur la masse volumique…">${esc(cx.obj||"")}</textarea></label>
     <label>Déroulement et observations<textarea id="xDev" style="min-height:90px" placeholder="Activités réalisées, difficultés rencontrées, suites à donner…">${esc(cx.dev||"")}</textarea></label>
     <div><button class="btn primary" type="submit">Enregistrer la fiche</button></div></form>`:isT?"":`<div class="past">Vous modifiez une séance passée : ${esc(lab)}.</div>`}
-  ${lessonFormHtml(c)}
-  <div data-mod="prog" style="display:contents">${planCard(c)}</div>
-  <div data-mod="plk" style="display:contents">${plkPendCard(c)}</div>
+  ${SS.ok?lessonFormHtml(c):""}
+  ${SS.ok?`<div data-mod="prog" style="display:contents">${planCard(c)}</div>`:""}
+  <div data-mod="plk" style="display:contents">${SS.ok?plkPendCard(c):""}</div>
   ${flagBox}
   ${cx&&(cx.targets||[]).length?(()=>{const C=concerned(c,cx.targets);const les=cx.targets.map(k=>{const ki=keyInfo(c,k);return (ki?fmtD(ki.date):"")+(lessonOf(k)?" – "+lessonOf(k):"")});return `<div class="hint">Séances reprises : ${esc(les.join(" · "))}</div>`+(C.length?concernedHtml(C,"Élèves concernés par cette séance",true):"")})():cx&&cx.type==="soutien"?(()=>{const D=diffGrouped(c);return D.length?concernedHtml(D.map(g=>({st:g.st,items:g.items.map(i=>({...i,w:["Difficulté"]}))})),"Élèves signalés en difficulté",true):""})():""}
   ${(()=>{if(!SS.ok)return "";const F=forgotten(c);return F.length?`<details class="card"><summary class="share" style="cursor:pointer;font-weight:700">Pas encore sollicités · ${F.length} élève${F.length>1?"s":""}</summary><div class="share" style="padding-top:0"><span class="hint">Aucun exercice réussi ni participation lors des 3 dernières séances où ils étaient présents. Pensez à les interroger.</span><div class="tools">${F.map(st=>`<button class="btn" data-act="stu" data-id="${st.id}">${st.num}. ${esc(short(st.name))}</button>`).join("")}</div></div></details>`:""})()}
@@ -1075,7 +1087,7 @@ function viewSeance(c){
   ${(()=>{const k=dk(),d=S.days[k]||{},nm=Object.keys(d.marks||{}).length,nn=(c.students||[]).reduce((a,x)=>a+(x.notes||[]).filter(n=>n.k===k).length,0);if(!nm&&!d.lesson&&!nn)return "";
     return S.eraseAsk?`<div class="confirm" style="display:grid;gap:8px"><span>Effacer tout l'enregistrement de cette séance (${esc(lab)}) ?</span><span style="font-weight:400">${[nm?nm+" élève"+(nm>1?"s":"")+" noté"+(nm>1?"s":"")+" (appel, points, cahier)":"",d.lesson?"la leçon « "+esc(d.lesson)+" »":"",nn?nn+" remarque"+(nn>1?"s":""):""].filter(Boolean).join(", ")}. La séance redeviendra vide. Une copie reste dans les sauvegardes automatiques.</span><div class="tools"><button class="btn danger" data-act="eraseYes">Oui, effacer la séance</button><button class="btn" data-act="eraseNo">Garder</button></div></div>`
     :`<div><button class="linkbtn" data-act="eraseAsk" style="color:var(--bad)">Annuler l'enregistrement de cette séance</button></div>`})()}
-  ${S.pick?`<div class="card pick"><span class="hint">Élève interrogé · priorité à ceux qui ont le moins participé</span><b>${esc((st.find(s=>s.id===S.pick)||{}).name)}</b><div class="tools" style="justify-content:center"><button class="btn" data-act="plus" data-id="${S.pick}">+1 participation</button><button class="btn" data-act="ex" data-id="${S.pick}">Exercice fait</button><button class="btn" data-act="pick">Un autre</button></div></div>`:""}
+  ${S.pick?`<div class="card pick"><span class="hint">Élève interrogé · priorité à ceux qui ont le moins participé</span><b>${esc((st.find(s=>s.id===S.pick)||{}).name)}</b><div class="tools" style="justify-content:center"><button class="btn" data-act="plus" data-id="${S.pick}">+ Participation</button><button class="btn" data-act="ex" data-id="${S.pick}">✓ Exercice</button><button class="btn" data-act="minus" data-id="${S.pick}">− Comportement</button><button class="btn" data-act="cah" data-id="${S.pick}">Cahier : ${({"":"–",ok:"complet",abs:"absent",inc:"incomplet"})[mark(S.pick).cah||""]}</button><button class="btn" data-act="diff" data-id="${S.pick}" aria-pressed="${!!mark(S.pick).diff}">${mark(S.pick).diff?"✓ Difficulté":"Difficulté"}</button><button class="btn primary" data-act="pick">Un autre</button></div></div>`:""}
   ${S.mode==="plan"?planSeance(c,st):S.mode==="num"?planSeance(c,st,true):S.mode==="team"?planSeance(c,st):`<ul class="card roll ${S.undo?"undo":""}">${st.map(s=>{const m=mark(s.id);const p=m.p||"P";
     return `<li class="${p==="A"?"abs":""}" id="r-${s.id}"><span class="n">${s.num||""}</span><span class="name"><button class="namebtn" data-act="fiche" data-id="${s.id}">${esc(s.name)}</button>${(S._flags||{})[s.id]?` <span title="${esc(flagTxt(S._flags[s.id]))}" style="color:#c07a00">⚑</span>`:""}</span>
       <button class="pres ${p}" data-act="pres" data-id="${s.id}">${presLab(p)}</button>
@@ -1165,19 +1177,21 @@ function viewEdt(){
   const xs=xsAll.filter(x=>inWk(x)||(S.xSel||{})[x.id]);const others=xsAll.filter(x=>!inWk(x)).sort((a,b)=>(b.date+b.s).localeCompare(a.date+a.s));
   const lvls=[...new Set(list.map(c=>c.level).filter(Boolean))].sort();
   const scopeSel=`<label>Classes concernées<select id="xScope"><option value="all" ${S.xScope==="all"?"selected":""}>Toutes les classes</option>${lvls.length?`<optgroup label="Par niveau">${lvls.map(l=>`<option value="lvl:${esc(l)}" ${S.xScope==="lvl:"+l?"selected":""}>Niveau ${esc(l)}</option>`).join("")}</optgroup>`:""}<optgroup label="Par classe">${list.map(c=>`<option value="c:${c.id}" ${S.xScope==="c:"+c.id?"selected":""}>${esc(c.name)}</option>`).join("")}</optgroup></select></label>`;xs.sort((a,b)=>(b.date+b.s).localeCompare(a.date+a.s));
-  return `${schedCard()}${weekView()}
+  return `${weekView()}
   ${addForm()}
-  ${canList()}
+  ${extrasCard()}
+  <details class="card form fold" data-fold="edtSet" ${fOpen("edtSet",false)}><summary><h2>Réglages · تعديل</h2></summary><div style="display:grid;gap:10px;margin-top:8px">${schedCard()}${canList()}
   <div class="card form"><h2>Séances officielles (chaque semaine)</h2>${list.map(x=>{const L=(x.slots||[]).slice().sort((a,b)=>(a.d-b.d)||a.s.localeCompare(b.s));
     return `<div><b>${esc(x.name)}</b> <span class="hint">${esc(x.level||"")}</span><div class="tools" style="margin-top:4px">${L.length?L.map(sl=>`<span class="tag">${DAYS[sl.d]} ${hrs(sl)}<button type="button" class="x" data-act="rmSlot" data-cid="${x.id}" data-d="${sl.d}" data-s="${sl.s}" aria-label="Retirer ${DAYS_FULL[sl.d]} ${sl.s}">✕</button></span>`).join(""):`<span class="hint">Aucun horaire</span>`}</div></div>`}).join("")}</div>
-  <div class="card form"><h2>Soutien, rattrapage et séances supplémentaires</h2>
-    <span class="hint">Semaine du ${fmtD(wk0)} au ${fmtD(wk1)} (changez de semaine avec ‹ › en haut)${xs.some(x=>!inWk(x))?" + séances ajoutées d'autres semaines":""}.</span>
+</div></details>`;
+  function extrasCard(){return `  <div class="card form"><h2>Registre soutien / rattrapage</h2>
+    <span class="hint">Semaine du ${fmtD(wk0)} au ${fmtD(wk1)}</span>
     ${scopeSel}
     ${xs.length?`<div class="tools"><button class="btn" data-act="xSelAll">Tout cocher</button><button class="btn" data-act="xSelNone">Tout décocher</button><span class="hint">${Object.keys(S.xSel||{}).filter(id=>xs.some(x=>x.id===id)).length} séance(s) cochée(s)</span></div>`:""}
-    ${xs.length?xs.sort((a,b)=>(a.date+a.s).localeCompare(b.date+b.s)).map(x=>`<div class="xrow"><input type="checkbox" data-xsel="${x.id}" ${(S.xSel||{})[x.id]?"checked":""} aria-label="Choisir cette séance" style="width:22px;height:22px;flex:none;accent-color:var(--board)"><div><b>${esc(S.classes[x.cid].name)} · ${XT[x.type]}</b>${dateBlock(x.date)?`<span class="r" style="display:block;font-size:.8rem;font-weight:700">⚠ Tombe sur : ${esc(dateBlock(x.date))} — supprimez-la ou reprogrammez-la</span>`:""}<span class="hint">${DAYS_FULL[wd(x.date)]} ${new Date(x.date+"T12:00").toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"})} · ${hrs(x)}</span></div><button class="btn" data-act="goSess" data-id="${x.cid}" data-date="${x.date}" data-x="${x.id}">Ouvrir</button><button class="x" data-act="rmX" data-cid="${x.cid}" data-x="${x.id}" aria-label="Supprimer cette séance">✕</button></div>`).join(""):`<p class="hint" style="margin:0">Aucune séance programmée ${S.xScope==="all"?"":"pour ce choix "}. Utilisez « Ajouter une séance » et choisissez Soutien, Rattrapage ou Supplémentaire.</p>`}
+    ${xs.length?xs.sort((a,b)=>(a.date+a.s).localeCompare(b.date+b.s)).map(x=>`<div class="xrow"><input type="checkbox" data-xsel="${x.id}" ${(S.xSel||{})[x.id]?"checked":""} aria-label="Choisir cette séance" style="width:22px;height:22px;flex:none;accent-color:var(--board)"><div><b>${esc(S.classes[x.cid].name)} · ${XT[x.type]}</b>${dateBlock(x.date)?`<span class="r" style="display:block;font-size:.8rem;font-weight:700">⚠ Tombe sur : ${esc(dateBlock(x.date))} — supprimez-la ou reprogrammez-la</span>`:""}<span class="hint">${DAYS_FULL[wd(x.date)]} ${new Date(x.date+"T12:00").toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"})} · ${hrs(x)}</span></div><button class="btn" data-act="goSess" data-id="${x.cid}" data-date="${x.date}" data-x="${x.id}">Ouvrir</button><button class="x" data-act="rmX" data-cid="${x.cid}" data-x="${x.id}" aria-label="Supprimer cette séance">✕</button></div>`).join(""):`<p class="hint" style="margin:0">Aucune séance de soutien cette semaine.</p>`}
     ${others.length?(S.xMore?`<div style="display:grid;gap:4px;border:1px solid var(--line);border-radius:10px;padding:8px"><b style="font-size:.88rem">Ajouter des séances d'autres semaines</b>${others.map(x=>`<label style="flex-direction:row;align-items:center;gap:8px;font-weight:400"><input type="checkbox" data-xsel="${x.id}" ${(S.xSel||{})[x.id]?"checked":""} style="width:20px;height:20px;flex:none"><span>${fmtD(x.date)} ${hrs(x)} · ${esc(S.classes[x.cid].name)} · ${XT[x.type]}</span></label>`).join("")}<div><button class="btn" data-act="xMore">Fermer</button></div></div>`:`<div><button class="btn" data-act="xMore">+ Ajouter des séances d'autres semaines (${others.length})</button></div>`):""}
     <div class="tools"><button class="btn primary" data-act="xcsv">${(()=>{const n=Object.keys(S.xSel||{}).filter(id=>xs.some(x=>x.id===id)).length;return n?(n===1?"Télécharger le registre de la séance cochée":`Télécharger le registre des ${n} séances cochées`):"Télécharger le registre des séances de la semaine"})()} (CSV)</button></div>
-    <span class="hint">Le fichier ne contient que les classes choisies ci-dessus, regroupées classe par classe : une ligne par séance avec date, horaire, type, nombre de présents, noms des absents, objectifs et déroulement. Les points notés pendant ces séances comptent dans la note des activités.</span></div>`;
+    </div>`}
 }
 function scopeClasses(){const L=classList(),v=S.xScope||"all";if(v.startsWith("lvl:"))return L.filter(c=>c.level===v.slice(4));if(v.startsWith("c:")){const r=L.filter(c=>c.id===v.slice(2));return r.length?r:L}return L}
 function scopeLabel(){const v=S.xScope||"all";if(v.startsWith("lvl:"))return "niveau-"+v.slice(4);if(v.startsWith("c:")&&S.classes[v.slice(2)])return fileName(S.classes[v.slice(2)]);return "toutes-classes"}
@@ -1273,6 +1287,69 @@ async function stuCommit(){const I=S.stuImp;if(!I||!I.list)return;let nC=0,nS=0,
   S.stuImp=null;if(mis.length)showAlert("Noms à vérifier",`<p style="margin:0">Code Massar identique mais nom différent :</p><ul>${mis.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`);
   toast((nC?nC+" classe(s) créée(s) · ":"")+nS+" élève(s) ajouté(s)");if(first&&(!S.cid||!S.classes[S.cid]||isDemo(S.classes[S.cid])))return selectClass(first);render()}
 
+/* ---------- Import d'un programme (PDF, Word, Excel) ---------- */
+const PG_T=/^(le[çc]ons?|chapitres?|titres?|contenus?|activit[ée]s?|s[ée]quences?|unit[ée]s?|الدرس|الدروس|عنوان|المحتوى|المحتويات|الوحدة|الوحدات)/i,PG_N=/(nombre|nb|s[ée]ances|heures|dur[ée]e|عدد|الحصص|المدة|الغلاف|ساعات)/i;
+const PG_SKIP=/^(semaine|p[ée]riode|semestre|th[èe]me|domaine|mois|date|n°?|الأسبوع|الأسابيع|المجال|الأسدس|الشهر|التاريخ|الفترة)$/i;
+const pgNum=t=>{const m=ND(t).match(/(\d{1,2})\s*(h|heures?|s[ée]ances?|حصص|حصة|ساعات|ساعة|س)(?![a-z])/i);return m?+m[1]:null};
+function pgFromRows(rows){const out=[];let tc=-1,nc=-1;
+  for(const r0 of rows){const r=r0.map(x=>String(x??"").replace(/\s+/g," ").trim());if(!r.some(Boolean))continue;
+    const hi=r.findIndex(x=>PG_T.test(x)&&x.length<30);if(hi>=0&&r.filter(Boolean).length>1){tc=hi;nc=r.findIndex(x=>PG_N.test(x)&&x.length<30);continue}
+    let t="",n=null;
+    if(tc>=0){t=r[tc]||"";if(nc>=0){const v=ND(r[nc]||"").match(/\d{1,2}/);if(v)n=+v[0]}}
+    else{const C=r.filter(x=>x&&/[A-Za-z؀-ۿ]{3}/.test(x)&&!PG_SKIP.test(x)&&!/^\d/.test(ND(x)));t=C.sort((a,b)=>b.length-a.length)[0]||"";const nn=r.map(x=>ND(x)).find(x=>/^\d{1,2}\s*(h|s|س|حصص|حصة)?$/i.test(x)&&+x.match(/\d+/)[0]<=20);if(nn)n=+nn.match(/\d+/)[0]}
+    if(!t)continue;if(n==null)n=pgNum(t);t=t.replace(/\(?\s*\d{1,2}\s*(h|heures?|s[ée]ances?|حصص|حصة|ساعات|ساعة|س)\s*\)?/gi,"").replace(/^\s*(\d{1,2}|[ivx]+)\s*[-.)–:]\s*/i,"").replace(/\s+/g," ").trim();
+    if(t.length<3||PG_T.test(t)||PG_SKIP.test(t))continue;const l=out[out.length-1];if(l&&l.t===t){l.n+=n||1;continue}out.push({t,n:n||1})}
+  return out}
+async function pgFileParse(f){const nm=f.name.toLowerCase();let rows=[];
+  if(/\.pdf$/.test(nm)){const P=await pdfPages(f);P.forEach(W=>{const L=mergeTokens(W);const lines=[];L.forEach(w=>{let r=lines.find(r=>Math.abs(r.y-w.y)<Math.max(2.5,w.h*.4));if(!r){r={y:w.y,c:[]};lines.push(r)}r.c.push(w)});
+    lines.sort((a,b)=>a.y-b.y).forEach(r=>{const rtl=r.c.filter(w=>w.dir==="rtl").length>r.c.length/2;r.c.sort((a,b)=>rtl?b.x-a.x:a.x-b.x);rows.push([r.c.map(w=>w.t).join(" ")])})})}
+  else if(/\.docx$/.test(nm)){const W=await docxItems(f);const R=[];W.forEach(w=>{const y=Math.floor(w.y),x=Math.floor(w.x0);(R[y]=R[y]||[])[x]=w.t});rows=R.filter(Boolean).map(r=>Array.from(r,x=>x||""));
+    if(!rows.length){const get=await unzipXlsx(await f.arrayBuffer());const xml=await get("word/document.xml")||"";rows=[...new DOMParser().parseFromString(xml,"application/xml").getElementsByTagName("w:p")].map(p=>[p.textContent])}}
+  else if(/\.txt$/.test(nm))rows=(await f.text()).split(/\r?\n/).map(x=>[x]);
+  else{const T=await readTable(f);rows=T.extra&&T.extra.length?T.extra:T}
+  return pgFromRows(rows)}
+
+/* ---------- Données communes (administrateur) ---------- */
+const holRO=()=>!!(S.sh&&S.sh.calendar&&!S.isAdmin);
+const holLock=()=>S.sh&&S.sh.calendar?`<span class="hint">${S.isAdmin?"✎ Commun à tous les utilisateurs (vous êtes administrateur)":"🔒 Défini par l'administrateur"}</span>`:"";
+function calApply(){const C=S.sh&&S.sh.calendar;S.holEdit=C&&C.rel?C.rel:(S.holOwn||{});S.sched=C&&C.sched?C.sched:(S.schedOwn||null)}
+function progSrc(lv){const sh=(S.sh||{})["prog_"+lv];if(!sh)return "own";return ((S.progOwn||{})[lv]||{}).mode==="normal"?"own":"shared"}
+function progRecalc(){const own=S.progOwn||{},sh=S.sh||{};const P={};new Set([...Object.keys(own),...Object.keys(sh).filter(k=>k.startsWith("prog_")).map(k=>k.slice(5))]).forEach(lv=>{P[lv]=progSrc(lv)==="shared"?{items:(sh["prog_"+lv]||{}).items||[]}:{items:(own[lv]||{}).items||[]}});S.prog=P}
+function shApply(){const A=(S.sh||{}).admins,e=(api&&api.email||"").toLowerCase();S.isAdmin=!!(A&&e&&((A.owner||"").toLowerCase()===e||(A.emails||[]).map(x=>x.toLowerCase()).includes(e)));calApply();progRecalc()}
+const rulesTxt=em=>`rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+    function isAdmin() {
+      return request.auth != null && (request.auth.token.email == "${em}"
+        || request.auth.token.email in get(/databases/$(database)/documents/shared/admins).data.emails);
+    }
+    match /shared/{doc} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+  }
+}`;
+function progModeCard(lv){if(!api||!api.subShared)return "";const sh=(S.sh||{})["prog_"+lv],src=progSrc(lv);if(!sh&&!S.isAdmin)return "";
+  return `<div class="card form"><b style="font-size:.95rem">Programme ${esc(lv)} · نظام التدريس</b><div class="seg" role="group"><button data-act="pgMode" data-m="shared" aria-pressed="${src==="shared"}" ${sh?"":"disabled"}>Enseignement explicite (commun)</button><button data-act="pgMode" data-m="normal" aria-pressed="${src==="own"}">Normal (personnel)</button></div>
+  ${src==="shared"?`<span class="hint">${S.isAdmin?"✎ Vous modifiez le programme commun.":"🔒 Programme commun, défini par l'administrateur."}</span>`:`<span class="hint">Votre programme, modifiable librement.</span>${sh?`<div><button class="btn" data-act="pgCopy">Copier le programme commun dans le mien</button></div>`:""}`}
+  ${S.isAdmin&&src==="own"&&(((S.prog||{})[lv]||{}).items||[]).length?`<div><button class="btn" data-act="pgPublish">Publier ce programme comme programme commun ${esc(lv)}</button></div>`:""}</div>`}
+function adminCard(){if(!api||!api.subShared)return "";const A=(S.sh||{}).admins,me=api.email||"";
+  let h=`<details class="card form fold" data-fold="admin" ${fOpen("admin",false)}><summary><h2>Administration</h2></summary>`;
+  if(!A)h+=`<span class="hint">Aucun administrateur. Pour gérer le programme explicite, les vacances et les horaires communs :</span>
+    <ol class="hint" style="margin:0;padding-left:1.3em"><li>Copiez ces règles.</li><li>Firebase › Firestore › Règles : remplacez tout, puis Publier.</li><li>Touchez « Activer ».</li></ol>
+    <textarea readonly style="min-height:130px;font-size:.72rem;font-family:monospace" id="rulesTx">${esc(rulesTxt(me))}</textarea>
+    <div class="tools"><button class="btn" data-act="rulesCopy">Copier les règles</button><button class="btn primary" data-act="adminInit">Activer (${esc(me)})</button></div>`;
+  else if(S.isAdmin){const L=[A.owner,...(A.emails||[])];h+=`<span class="hint">Vous êtes administrateur. Les administrateurs modifient le programme commun, les vacances et les horaires.</span>
+    <div class="tools">${L.map(x=>`<span class="tag">${esc(x)}${x!==A.owner?`<button class="x" data-act="adminRm" data-e="${esc(x)}" aria-label="Retirer">✕</button>`:" (principal)"}</span>`).join("")}</div>
+    <div class="tools"><input id="adminNew" type="email" placeholder="e-mail du nouvel administrateur" style="flex:1;min-width:180px"><button class="btn" data-act="adminAdd">Ajouter</button></div>
+    <div class="tools"><button class="btn" data-act="calPublish">${S.sh.calendar?"Mettre à jour":"Publier"} les vacances et horaires communs</button></div>`}
+  else h+=`<span class="hint">Programme explicite, vacances et horaires : définis par ${esc(A.owner||"l'administrateur")}.</span>`;
+  return h+`</details>`}
+async function shSave(id,v,ok){try{await Promise.race([api.saveShared(id,v),new Promise((_,ko)=>setTimeout(()=>ko(new Error("timeout")),9000))]);if(ok)toast(ok)}catch(e){toast(/permission/i.test(String(e&&(e.code||e.message)))?"Refusé : publiez d'abord les règles dans Firebase.":"Échec : vérifiez la connexion.")}}
+
 /* ---------- Statistiques de la période ---------- */
 function statsCard(c,T){const R=T.rows,n=R.length,D=T.dates.length;if(!n||!D)return "";
   const sum=k=>R.reduce((s,r)=>s+(r[k]||0),0);const A=sum("A"),Rt=sum("R"),seen=R.reduce((s,r)=>s+r.seen,0);
@@ -1284,11 +1361,30 @@ function statsCard(c,T){const R=T.rows,n=R.length,D=T.dates.length;if(!n||!D)ret
   <div class="kpis">${k(pres+" %","Présence")+k(A,"Absences")+k(Rt,"Retards")+k(ex,"Exercices réalisés")+k("+"+pl,"Points +")+k("−"+mi,"Points −")+k(cA,"Cahiers absents")+k(cI,"Cahiers incomplets")+k((ex/D).toFixed(1),"Exercices / séance")}</div>
   <div class="grid2" style="gap:10px">${top("plus","Les plus participatifs (+)")}${top("ex","Le plus d'exercices")}${top("A","Le plus d'absences")}${top("minus","Le plus de points −")}${top("c","Cahier à surveiller",r=>(r.cA||0)+(r.cI||0))}${top("R","Le plus de retards")}</div></div>`}
 
+/* ---------- Blocs repliables ---------- */
+const fOpen=(k,d)=>((S.fold||{})[k]??d)?"open":"";
+document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.dataset&&d.dataset.fold){S.fold={...(S.fold||{}),[d.dataset.fold]:d.open};saveUI()}},true);
+/* ---------- Glisser-déposer des places ---------- */
+let DG=null;
+const seatAt=(x,y)=>{const t=document.elementFromPoint(x,y);return t&&t.closest&&t.closest('.seat[data-act="edSeat"]')};
+document.addEventListener("pointerdown",e=>{const b=e.target.closest&&e.target.closest('.seat[data-act="edSeat"]');if(!b||e.button>0)return;
+  DG={k:b.dataset.key,x:e.clientX,y:e.clientY,el:b,on:false,touch:e.pointerType!=="mouse"};
+  if(DG.touch)DG.tm=setTimeout(()=>{if(DG&&!DG.on){DG.on=true;DG.el.classList.add("dragging");try{navigator.vibrate&&navigator.vibrate(30)}catch(_){}}},320)},true);
+document.addEventListener("pointermove",e=>{if(!DG)return;const far=Math.hypot(e.clientX-DG.x,e.clientY-DG.y)>10;
+  if(!DG.on){if(far){if(DG.touch){clearTimeout(DG.tm);DG=null;return}DG.on=true;DG.el.classList.add("dragging")}else return}
+  document.querySelectorAll(".seat.dropto").forEach(x=>x.classList.remove("dropto"));const s=seatAt(e.clientX,e.clientY);if(s&&s!==DG.el)s.classList.add("dropto")},true);
+document.addEventListener("touchmove",e=>{if(DG&&DG.on)e.preventDefault()},{passive:false});
+document.addEventListener("pointercancel",()=>{if(DG){clearTimeout(DG.tm);DG.el.classList.remove("dragging");DG=null}},true);
+document.addEventListener("pointerup",async e=>{if(!DG)return;const d=DG;DG=null;clearTimeout(d.tm);if(!d.on)return;d.el.classList.remove("dragging");document.querySelectorAll(".seat.dropto").forEach(x=>x.classList.remove("dropto"));
+  S._noClick=Date.now();const s=seatAt(e.clientX,e.clientY);if(!s||s===d.el)return;const c=cls();if(!c)return;const seats={...(c.seats||{})};const a=seats[d.k],b=seats[s.dataset.key];
+  if(b)seats[d.k]=b;else delete seats[d.k];if(a)seats[s.dataset.key]=a;else delete seats[s.dataset.key];c.seats=seats;S.edSeat=null;await saveClass(c);render()},true);
+document.addEventListener("click",e=>{if(S._noClick&&Date.now()-S._noClick<450){e.stopPropagation();e.preventDefault();S._noClick=0}},true);
+
 /* ---------- Démonstration et fonctions affichées ---------- */
 const MODS=[["plk","Plickers","نتائج بليكرز، التذكير بها في الحصص"],["eval","Devoirs et évaluations","الفروض والتحليلات (onglet Évals)"],["plan","Plan de la salle","توزيع المقاعد"],["prog","Programme et déroulement des séances","المقرر، مراحل الحصة، الأنشطة"],["ct","Où est la classe ?","استعمال زمن القسم في صفحة القسم"]];
 const modOn=k=>(S.mods||{})[k]!==false;
-function modCard(){return `<div class="card form"><h2>Fonctions affichées · الخصائص المعروضة</h2><span class="hint">Masquez ce que vous n'utilisez pas. Les données ne sont pas effacées : réactivez la fonction pour les retrouver.</span>
-  <div style="display:grid;gap:6px">${MODS.map(([k,t,ar])=>`<label class="ctrow"><input type="checkbox" data-mod-t="${k}" ${modOn(k)?"checked":""}> <b>${esc(t)}</b> <span class="hint">${esc(ar)}</span></label>`).join("")}</div></div>`}
+function modCard(){return `<details class="card form fold" data-fold="mods" ${fOpen("mods",false)}><summary><h2>Fonctions affichées</h2></summary><span class="hint">Les données masquées sont conservées.</span>
+  <div style="display:grid;gap:6px">${MODS.map(([k,t,ar])=>`<label class="ctrow"><input type="checkbox" data-mod-t="${k}" ${modOn(k)?"checked":""}> <b>${esc(t)}</b> <span class="hint">${esc(ar)}</span></label>`).join("")}</div></details>`}
 const isDemo=c=>!!(c&&c.demo);
 const DEMO={classes:{},days:{}};
 function demoIsOff(){try{return localStorage.getItem("rc-demo-off"+PSUF)==="1"}catch(e){return false}}
@@ -1324,7 +1420,9 @@ function demoWrap(a){const w=Object.create(a);let last={},cbC=null;const isD=cid
   w.exportAll=async function(){const r=await a.exportAll.call(this);for(const id of Object.keys(r.classes||{}))if(isD(id)||(r.classes[id]&&r.classes[id].demo)){delete r.classes[id];if(r.days)delete r.days[id]}if(r.calendar)r.calendar.mods=S.mods||{};return r};
   w.restore=async function(B){const r=await a.restore.call(this,B);if(B&&B.classes&&Object.keys(B.classes).length)demoClear();return r};
   if(a.replaceAll)w.replaceAll=async function(B){demoClear();return a.replaceAll.call(this,B)};
-  w.saveCalendar=d=>a.saveCalendar({...d,mods:S.mods||{}});
+  w.saveCalendar=d=>{const C=S.sh&&S.sh.calendar;if(C&&a.saveShared){if(S.isAdmin)shSave("calendar",{rel:d.rel||{},sched:d.sched||null});return a.saveCalendar({rel:S.holOwn||{},sched:S.schedOwn||null,mods:S.mods||{}})}return a.saveCalendar({...d,mods:S.mods||{}})};
+  w.saveProgramme=async(lv,data)=>{if(progSrc(lv)==="shared"){if(!S.isAdmin){toast("Programme commun : modifiable par l'administrateur.");progRecalc();render();return}return shSave("prog_"+lv,{items:data.items||[]})}const md=((S.progOwn||{})[lv]||{}).mode;S.progOwn={...(S.progOwn||{}),[lv]:{...data,...(md?{mode:md}:{})}};return a.saveProgramme(lv,{...data,...(md?{mode:md}:{})})};
+  w.saveProgOwn=(lv,d)=>a.saveProgramme(lv,d);
   return w}
 function demoBlock(imp){S.tab="classe";S.stu=null;saveUI();render();const f=$("#ncName");if(f){f.scrollIntoView({block:"center"});f.focus()}
   toast(imp?"Créez d'abord votre classe : les classes de démonstration ne reçoivent pas d'importations.":"Créez d'abord votre classe (ou importez vos emplois du temps en PDF), puis ajoutez vos élèves.")}
@@ -1336,7 +1434,7 @@ function demoDecor(){try{document.body.className=document.body.className.replace
   if(!Object.keys(DEMO.classes).length||S.store!=="ok")return;const v=$("#view");if(!v)return;
   v.insertAdjacentHTML("afterbegin",`<div class="card form demobar"><b>🧪 Mode démonstration · وضع التجربة</b>
   <span class="hint">Deux classes fictives pour découvrir Rclass : essayez l'appel, les points, le bilan, les devoirs… Rien n'est enregistré, et elles disparaissent dès que vous créez ou importez vos propres classes.</span>
-  <div class="tools"><button class="btn primary" data-act="demoNew">➕ Créer ma classe</button><button class="btn" data-act="demoPdf">📄 Importer mes emplois du temps (PDF)</button><button class="btn" data-act="demoTour">${S.demoTour?"Masquer le guide":"❓ Comment ça marche"}</button><button class="btn" data-act="demoHide">Masquer la démo</button></div>
+  <div class="tools"><button class="btn primary" data-act="demoNew">➕ Créer ma classe</button><button class="btn" data-act="demoPdf">📄 Importer un emploi du temps</button><button class="btn" data-act="demoTour">${S.demoTour?"Masquer le guide":"❓ Comment ça marche"}</button><button class="btn" data-act="demoHide">Masquer la démo</button></div>
   ${S.demoTour?`<ol style="margin:0;padding-left:1.3em;display:grid;gap:4px;font-size:.9rem">
    <li><b>Horaires</b> · استعمال الزمن : vos séances de la semaine ; touchez une séance pour l'ouvrir.</li>
    <li><b>Séance</b> · الحصة : touchez un élève pour noter absence, retard, exercice réalisé, point + ou −, cahier. Affichage par plan, N° ou liste.</li>
@@ -1372,28 +1470,28 @@ function mergeTokens(W){const it=W.map(w=>({...w,y0:w.y0??w.y-w.h/2,y1:w.y1??w.y
   for(const w of it){const ov=c=>Math.min(c.y1,w.y1)-Math.max(c.y0,w.y0);const c=w.dir==="rtl"?null:L.filter(c=>c.dir!=="rtl"&&ov(c)>=.4*Math.min(c.y1-c.y0,w.y1-w.y0)&&w.x0-c.x1<Math.max(3,.55*Math.min(c.h,w.h))).sort((a,b)=>b.x1-a.x1)[0];
     if(c){c.t+=(w.x0-c.x1>1.5?" ":"")+w.t;c.x1=Math.max(c.x1,w.x1);c.x=(c.x0+c.x1)/2;c.y0=Math.min(c.y0,w.y0);c.y1=Math.max(c.y1,w.y1);c.y=(c.y0+c.y1)/2;c.h=Math.min(c.h,w.h)}else L.push({...w})}
   return L}
-const TT_RX=/^(\d{1,2})(?:\s*[h:.]\s*(\d{2}))?\s*h?\s*(?:[-–—à\/]|to)\s*(\d{1,2})(?:\s*[h:.]\s*(\d{2}))?\s*h?$/i,TT_R1=/^(\d{1,2})\s*(?:[h:.]\s*(\d{2})\s*h?|h)$/i;
+const TT_RX=/^(?:من\s*)?(\d{1,2})(?:\s*[h:.س]\s*(\d{2}))?\s*[hس]?\s*(?:[-–—à\/]|to|إلى|الى|ل)\s*(\d{1,2})(?:\s*[h:.س]\s*(\d{2}))?\s*[hس]?$/i,TT_R1=/^(\d{1,2})\s*(?:[h:.س]\s*(\d{2})\s*[hس]?|[hس])$/i;
 const p2t=(h,m)=>String(+h).padStart(2,"0")+":"+(m||"00");
-function ttTime(t){t=String(t).trim();let m=t.match(TT_RX);if(m&&+m[1]<24&&+m[3]<24){const s=p2t(m[1],m[2]),e=p2t(m[3],m[4]);return e>s?{s,e}:{s:e,e:s}}
+function ttTime(t){t=ND(t).trim();let m=t.match(TT_RX);if(m&&+m[1]<24&&+m[3]<24){const s=p2t(m[1],m[2]),e=p2t(m[3],m[4]);return e>s?{s,e}:{s:e,e:s}}
   m=t.match(TT_R1);if(m&&+m[1]<24)return {s:p2t(m[1],m[2])};if(/^0?\.\d+$/.test(t)){const mi=Math.round(+t*48)*30;return {s:p2t(Math.floor(mi/60),String(mi%60).padStart(2,"0"))}}return null}
 const CLS_RX=/(?:^|[^A-Za-z0-9])(\d\s*[A-Za-z]{2,6}\s*[-_.]?\s*\d{1,2})(?![0-9])/,CLS_STRICT=/^\d\s*[A-Za-z]{2,6}\s*[-_.]?\s*\d{1,2}$/;
 const clsNorm=t=>String(t).replace(/[\s_.]+/g,"").toUpperCase().replace(/^(\d)([A-Z]+)-?(\d+)$/,"$1$2-$3");
-const clsIn=t=>{const m=String(t).match(CLS_RX);return m?clsNorm(m[1]):null};
+const clsIn=t=>{const m=ND(t).match(CLS_RX);return m?clsNorm(m[1]):null};
 const lvOfCls=n=>{const m=String(n).match(/^([1-3])(APIC|AC|ASC|ASCG|APC|AEC|ASIC)?/i);return m&&(m[2]||/^[1-3]AC/i.test(n))?m[1]+"AC":"Autre"};
 const medGap=a=>{const g=[];a=[...a].sort((x,y)=>x-y);for(let i=1;i<a.length;i++)if(a[i]-a[i-1]>1e-6)g.push(a[i]-a[i-1]);g.sort((x,y)=>x-y);return g.length?g[Math.floor(g.length/2)]:1};
 function teacherGrid(W){const out={};const add=(n,d,s,e)=>{const o=out[n]=out[n]||{name:n,sl:[]};if(d)o.sl.push({d,s,e})};
-  W.filter(w=>CLS_STRICT.test(w.t.trim())).forEach(w=>add(clsNorm(w.t),0));
+  W.filter(w=>CLS_STRICT.test(ND(w.t).trim())).forEach(w=>add(clsNorm(w.t),0));
   const days=W.filter(w=>ctDayOf(w.t));
   if(new Set(days.map(d=>ctDayOf(d.t))).size>=3){
     const sx=Math.max(...days.map(d=>d.x))-Math.min(...days.map(d=>d.x)),sy=Math.max(...days.map(d=>d.y))-Math.min(...days.map(d=>d.y));const cols=sx>=sy;
     const A=w=>cols?w.x:w.y,B=w=>cols?w.y:w.x;
     const groups=[];days.slice().sort((a,b)=>B(a)-B(b)).forEach(d=>{const tol=Math.max(.45,(d.h||1)*.8);let g=groups.find(g=>Math.abs(g.b-B(d))<tol);if(!g){g={b:B(d),ds:[]};groups.push(g)}g.ds.push(d)});
     const G=groups.filter(g=>new Set(g.ds.map(d=>ctDayOf(d.t))).size>=3).sort((a,b)=>a.b-b.b);
-    G.forEach((g,gi)=>{const b0=g.b,b1=gi+1<G.length?G[gi+1].b:1e9;const dA=g.ds.map(d=>({a:A(d),d:ctDayOf(d.t)})).sort((x,y)=>x.a-y.a);const colSp=medGap(dA.map(x=>x.a));const minA=dA[0].a;
-      let T=W.filter(w=>B(w)>b0&&B(w)<b1&&!ctDayOf(w.t)&&A(w)<minA-.3*colSp).map(w=>({b:B(w),...(ttTime(w.t)||{})})).filter(x=>x.s).sort((x,y)=>x.b-y.b);
+    G.forEach((g,gi)=>{const b0=g.b,b1=gi+1<G.length?G[gi+1].b:1e9,bP=gi>0?G[gi-1].b:-1e9;const dA=g.ds.map(d=>({a:A(d),d:ctDayOf(d.t)})).sort((x,y)=>x.a-y.a);const colSp=medGap(dA.map(x=>x.a));const minA=dA[0].a,maxA=dA[dA.length-1].a;const tolB=Math.max(.45,(g.ds[0].h||1)*.8);
+      let T=W.filter(w=>B(w)>bP&&B(w)<b1&&Math.abs(B(w)-b0)>tolB&&!ctDayOf(w.t)&&(A(w)<minA-.3*colSp||A(w)>maxA+.3*colSp)).map(w=>({b:B(w),...(ttTime(w.t)||{})})).filter(x=>x.s).sort((x,y)=>x.b-y.b);
       T=T.filter((x,i)=>!i||x.b-T[i-1].b>1e-3);if(!T.length)return;const rowSp=medGap(T.map(x=>x.b));
       T.forEach((x,i)=>{if(!x.e){const nx=T[i+1];x.e=nx&&nx.s>x.s?nx.s:p2t(+x.s.slice(0,2)+1,x.s.slice(3))}});
-      W.filter(w=>B(w)>b0+.2*rowSp&&B(w)<b1&&!ctDayOf(w.t)&&!ttTime(w.t)).forEach(w=>{const n=clsIn(w.t);if(!n)return;
+      W.filter(w=>B(w)>bP&&B(w)<b1&&Math.abs(B(w)-b0)>Math.max(tolB,.2*rowSp)&&!ctDayOf(w.t)&&!ttTime(w.t)).forEach(w=>{const n=clsIn(w.t);if(!n)return;
         const dd=dA.slice().sort((x,y)=>Math.abs(x.a-A(w))-Math.abs(y.a-A(w)))[0];if(Math.abs(dd.a-A(w))>.62*colSp)return;
         const tt=T.map(x=>({x,dist:Math.abs(x.b-B(w))})).sort((p,q)=>p.dist-q.dist);if(tt[0].dist>.75*rowSp)return;
         let pick=[tt[0].x];if(tt[1]&&tt[0].dist>.25*rowSp&&Math.abs(tt[0].dist-tt[1].dist)<.25*rowSp&&Math.abs(tt[0].x.b-tt[1].x.b)<1.6*rowSp)pick=[tt[0].x,tt[1].x];
@@ -1421,7 +1519,9 @@ function ttMerge(A,B){const m={};A.forEach(x=>m[x.key]={...x,slots:null});
 async function loadPdfJs(){if(window.__pdfjs)return window.__pdfjs;const B="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/";
   const m=await import(B+"pdf.min.mjs");m.GlobalWorkerOptions.workerSrc=B+"pdf.worker.min.mjs";return window.__pdfjs=m}
 const ctHM=z=>{const m=String(z).trim().match(/^(\d{1,2})\s*[:hH]\s*(\d{2})$/);return m?String(+m[1]).padStart(2,"0")+":"+m[2]:""};
-function ctDayOf(t){const x=String(t).replace(/\s/g,"").toLowerCase();if(x.length>12)return 0;
+const ND=t=>String(t).replace(/[٠-٩]/g,d=>d.charCodeAt(0)-1632).replace(/[۰-۹]/g,d=>d.charCodeAt(0)-1776);
+function ctDayOf(t){const x=String(t).replace(/[\s\u064B-\u0652\u0640.:]/g,"").toLowerCase();if(x.length>12)return 0;
+  const ab={lun:1,mar:2,mer:3,jeu:4,ven:5,sam:6};if(ab[x])return ab[x];if(/تنين|اثنين|إثنين/.test(x))return 1;if(/ثلاث|تلات/.test(x))return 2;if(/اربع/.test(x))return 3;
   if(/ثن|lundi/.test(x))return 1;if(/ثال|ثلا|mardi/.test(x))return 2;if(/ربع|mercredi/.test(x))return 3;if(/خمي|خلمي|jeudi/.test(x))return 4;if(/جمع|جلمع|vendredi/.test(x))return 5;if(/سبت|samedi/.test(x))return 6;return 0}
 const CT_SUBJ=[[/رياض|math/i,"الرياضيات"],[/فيز|كيمي|physi/i,"الفيزياء والكيمياء"],[/علوم|حياة|svt/i,"علوم الحياة والأرض"],[/بدن|eps|sport/i,"التربية البدنية"],[/سالمي|سلامي|islam/i,"التربية الإسلامية"],[/جتماع|hist|géo/i,"الاجتماعيات"],[/نجلي|نكلي|angl/i,"الإنجليزية"],[/فرنس|franç|franc/i,"الفرنسية"],[/عرب|arabe/i,"العربية"],[/معلومي|inform/i,"المعلوميات"],[/تكنولوج|techno/i,"التكنولوجيا"],[/موسيق|musiq/i,"التربية الموسيقية"],[/تشكيل|plasti/i,"التربية التشكيلية"],[/مازيغ|amazi/i,"الأمازيغية"]];
 const ctSubj=t=>{const x=String(t).replace(/\s/g,"");for(const [r,n] of CT_SUBJ)if(r.test(x))return n;return String(t).replace(/\s+/g," ").trim()||"?"};
@@ -1882,7 +1982,7 @@ function teamEditor(c){const T=teamsOf(c),st=sorted(c),by=Object.fromEntries(st.
     <span class="hint">« Répartir » remplace les équipes actuelles par des équipes équilibrées (notes mélangées). Vous pouvez ensuite déplacer des élèves.</span>
     ${T.length?(S.tmClear?`<div class="confirm">Supprimer toutes les équipes ? <button class="btn danger" data-act="tmClearYes">Oui</button><button class="btn" data-act="tmClearNo">Non</button></div>`:`<div><button class="linkbtn" data-act="tmClear" style="color:var(--bad)">Supprimer toutes les équipes</button></div>`):""}</div>`}
 function viewDetails(){const c=cls();
-  return `${restoreCard()}${dupCard()}${modCard()}
+  return `${restoreCard()}${dupCard()}${modCard()}${adminCard()}
   <div class="card form"><h2>Sauvegarde · نسخة احتياطية</h2><p class="hint" style="margin:0">Enregistrez toutes vos classes, plans, horaires et notes dans un fichier. La restauration ajoute ou remplace les classes du fichier sans effacer les autres. Ce bouton accepte aussi les fichiers « séance » et « journée ».</p>
   ${S.bk?`<div class="flag" style="background:var(--ok-bg,#e6f4ea);color:var(--ok);border-color:var(--ok);display:grid;gap:6px"><span>Sauvegarde prête : ${S.bk.n} classe(s), ${S.bk.ns} élève(s)${S.bk.ok?" · fichier « "+esc(S.bk.name)+" » téléchargé":""}</span><span style="font-weight:400">Si aucun fichier n'apparaît dans vos Téléchargements, utilisez « Partager » (WhatsApp, e-mail, Drive…) ou « Copier » puis collez le texte sur l'autre appareil (Détails → Coller une sauvegarde).</span>
     <div class="tools"><button class="btn primary" data-act="bkShare">Partager le fichier</button><button class="btn" data-act="bkCopy">Copier la sauvegarde</button><button class="btn" data-act="bkDl">Télécharger à nouveau</button><button class="btn" data-act="bkClose">Fermer</button></div><textarea id="bkText" hidden readonly style="min-height:60px;font-size:.7rem">${esc(S.bk.json)}</textarea></div>`:""}
@@ -1892,7 +1992,7 @@ function viewDetails(){const c=cls();
   <div class="card form"><h2>Partager une séance ou une journée · نقل المعطيات</h2><div style="display:grid;gap:8px">
     <span class="hint">Envoyez la séance choisie dans l'onglet Séance (${c?esc(c.name)+", "+fmtD(S.date):"aucune classe"}) ou toutes les séances de cette journée vers un autre appareil, puis importez le fichier là-bas. L'import complète les notes déjà présentes sans effacer le reste.</span>
     <div class="tools"><button class="btn" data-act="shareSess">Envoyer cette séance</button><button class="btn" data-act="shareDay">Envoyer la journée</button><label class="btn primary" for="restoreIn2" style="cursor:pointer">Importer un fichier</label><input type="file" id="restoreIn2" accept=".json,application/json" hidden></div></div></div>
-  <div data-mod="prog" style="display:contents">${progEditor()}</div>
+  <div data-mod="prog" style="display:contents">${progFold()}</div>
   ${holCard()}`;
 }
 function viewEleves(){
@@ -1956,6 +2056,7 @@ document.addEventListener("click",async e=>{
   if(a==="xcsv")return extrasCsv();
   if(a==="planPdf")return exportPlan("pdf");
   if(a==="fiche"){S.stu=id;S.selStu=null;render();window.scrollTo(0,0);return}
+  if(a==="stuNav"||a==="ficheNav"){const L=sorted(cls()),cur=a==="stuNav"?S.selStu:S.stu,i=L.findIndex(x=>x.id===cur);const n=L[(i+(+t.dataset.d)+L.length)%L.length];if(!n)return;if(a==="stuNav")S.selStu=n.id;else S.stu=n.id;render();const o=document.querySelector(".numstrip .on");if(o)o.scrollIntoView({block:"nearest",inline:"center"});return}
   if(a==="ficheClose"){S.stu=null;return render()}
   if(a==="ficheDoc")return ficheDoc(c,id);
   if(a==="fichePdf")return fichePdf(c,id);
@@ -2066,6 +2167,15 @@ document.addEventListener("click",async e=>{
   if(a==="afPick"&&S.addF){readAF();S.addF.s=t.dataset.s;S.addF.e=t.dataset.e;return render()}
   if(a==="xMore"){S.xMore=!S.xMore;return render()}
   if(a==="ctGo")return ctCommit();
+  if(a==="pgMode"){const lv=S.pgLvl||(c&&LEVELS.includes(c.level)?c.level:"1AC");const own=(S.progOwn||{})[lv]||{};const nd={items:own.items||[],mode:t.dataset.m==="normal"?"normal":"explicite"};S.progOwn={...(S.progOwn||{}),[lv]:nd};progRecalc();render();try{await api.saveProgOwn(lv,nd)}catch(err){toast("Choix non enregistré.")}return}
+  if(a==="pgCopy"){const lv=S.pgLvl||(c&&LEVELS.includes(c.level)?c.level:"1AC");const it=JSON.parse(JSON.stringify(((S.sh||{})["prog_"+lv]||{}).items||[]));const nd={items:it,mode:"normal"};S.progOwn={...(S.progOwn||{}),[lv]:nd};progRecalc();render();try{await api.saveProgOwn(lv,nd);toast("Programme copié")}catch(err){toast("Copie non enregistrée.")}return}
+  if(a==="pgPublish"&&S.isAdmin){const lv=S.pgLvl||(c&&LEVELS.includes(c.level)?c.level:"1AC");await shSave("prog_"+lv,{items:((S.prog||{})[lv]||{}).items||[]},"Programme commun "+lv+" publié");const own=(S.progOwn||{})[lv]||{};if(own.mode){const nd={...own};delete nd.mode;S.progOwn[lv]=nd;try{await api.saveProgOwn(lv,nd)}catch(e){}}return}
+  if(a==="rulesCopy"){const tx=$("#rulesTx");try{await navigator.clipboard.writeText(tx.value);toast("Règles copiées")}catch(e){tx.select();document.execCommand&&document.execCommand("copy");toast("Règles copiées")}return}
+  if(a==="adminInit"){return shSave("admins",{owner:api.email,emails:[]},"Administration activée")}
+  if(a==="adminAdd"&&S.isAdmin){const v=(($("#adminNew")||{}).value||"").trim().toLowerCase();if(!/^\S+@\S+\.\S+$/.test(v))return toast("E-mail invalide.");const A=S.sh.admins;return shSave("admins",{owner:A.owner,emails:[...new Set([...(A.emails||[]),v])]},"Administrateur ajouté")}
+  if(a==="adminRm"&&S.isAdmin){const A=S.sh.admins;if(!confirm("Retirer "+t.dataset.e+" des administrateurs ?"))return;return shSave("admins",{owner:A.owner,emails:(A.emails||[]).filter(x=>x!==t.dataset.e)},"Administrateur retiré")}
+  if(a==="calPublish"&&S.isAdmin){return shSave("calendar",{rel:S.holEdit||S.holOwn||{},sched:S.sched||S.schedOwn||null},"Vacances et horaires communs publiés")}
+  if(a==="progOpen"||a==="progClose"){S.fold={...(S.fold||{}),prog:a==="progOpen"};saveUI();return render()}
   if(a==="pQuick"){const k=t.dataset.k,d=new Date(today()+"T12:00:00"),iso=x=>x.toISOString().slice(0,10);
     if(k==="7"||k==="30"){const f=new Date(d);f.setDate(d.getDate()-(+k-1));S.pFrom=iso(f);S.pTo=iso(d)}
     else if(k==="m"){S.pFrom=iso(new Date(d.getFullYear(),d.getMonth(),1,12));S.pTo=iso(d)}
@@ -2167,7 +2277,7 @@ document.addEventListener("submit",async e=>{e.preventDefault();
     const key=dk();const d=S.days[key]=S.days[key]||{marks:{}};d.marks=d.marks||{};d.lesson=v;if(lid){d.lid=lid;d.part=part}else{delete d.lid;delete d.part}queueDay(S.cid,key);recomputeDone(c);
     toast(v?"Séance enregistrée : "+v:"Leçon effacée");return render()}
   if(e.target.id==="pgForm"){const lv=S.pgLvl||(cls()&&LEVELS.includes(cls().level)?cls().level:"1AC");const ty=$("#pgTy").value;const L=$("#pgBulk").value.split(/\n+/).map(x=>x.trim()).filter(Boolean).map(x=>{const m=x.match(/^(.*?)\s*[;|]\s*(\d+)\s*$/);return m?{t:m[1].trim(),n:+m[2]}:{t:x,n:1}}).filter(x=>x.t);if(!L.length)return toast("Écrivez au moins un élément.");
-    const items=[...(((S.prog||{})[lv]||{}).items||[]),...L.map(x=>({id:uid(),t:x.t,ty,n:Math.max(1,x.n)}))];S.prog[lv]={items};S.pgLvl=lv;try{await api.saveProgramme(lv,{items})}catch(err){toast("Programme non enregistré.");return}render();toast(L.length+" élément(s) ajouté(s) au programme "+lv);return}
+    const items=[...(((S.prog||{})[lv]||{}).items||[]),...L.map(x=>({id:uid(),t:x.t,ty,n:Math.max(1,x.n)}))];S.prog[lv]={items};S.pgLvl=lv;S.pgBulk="";try{await api.saveProgramme(lv,{items})}catch(err){toast("Programme non enregistré.");return}render();toast(L.length+" élément(s) ajouté(s) au programme "+lv);return}
   if(e.target.id==="cancelForm"){const c=cls(),k=dk();const d=S.days[k]||{};if(Object.keys(d.marks||{}).length)return toast("Cette séance contient déjà des notes : impossible de l'annuler.");
     c.cancel={...(c.cancel||{}),[k]:$("#canR").value};S.cancelOpen=false;await saveClass(c);toast("Séance annulée");return render()}
   if(e.target.id==="xForm"){const c=cls(),x=c&&(c.extras||[]).find(y=>y.id===S.xid);if(!x)return;x.obj=$("#xObj").value.trim();x.dev=$("#xDev").value.trim();await saveClass(c);render();toast("Fiche de la séance enregistrée");return}
@@ -2226,6 +2336,8 @@ document.addEventListener("change",async e=>{
   if(e.target.dataset&&e.target.dataset.csel){S.cSel={...(S.cSel||{})};if(e.target.checked)S.cSel[e.target.dataset.csel]=1;else delete S.cSel[e.target.dataset.csel];S.cConfirm=false;return render()}
   if(e.target.dataset&&e.target.dataset.xsel){S.xSel={...(S.xSel||{})};if(e.target.checked)S.xSel[e.target.dataset.xsel]=1;else delete S.xSel[e.target.dataset.xsel];return render()}
   if(e.target.id==="perSel"){S.period=e.target.value;const E=evPer();if(E.per!=="custom")E.per=S.period;saveUI();return render()}
+  if(e.target.id==="pgFile"&&e.target.files&&e.target.files[0]){const f=e.target.files[0];e.target.value="";setSync("Lecture…");let L=[];try{L=await pgFileParse(f)}catch(err){setSync(api.label);return toast("Lecture impossible : "+((err&&err.message)||"erreur"))}setSync(api.label);
+    if(!L.length)return toast("Aucune leçon trouvée dans ce fichier.");S.pgBulk=((($("#pgBulk")||{}).value||"").trim()?$("#pgBulk").value.trim()+"\n":"")+L.map(x=>x.t+" ; "+x.n).join("\n");render();const b=$("#pgBulk");if(b){b.scrollIntoView({block:"center"});b.focus()}return toast(L.length+" élément(s) lus : vérifiez puis « Ajouter »")}
   if(e.target.id==="stuIn"&&e.target.files&&e.target.files.length){const fs=[...e.target.files];e.target.value="";return stuFiles(fs)}
   if(e.target.dataset&&e.target.dataset.sti!=null&&S.stuImp&&S.stuImp.list){S.stuImp.list[+e.target.dataset.sti].on=e.target.checked;return render()}
   if(e.target.dataset&&e.target.dataset.stn!=null&&S.stuImp&&S.stuImp.list){S.stuImp.list[+e.target.dataset.stn].name=e.target.value.trim();return render()}
@@ -2317,7 +2429,9 @@ function fsDb(uid){const F=FB.F,fs=FB.fs,P=p=>"users/"+uid+"/"+p;
     doc(p){const r=F.doc(fs,P(p));return {onSnapshot:(ok,ko)=>F.onSnapshot(r,d=>ok(wD(d)),ko),
       set:async v=>{F.setDoc(r,{j:JSON.stringify(v),at:Date.now()}).catch(fail)},
       delete:async()=>{F.deleteDoc(r).catch(fail)}}}}}
-function cloudApi(u){const a=dbApi(fsDb(u.uid));Object.defineProperty(a,"label",{get:()=>navigator.onLine?"☁️ Synchronisé":"☁️ Hors ligne · sync auto"});a.cloud=true;return a}
+function cloudApi(u){const a=dbApi(fsDb(u.uid));a.email=u.email||"";
+  a.subShared=cb=>{const F=FB.F;return F.onSnapshot(F.collection(FB.fs,"shared"),q=>{const o={};q.docs.forEach(d=>{const v=d.data();try{o[d.id]=typeof v.j==="string"?JSON.parse(v.j):v}catch(e){o[d.id]=v}});cb(o)},e=>{console.warn(e);cb({})})};
+  a.saveShared=(id,v)=>FB.F.setDoc(FB.F.doc(FB.fs,"shared/"+id),{j:JSON.stringify(v),at:Date.now(),by:u.email||""});Object.defineProperty(a,"label",{get:()=>navigator.onLine?"☁️ Synchronisé":"☁️ Hors ligne · sync auto"});a.cloud=true;return a}
 function cloudEnter(u){PR.cur={id:"cloud",name:u.displayName||u.email||"En ligne"};PSUF=":cloud:"+u.uid;loadUI();try{localStorage.setItem("rc-last","cloud")}catch(e){}
   const b=$("#profBtn");if(b){b.hidden=false;b.textContent="☁";b.title="Compte en ligne : "+(u.email||u.displayName||"")+" · toucher pour changer"}try{themeApply()}catch(e){}}
 window.addEventListener("online",()=>{if(api&&api.cloud)setSync(api.label)});window.addEventListener("offline",()=>{if(api&&api.cloud)setSync(api.label)});
@@ -2390,7 +2504,7 @@ document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("#pr
   if(AS.dirty&&api&&api.local){asRun().then(go,go)}else go()}});
 
 /* ---------- Démarrage ---------- */
-function start(a){api=demoWrap(a);try{api.subProgramme(o=>{S.prog=o;if(S.store==="ok")render()})}catch(e){}try{api.subCalendar(o=>{S.holEdit=(o&&o.rel)||{};S.sched=(o&&o.sched)||null;S.mods=(o&&o.mods)||{};if(S.store==="ok")render()})}catch(e){}api.subClasses(o=>{S.classes=o;S.store="ok";
+function start(a){api=demoWrap(a);try{api.subProgramme(o=>{S.progOwn=o;progRecalc();if(S.store==="ok")render()})}catch(e){}try{if(api.subShared)api.subShared(o=>{S.sh=o||{};shApply();if(S.store==="ok")render()})}catch(e){}try{api.subCalendar(o=>{S.holOwn=(o&&o.rel)||{};S.schedOwn=(o&&o.sched)||null;S.mods=(o&&o.mods)||{};calApply();if(S.store==="ok")render()})}catch(e){}api.subClasses(o=>{S.classes=o;S.store="ok";
   if(!S.auto){S.auto=1;const h=autoPick();if(h){S.date=today();S.xid=h.x||null;S.tab="seance";saveUI();return selectClass(h.cid)}}
   if(!S.cid||!o[S.cid]){const first=Object.keys(o).sort((x,y)=>(o[x].name||"").localeCompare(o[y].name||""))[0]||null;selectClass(first)}
   else if(!unsubDays)selectClass(S.cid); else render()})}
