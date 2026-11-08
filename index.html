@@ -266,7 +266,7 @@ tr.chk td{background:var(--late-bg,#fff4dc)}
     <div class="brand">
       <div><h1><svg class="hlogo" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="lgbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2a7559"/><stop offset="1" stop-color="#17463a"/></linearGradient><pattern id="lgdots" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.3" fill="#ffffff" opacity=".07"/></pattern></defs><rect width="512" height="512" rx="112" fill="url(#lgbg)"/><rect width="512" height="512" rx="112" fill="url(#lgdots)"/><path d="M120 412 V100 H252 C324 100 368 142 368 202 C368 248 342 282 300 296 L370 412 H294 L232 304 H188 V412 Z M188 160 V246 H246 C278 246 298 229 298 203 C298 177 278 160 246 160 Z" fill="#f4f8f5"/><rect x="120" y="436" width="160" height="12" rx="6" fill="#f4f8f5" opacity=".35"/><circle cx="380" cy="372" r="78" fill="#f2c14e" stroke="#1d5444" stroke-width="14"/><path d="M345 374 L370 399 L417 349" fill="none" stroke="#17463a" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/></svg>Rclass</h1><div class="ar">تدبير القسم · الحضور والمشاركة والسلوك</div></div>
       <div class="hdinfo" id="hdInfo"></div>
-      <div class="hdright"><div class="sync" id="sync">Chargement…</div><select id="perTop" aria-label="Période" title="Période affichée"><option value="year">Année</option><option value="s1">S1</option><option value="s2">S2</option></select><button class="hdbtn" id="profBtn" hidden title="Changer de compte" aria-label="Changer de compte">👤</button><button class="hdbtn" id="themeBtn" aria-label="Thème" title="Thème clair / sombre">🌗</button><button class="hdbtn" id="hdPin" hidden title="Toujours afficher l'en-tête" aria-label="Toujours afficher l'en-tête">📌</button><button class="hdbtn" id="hdToggle" aria-label="Réduire l'en-tête" title="Réduire l'en-tête">⌃</button></div>
+      <div class="hdright"><div class="sync" id="sync">Chargement…</div><select id="perTop" aria-label="Période" title="Période affichée"><option value="year">Année</option><option value="s1">S1</option><option value="s2">S2</option><option value="custom">Dates</option></select><button class="hdbtn" id="profBtn" hidden title="Changer de compte" aria-label="Changer de compte">👤</button><button class="hdbtn" id="themeBtn" aria-label="Thème" title="Thème clair / sombre">🌗</button><button class="hdbtn" id="hdPin" hidden title="Toujours afficher l'en-tête" aria-label="Toujours afficher l'en-tête">📌</button><button class="hdbtn" id="hdToggle" aria-label="Réduire l'en-tête" title="Réduire l'en-tête">⌃</button></div>
     </div>
     <div class="bar">
       <select id="classSel" aria-label="Classe"></select>
@@ -298,10 +298,10 @@ const DEF={wEx:1,wPlus:1,wMinus:1,base:10,step:0.5,latePen:0.5,cahAbs:1,cahInc:0
 
 const S={classes:{},days:{},cid:null,date:today(),tab:"seance",undo:false,sort:{k:"n",d:1},confirmDel:false,pick:null,store:"…",mode:"plan",selStu:null,edSeat:null,edStu:null,follow:true,lastD:1,lastE:"",xid:null,addF:null,wk:null,stu:null,xScope:"all",period:"year",prog:{},pgLvl:null,cancelOpen:false,holEdit:{}};
 let PSUF="";const PR={list:[],cur:null};
-function loadUI(){try{const p=JSON.parse(localStorage.getItem("rc-ui"+PSUF)||"{}");if(p.cid)S.cid=p.cid;if(p.tab)S.tab=p.tab;if(p.mode)S.mode=p.mode;if(p.period)S.period=p.period;if(typeof p.hdMini==="boolean")S.hdMini=p.hdMini;if(p.theme)S.theme=p.theme}catch(e){}}
+function loadUI(){try{const p=JSON.parse(localStorage.getItem("rc-ui"+PSUF)||"{}");if(p.cid)S.cid=p.cid;if(p.tab)S.tab=p.tab;if(p.mode)S.mode=p.mode;if(p.period)S.period=p.period;if(p.pFrom)S.pFrom=p.pFrom;if(p.pTo)S.pTo=p.pTo;if(typeof p.hdMini==="boolean")S.hdMini=p.hdMini;if(p.theme)S.theme=p.theme}catch(e){}}
 loadUI();
 if(typeof S.hdMini!=="boolean"){S.hdMini=null}
-const saveUI=()=>{try{localStorage.setItem("rc-ui"+PSUF,JSON.stringify({cid:S.cid,tab:S.tab,mode:S.mode,period:S.period,hdMini:S.hdMini,theme:S.theme||"auto"}))}catch(e){}};
+const saveUI=()=>{try{localStorage.setItem("rc-ui"+PSUF,JSON.stringify({cid:S.cid,tab:S.tab,mode:S.mode,period:S.period,pFrom:S.pFrom||"",pTo:S.pTo||"",hdMini:S.hdMini,theme:S.theme||"auto"}))}catch(e){}};
 
 function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2200)}
 function setSync(t){$("#sync").textContent=t}
@@ -440,8 +440,8 @@ function setMark(sid,patch){
 }
 const defSem2=()=>{const t=new Date();const y=t.getMonth()>=7?t.getFullYear()+1:t.getFullYear();return y+"-02-01"};
 const sem2=c=>c.sem2||defSem2();
-function inPeriod(c,date,per=S.period){if(per==="s1")return date<sem2(c);if(per==="s2")return date>=sem2(c);return true}
-const PER={year:"Année entière",s1:"1er semestre",s2:"2e semestre"};
+function inPeriod(c,date,per=S.period){if(per==="custom")return (!S.pFrom||date>=S.pFrom)&&(!S.pTo||date<=S.pTo);if(per==="s1")return date<sem2(c);if(per==="s2")return date>=sem2(c);return true}
+const PER={year:"Année entière",s1:"1er semestre",s2:"2e semestre",custom:"Période personnalisée"};
 function totals(c,per=S.period){
   const w={...DEF,...(c.settings||{})};
   const dates=sessKeys(c).filter(x=>inPeriod(c,x.date,per)).map(x=>x.k);
@@ -580,7 +580,7 @@ function clsDetail(c){const P=progPct(c),its=progItems(c),PD=c.plkDone||{};const
     ${other.map(t=>{const st=tStat(t);return `<div style="display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;border-top:1px solid var(--line);padding-top:6px"><span style="flex:1 1 180px"><b style="font-size:.88rem">${esc(t.title)}</b> <span class="hint">${fmtD(t.date)} · non relié au plan</span></span>${st?`<span><b class="${st.avg<(t.thr??50)?"r":"g"}">${st.avg} %</b> <span class="hint">${st.low} sous ${t.thr??50} %</span></span>`:""}<button class="btn" data-act="goEvalPlk" data-t="${t.id}">Détails</button></div>`}).join("")}</div>`:`<span class="hint">Aucun Plickers réalisé pour le moment.</span>`}
   <div class="tools"><button class="btn" data-act="goImport" data-k="plk">Importer un fichier Plickers</button></div></div>
   <div data-mod="eval" style="display:grid;gap:8px"><b style="font-size:.95rem">Devoirs</b>
-  <div style="display:flex;flex-wrap:wrap;gap:6px">${SLOTS.filter(x=>(S.period||"year")==="year"||x[0].startsWith((S.period||"").toUpperCase())).map(x=>{const E=exBySlot(c,x[0]);const v=E?Object.values(E.res||{}).map(r=>r.note).filter(n=>n!=null):[];const av=v.length?v.reduce((a,b)=>a+b,0)/v.length:null;return `<span class="tag" style="padding:4px 10px;${E?"":"opacity:.6"}">${x[1]} : ${E?`<b class="${av!=null&&av<10?"r":"g"}">${av!=null?f1(av):"–"}</b>`:"—"}</span>`}).join("")}</div>
+  <div style="display:flex;flex-wrap:wrap;gap:6px">${SLOTS.filter(x=>["year","custom"].includes(S.period||"year")||x[0].startsWith((S.period||"").toUpperCase())).map(x=>{const E=exBySlot(c,x[0]);const v=E?Object.values(E.res||{}).map(r=>r.note).filter(n=>n!=null):[];const av=v.length?v.reduce((a,b)=>a+b,0)/v.length:null;return `<span class="tag" style="padding:4px 10px;${E?"":"opacity:.6"}">${x[1]} : ${E?`<b class="${av!=null&&av<10?"r":"g"}">${av!=null?f1(av):"–"}</b>`:"—"}</span>`}).join("")}</div>
   <div class="tools"><button class="btn primary" data-act="goImport" data-k="ex">Importer des notes de devoir</button><button class="btn" data-act="go" data-to="eval">Voir les analyses</button></div></div></div>`}
 function progEditor(){const lv=S.pgLvl||(cls()&&LEVELS.includes(cls().level)?cls().level:"1AC");const items=((S.prog||{})[lv]||{}).items||[];
   return `<div class="card form"><h2>Programme annuel · المقرر</h2><span class="hint">Une liste par niveau, commune à toutes les classes de ce niveau, dans l'ordre de la répartition. Chaque élément a un nom court et un nombre de séances.</span>
@@ -1006,7 +1006,7 @@ document.addEventListener("click",e=>{const t=e.target;
   if(t.id==="hdPin"){S.hdMini=false;S.hdOpen=false;saveUI();hdApply();return}
   if(S.hdOpen&&t.closest&&t.closest(".tabs button")){S.hdOpen=false;setTimeout(hdApply,0)}},true);
 document.addEventListener("change",e=>{if(e.target.id==="classSel"&&S.hdOpen){S.hdOpen=false;setTimeout(hdApply,0)}
-  if(e.target.id==="perTop"){S.period=e.target.value;const E=evPer();if(E.per!=="custom")E.per=S.period;saveUI();render();toast("Période : "+PER[S.period])}},true);
+  if(e.target.id==="perTop"){S.period=e.target.value;const E=evPer();if(E.per!=="custom")E.per=S.period;saveUI();render();if(S.period==="custom"&&!S.pFrom&&!S.pTo){S.tab="bilan";saveUI();render()}toast("Période : "+PER[S.period]+(S.period==="custom"?" — choisissez les dates dans Bilan":""))}},true);
 window.addEventListener("resize",()=>{if(S.hdMini===null)hdApply()});
 const TABORD=["edt","seance","bilan","eval","classe","eleves","details"];
 function goTab(dir){const i=TABORD.indexOf(S.tab);const n=TABORD[(i+dir+TABORD.length)%TABORD.length];S.stu=null;S.selStu=null;S.tab=n;S.confirmDel=false;saveUI();render();window.scrollTo(0,0)}
@@ -1095,7 +1095,7 @@ function chartSvg(c){const L=sessKeys(c).filter(x=>inPeriod(c,x.date)).slice(-24
   <text x="0" y="${H1+44}" class="tx">Participation (+)</text><line x1="${pad}" x2="${W}" y1="${H1+52+H2}" y2="${H1+52+H2}" class="ax"/><text x="${pad-4}" y="${H1+56}" class="tx" text-anchor="end">${maxPl}</text>
   ${data.map((d,i)=>bars(i,H2,H1+52,"b2",d.pl,maxPl)).join("")}
   ${data.map((d,i)=>i%step?"":`<text x="${pad+i*bw+bw/2}" y="${H1+H2+68}" class="tx" text-anchor="middle">${new Date(d.d+"T12:00").toLocaleDateString("fr-FR",{day:"numeric",month:"numeric"})}</text>`).join("")}
-  </svg></div><span class="hint">${data.length} dernières séances${S.period==="year"?"":" du "+PER[S.period].toLowerCase()}. En violet : soutien, rattrapage ou séance supplémentaire.</span></div>`}
+  </svg></div><span class="hint">${data.length} dernières séances${S.period==="year"?"":S.period==="custom"?" de la période choisie":" du "+PER[S.period].toLowerCase()}. En violet : soutien, rattrapage ou séance supplémentaire.</span></div>`}
 function viewBilan(c){
   const T=totals(c);const w=T.w;const k=S.sort.k,dir=S.sort.d;
   const rows=[...T.rows].sort((a,b)=>{const x=a[k],y=b[k];return (typeof x==="string"?x.localeCompare(y):x-y)*dir});
@@ -1103,7 +1103,11 @@ function viewBilan(c){
   const th=(key,l,cl="")=>`<th class="${cl}" data-sort="${key}">${l}${k===key?(dir>0?" ↑":" ↓"):""}</th>`;
   return `
   <div class="card form" style="gap:8px"><div class="grid2"><label>Période<select id="perSel">${Object.entries(PER).map(([v,l])=>`<option value="${v}" ${S.period===v?"selected":""}>${l}</option>`).join("")}</select></label>
-  <label>Début du 2e semestre<input type="date" id="sem2In" value="${sem2(c)}"></label></div><span class="hint">La date du 2e semestre s'applique à toutes vos classes.</span></div>
+  <label>Début du 2e semestre<input type="date" id="sem2In" value="${sem2(c)}"></label></div>
+  ${S.period==="custom"?`<div class="grid2"><label>Du<input type="date" id="pFrom" value="${S.pFrom||""}"></label><label>Au<input type="date" id="pTo" value="${S.pTo||""}"></label></div>
+  <div class="tools">${[["7","7 derniers jours"],["30","30 derniers jours"],["m","Ce mois"],["pm","Mois dernier"]].map(([k,l])=>`<button class="btn" data-act="pQuick" data-k="${k}">${l}</button>`).join("")}</div>`:""}
+  <span class="hint">La date du 2e semestre s'applique à toutes vos classes.${S.period==="custom"?" La période personnalisée s'applique à tous les onglets (bilan, fiches, suivi).":""}</span></div>
+  ${statsCard(c,T)}
   ${chartSvg(c)}
   <div class="card summary"><div><b>${T.dates.length}</b><span>Séances</span></div><div><b>${avg}</b><span>Moyenne /20</span></div><div><b>${T.rows.reduce((s,r)=>s+r.A,0)}</b><span>Absences</span></div><div><b>${T.rows.reduce((s,r)=>s+r.ex,0)}</b><span>Exercices</span></div></div>
   <div class="card form"><span class="hint">Devoirs, compétences, Plickers et analyses : onglet <button class="linkbtn" data-act="go" data-to="eval">Évals · التقويم</button>.</span></div>
@@ -1208,11 +1212,78 @@ function viewClasse(){
   ${!modOn("plan")?"":(c.students||[]).length?planEditor(c):`<p class="hint">Ajoutez des élèves dans l'onglet Élèves pour construire le plan de la salle.</p>`}
   ${S.confirmDel?`<div class="confirm">Supprimer ${esc(c.name)} et toutes ses séances ? <button class="btn danger" data-act="delYes">Oui, supprimer</button><button class="btn" data-act="delNo">Annuler</button></div>`:`<div><button class="btn danger" data-act="delAsk">Supprimer la classe ${esc(c.name)}</button></div>`}`:""}
   ${ctImpCard()}
+  ${stuImpCard()}
   <form class="card form" id="newClass"><h2>Nouvelle classe</h2>
     <div class="grid2"><label>Nom de la classe<input id="ncName" placeholder="2AC-3" required></label>
     <label>Niveau<select id="ncLvl">${LEVELS.map(l=>`<option ${l==="2AC"?"selected":""}>${l}</option>`).join("")}</select></label></div>
     <div><button class="btn primary" type="submit">Créer la classe</button></div></form>`;
 }
+/* ---------- Import de listes d'élèves (plusieurs fichiers) ---------- */
+const NAMEH=/^(nom|pr[ée]nom|nom\s*(et|&)\s*pr[ée]nom|nom\s*complet|[ée]l[èe]ve|apprenant|الاسم|النسب|الاسم\s*الكامل|اسم\s*التلميذ|التلميذ|الإسم|الاسم\s*و\s*النسب|النسب\s*و\s*الاسم)(?![A-Za-z])/i;
+const NAMEX=/date|lieu|naiss|p[èe]re|m[èe]re|tuteur|تاريخ|مكان|الازدياد|الولي|الأب|الأم|النوع|الجنس/i;
+const CODEH=/code|massar|مسار|رقم\s*التلميذ|الرمز/i,NUMH=/^(n°?|no|num[ée]ro|rang|ordre|ر\.?\s*ت|رقم|الرقم|ت)$/i;
+const CLSH=/classe|groupe|القسم|الفوج/i,NOTNAME=/^(ذكر|أنثى|انثى|m|f|masculin|f[ée]minin|garçon|fille)$/i;
+function stuBlocks(rows,src){const B=[];let cur=null,head=null;const W=Math.max(0,...rows.map(r=>r.length));
+  const newB=n=>{cur={name:n,src,L:[]};B.push(cur);head=null};
+  const clsInRow=r=>{for(let i=0;i<r.length;i++){const v=String(r[i]||"").trim();if(!v)continue;if(CLSH.test(v)){const after=v.split(/[:：]/).slice(1).join(":");const n=clsIn(after)||r.slice(i+1).map(x=>clsIn(x)).find(Boolean);if(n)return n}}
+    const ne=r.filter(x=>String(x||"").trim());if(ne.length<=2){const n=ne.map(x=>CLS_STRICT.test(String(x).trim())?clsNorm(x):null).find(Boolean);if(n)return n}return null};
+  for(const r of rows){const cells=r.map(x=>String(x??"").trim());const cn=clsInRow(cells);if(cn&&(!cur||cur.L.length||cur.name!==cn)){if(cur&&!cur.L.length&&!cur.name)cur.name=cn;else newB(cn);continue}
+    if(cells.some(x=>NAMEH.test(x)&&!NAMEX.test(x))&&!cells.some(x=>MCODE.test(x))){if(!cur)newB(null);head={name:[],code:-1,num:-1,cls:-1};cells.forEach((x,i)=>{if(NAMEH.test(x)&&!NAMEX.test(x))head.name.push(i);else if(CODEH.test(x))head.code=i;else if(CLSH.test(x))head.cls=i;else if(NUMH.test(x))head.num=i});continue}
+    let code="",name="",num=null;
+    if(head&&head.name.length){name=head.name.map(i=>cells[i]||"").filter(Boolean).join(" ");if(head.code>=0)code=cells[head.code]||"";if(head.num>=0&&/^\d{1,3}$/.test(cells[head.num]||""))num=+cells[head.num];if(!MCODE.test(code))code=cells.find(x=>MCODE.test(x))||""}
+    else{code=cells.find(x=>MCODE.test(x))||"";if(!code)continue;const parts=cells.filter(x=>x&&!MCODE.test(x)&&/[A-Za-z؀-ۿ]{2,}/.test(x)&&!/\d/.test(x)&&!NOTNAME.test(x)).slice(0,3);name=parts.join(" ");const nn=cells.find(x=>/^\d{1,3}$/.test(x));if(nn)num=+nn}
+    name=name.replace(/\s+/g," ").trim();if(!name||name.length<3||/\d{3,}/.test(name)||NAMEH.test(name))continue;let tgt=cur;if(head&&head.cls>=0){const cn2=clsIn(cells[head.cls]||"");if(cn2){tgt=B.find(b=>b.name===cn2);if(!tgt){const keep=cur,kh=head;newB(cn2);tgt=cur;cur=keep;head=kh}}}
+    if(!tgt){newB(null);tgt=cur}tgt.L.push({code:MCODE.test(code)?code.toUpperCase():"",name,num})}
+  return B.filter(b=>b.L.length)}
+async function stuFileParse(f){const nm=f.name.toLowerCase();const fromName=clsIn(f.name.replace(/\.[a-z0-9]+$/i,"").replace(/_/g," "));let B=[];
+  if(/\.pdf$/.test(nm)){const P=await pdfPages(f);P.forEach(W=>{const L=mergeTokens(W);const rows=[];L.slice().sort((a,b)=>a.y-b.y||a.x-b.x).forEach(w=>{let r=rows.find(r=>Math.abs(r.y-w.y)<2.5);if(!r){r={y:w.y,c:[]};rows.push(r)}r.c.push(w)});
+    B.push(...stuBlocks(rows.map(r=>r.c.sort((a,b)=>a.x-b.x).map(w=>w.t)),f.name))})}
+  else if(/\.docx$/.test(nm)){const W=await docxItems(f);const R=[];W.forEach(w=>{const y=Math.floor(w.y),x=Math.floor(w.x0);(R[y]=R[y]||[])[x]=w.t});
+    const get=await unzipXlsx(await f.arrayBuffer());const xml=await get("word/document.xml")||"";const txt=[...new DOMParser().parseFromString(xml,"application/xml").getElementsByTagName("w:p")].map(p=>p.textContent).join("\n");
+    const cn=(txt.match(/(?:classe|القسم)\s*[:：]?\s*([^\n]{0,20})/i)||[])[1];const hdr=cn?clsIn(cn):null;B=stuBlocks(R.map(r=>Array.from(r||[],x=>x||"")),f.name);if(hdr&&B.length===1&&!B[0].name)B[0].name=hdr}
+  else{const T=await readTable(f);const SH=T.sheets&&T.sheets.length?T.sheets:[{n:"",rows:T}];SH.forEach(sh=>{const b=stuBlocks(sh.rows,f.name+(sh.n?" › "+sh.n:""));const sn=clsIn(sh.n||"");b.forEach(x=>{if(!x.name&&sn)x.name=sn});B.push(...b)})}
+  B.forEach(b=>{if(!b.name&&fromName&&B.length===1)b.name=fromName});return B}
+function stuImpCard(){const I=S.stuImp;let h=`<div class="card form" id="stuImpCard"><h2>Importer des listes d'élèves · استيراد لوائح التلاميذ</h2>
+  <span class="hint">Un ou plusieurs fichiers Excel, Word, CSV ou PDF (listes Massar…). Rclass trouve le nom de chaque classe et ses élèves, crée les classes manquantes et range les élèves dans l'ordre Massar.</span>
+  <div class="tools"><label class="btn primary" for="stuIn" style="cursor:pointer">📋 Choisir les fichiers</label><input type="file" id="stuIn" accept=".xlsx,.xls,.ods,.csv,.docx,.pdf,application/pdf" multiple hidden></div>`;
+  if(I&&I.busy)h+=`<span class="hint">Lecture des fichiers…</span>`;if(I&&I.err)h+=`<div class="flag">${esc(I.err)}</div>`;
+  if(I&&I.list&&I.list.length){const on=I.list.filter(x=>x.on);
+    h+=`<div style="display:grid;gap:6px">${I.list.map((x,i)=>{const cid=stuCid(x.name);const c=cid&&S.classes[cid];
+      return `<div style="border:1px solid var(--line);border-radius:10px;padding:8px;display:grid;gap:4px;${x.on?"":"opacity:.55"}">
+      <label class="ctrow" style="font-weight:700"><input type="checkbox" data-sti="${i}" ${x.on?"checked":""}> ${x.L.length} élèves → <input data-stn="${i}" value="${esc(x.name||"")}" placeholder="Nom de la classe" style="width:9em;flex:none"></label>
+      <span class="hint">${c?"classe existante : élèves ajoutés ou renumérotés selon la liste":x.name?"nouvelle classe ("+esc(lvOfCls(clsNorm(x.name)))+")":"⚠ écrivez le nom de la classe"} · ${esc(x.src)}</span>
+      <span class="hint">${esc(x.L.slice(0,3).map(y=>y.name).join(", "))}${x.L.length>3?"…":""}</span></div>`}).join("")}</div>
+    <div class="tools"><button class="btn primary" data-act="stuGo" ${on.length&&on.every(x=>x.name)?"":"disabled"}>Importer ${on.length} liste${on.length>1?"s":""}</button><button class="btn" data-act="stuCancel">Annuler</button></div>`}
+  return h+`</div>`}
+const stuCid=n=>{if(!n)return null;const k=ctKey(clsNorm(n));for(const id in S.classes)if(!S.classes[id].demo&&ctKey(S.classes[id].name)===k)return id;return null};
+async function stuFiles(fs){S.stuImp={busy:true};render();const all=[];
+  try{for(const f of fs)all.push(...await stuFileParse(f))}catch(e){S.stuImp={err:"Lecture impossible ("+((e&&e.message)||"erreur")+")."};return render()}
+  if(!all.length){S.stuImp={err:"Aucune liste d'élèves trouvée. Il faut un tableau avec une colonne de noms (Nom, Prénom, الاسم، النسب…) ou des codes Massar."};return render()}
+  const m=[];all.forEach(b=>{const o=b.name&&m.find(x=>x.name&&ctKey(clsNorm(x.name))===ctKey(clsNorm(b.name)));if(o){const seen=new Set(o.L.map(y=>y.code||y.name));b.L.forEach(y=>{if(!seen.has(y.code||y.name))o.L.push(y)})}else m.push({...b,on:true})});
+  S.stuImp={list:m};render();const el=$("#stuImpCard");if(el)el.scrollIntoView({block:"start"})}
+function massarMerge(c,L){const st=[...(c.students||[])].map(x=>({...x}));const used=new Set();let upd=0,add=0;const mis=[];
+  L.forEach((x,i)=>{let s0=x.code&&st.find(y=>!used.has(y.id)&&y.massar===x.code);if(!s0){let b=null,bs=0;st.forEach(y=>{if(used.has(y.id)||(x.code&&y.massar&&y.massar!==x.code))return;const sc=Math.max(nameScore(x.name,y.name),nameScore(x.name,y.alt||""));if(sc>bs){bs=sc;b=y}});if(bs>=0.6)s0=b}
+    if(s0&&x.code&&s0.massar===x.code){const same=[s0.name,s0.alt].filter(n=>n&&hasAr(n)===hasAr(x.name));if(same.length&&Math.max(...same.map(n=>nameScore(x.name,n)))<0.34)mis.push(x.name+" ≠ "+s0.name)}
+    if(s0){s0.num=i+1;if(x.code&&!s0.massar)s0.massar=x.code;if(hasAr(x.name)!==hasAr(s0.name)&&!s0.alt)s0.alt=x.name;used.add(s0.id);upd++}else{const y={id:uid(),name:x.name,num:i+1,...(x.code?{massar:x.code}:{})};st.push(y);used.add(y.id);add++}});
+  let n=L.length;st.filter(y=>!used.has(y.id)).sort((a,b)=>a.num-b.num).forEach(y=>y.num=++n);c.students=st;return {upd,add,mis}}
+async function stuCommit(){const I=S.stuImp;if(!I||!I.list)return;let nC=0,nS=0,first=null;const mis=[];
+  for(const x of I.list.filter(y=>y.on&&y.name)){const L=x.L.slice().sort((a,b)=>(a.num??1e9)-(b.num??1e9));let cid=stuCid(x.name),c=cid&&S.classes[cid];
+    if(!c){const id=uid();c={id,name:clsNorm(x.name),level:lvOfCls(clsNorm(x.name)),students:[],settings:{...DEF},created:today()};S.classes[id]=c;nC++;first=first||id}
+    const r=massarMerge(c,L);nS+=r.add;mis.push(...r.mis.map(m=>c.name+" : "+m));await saveClass(c)}
+  S.stuImp=null;if(mis.length)showAlert("Noms à vérifier",`<p style="margin:0">Code Massar identique mais nom différent :</p><ul>${mis.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`);
+  toast((nC?nC+" classe(s) créée(s) · ":"")+nS+" élève(s) ajouté(s)");if(first&&(!S.cid||!S.classes[S.cid]||isDemo(S.classes[S.cid])))return selectClass(first);render()}
+
+/* ---------- Statistiques de la période ---------- */
+function statsCard(c,T){const R=T.rows,n=R.length,D=T.dates.length;if(!n||!D)return "";
+  const sum=k=>R.reduce((s,r)=>s+(r[k]||0),0);const A=sum("A"),Rt=sum("R"),seen=R.reduce((s,r)=>s+r.seen,0);
+  const pres=seen?Math.round((seen-A)/seen*100):0;const ex=sum("ex"),pl=sum("plus"),mi=sum("minus"),cA=sum("cA"),cI=sum("cI");
+  const top=(k,lab,f=r=>r[k])=>{const L=R.filter(r=>f(r)>0).sort((a,b)=>f(b)-f(a)).slice(0,3);return L.length?`<div><b style="font-size:.85rem">${lab}</b><ol style="margin:2px 0 0;padding-left:1.3em;font-size:.85rem">${L.map(r=>`<li>${esc(r.name)} <span class="hint">(${f(r)})</span></li>`).join("")}</ol></div>`:""};
+  const per=S.period==="custom"?`du ${S.pFrom?fmtD(S.pFrom):"début"} au ${S.pTo?fmtD(S.pTo):"aujourd'hui"}`:PER[S.period||"year"];
+  const k=(v,l)=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`;
+  return `<div class="card form"><h2>Statistiques · ${esc(per)}</h2><span class="hint">${D} séance(s) · ${n} élèves</span>
+  <div class="kpis">${k(pres+" %","Présence")+k(A,"Absences")+k(Rt,"Retards")+k(ex,"Exercices réalisés")+k("+"+pl,"Points +")+k("−"+mi,"Points −")+k(cA,"Cahiers absents")+k(cI,"Cahiers incomplets")+k((ex/D).toFixed(1),"Exercices / séance")}</div>
+  <div class="grid2" style="gap:10px">${top("plus","Les plus participatifs (+)")}${top("ex","Le plus d'exercices")}${top("A","Le plus d'absences")}${top("minus","Le plus de points −")}${top("c","Cahier à surveiller",r=>(r.cA||0)+(r.cI||0))}${top("R","Le plus de retards")}</div></div>`}
+
 /* ---------- Démonstration et fonctions affichées ---------- */
 const MODS=[["plk","Plickers","نتائج بليكرز، التذكير بها في الحصص"],["eval","Devoirs et évaluations","الفروض والتحليلات (onglet Évals)"],["plan","Plan de la salle","توزيع المقاعد"],["prog","Programme et déroulement des séances","المقرر، مراحل الحصة، الأنشطة"],["ct","Où est la classe ?","استعمال زمن القسم في صفحة القسم"]];
 const modOn=k=>(S.mods||{})[k]!==false;
@@ -1257,8 +1328,8 @@ function demoWrap(a){const w=Object.create(a);let last={},cbC=null;const isD=cid
   return w}
 function demoBlock(imp){S.tab="classe";S.stu=null;saveUI();render();const f=$("#ncName");if(f){f.scrollIntoView({block:"center"});f.focus()}
   toast(imp?"Créez d'abord votre classe : les classes de démonstration ne reçoivent pas d'importations.":"Créez d'abord votre classe (ou importez vos emplois du temps en PDF), puis ajoutez vos élèves.")}
-function demoEleves(c){return `<div class="card form"><h2>${esc(c.name)} · élèves fictifs</h2>
-  <span class="hint">C'est une classe de démonstration : on ne peut pas y ajouter vos élèves. Créez votre classe, puis collez la liste Massar dans l'onglet Élèves.</span>
+function demoEleves(c){return `${stuImpCard()}<div class="card form"><h2>${esc(c.name)} · élèves fictifs</h2>
+  <span class="hint">C'est une classe de démonstration : on ne peut pas y ajouter vos élèves. Importez vos listes ci-dessus (vos classes sont créées automatiquement), ou créez votre classe.</span>
   <div class="tools"><button class="btn primary" data-act="demoNew">➕ Créer ma classe</button><button class="btn" data-act="demoPdf">📄 Importer mes emplois du temps (PDF)</button></div>
   <ol style="margin:0;padding-left:1.4em;columns:2;font-size:.9rem">${sorted(c).map(st=>`<li>${esc(st.name)} <span class="hint">· carte ${st.card}</span></li>`).join("")}</ol></div>`}
 function demoDecor(){try{document.body.className=document.body.className.replace(/\bmod-off-\w+/g,"").trim();MODS.forEach(([k])=>{if(!modOn(k))document.body.classList.add("mod-off-"+k)})}catch(e){}
@@ -1276,9 +1347,31 @@ function demoDecor(){try{document.body.className=document.body.className.replace
    <li><b>Détails</b> · تفاصيل : sauvegarde, programme annuel, vacances, et « Fonctions affichées » pour masquer ce que vous n'utilisez pas.</li></ol>`:""}</div>`)}
 
 /* ---------- Import des emplois du temps (PDF) ---------- */
+/* ---------- Lecture d'images (OCR) ---------- */
+function loadTess(){if(window.Tesseract)return Promise.resolve(window.Tesseract);return new Promise((ok,ko)=>{const sc=document.createElement("script");sc.src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";sc.onload=()=>window.Tesseract?ok(window.Tesseract):ko(new Error("import Tesseract"));sc.onerror=()=>ko(new Error("import Tesseract"));document.head.appendChild(sc)})}
+async function imgCanvas(f){const url=URL.createObjectURL(f);try{const im=await new Promise((ok,ko)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=()=>ko(new Error("image illisible"));i.src=url});
+  const k=Math.min(3,Math.max(1,2200/Math.max(im.naturalWidth,im.naturalHeight)));const cv=document.createElement("canvas");cv.width=Math.round(im.naturalWidth*k);cv.height=Math.round(im.naturalHeight*k);const g=cv.getContext("2d");g.drawImage(im,0,0,cv.width,cv.height);
+  const d=g.getImageData(0,0,cv.width,cv.height),a=d.data;for(let i=0;i<a.length;i+=4){let y=.3*a[i]+.59*a[i+1]+.11*a[i+2];y=y<150?Math.max(0,y*.75-10):Math.min(255,y*1.15+20);a[i]=a[i+1]=a[i+2]=y}g.putImageData(d,0,0);return cv}finally{URL.revokeObjectURL(url)}}
+const OCR_D={Z:"2",z:"2",S:"3",s:"3",B:"3",l:"1",L:"1",I:"1",i:"1","|":"1","!":"1",d:"1","1":"1","2":"2","3":"3"};
+const ocrFix=t=>{t=String(t).replace(/[“”"'`’]/g,"").replace(/[-–—]+/g,"-").replace(/(^|[^A-Za-z])O(?=\d)/g,"$10").replace(/(\d)O(?![A-Za-z])/g,"$10").replace(/^[|_]+|[|_]+$/g,"").trim();if(/^[\u0600-\u06FF]{1,2}\d{1,2}$|^\d{1,2}[\u0600-\u06FF]{1,2}$/.test(t))t=t.replace(/[\u0600-\u06FF]/g,"")+"h";
+  const m=t.match(/^([ZzSsBLlIi|!d1-3])\s*([A-Za-z(]{3,5})[\s-]*(\d{0,2})$/);if(m&&lev(m[2].toUpperCase().replace("(","C"),"APIC")<=2)return OCR_D[m[1]]+"APIC"+(m[3]?" "+m[3]:"");return t};
+async function ocrItems(f,onP){const T=await loadTess();const cv=await imgCanvas(f);
+  const run=async langs=>{const w=await T.createWorker(langs,1,{logger:m=>{if(onP&&m&&m.status)onP(m.status,m.progress)}});
+    try{try{await w.setParameters({tessedit_pageseg_mode:"11"})}catch(e){}const {data}=await w.recognize(cv);let words=data.words;if(!words||!words.length){words=[];(data.blocks||[]).forEach(b=>(b.paragraphs||[]).forEach(p=>(p.lines||[]).forEach(l=>words.push(...(l.words||[])))))}return words}finally{try{await w.terminate()}catch(e){}}};
+  let words=await run("fra");if(new Set(words.map(x=>ctDayOf(x.text||""))).size<4)words=await run(["ara","fra"]);
+  {
+    return words.filter(x=>x&&x.text&&x.text.trim()&&true).map(x=>{const b=x.bbox;const t=ocrFix(x.text);return {t,x:(b.x0+b.x1)/2,y:(b.y0+b.y1)/2,x0:b.x0,x1:b.x1,y0:b.y0,y1:b.y1,h:Math.max(4,b.y1-b.y0),dir:/[؀-ۿ]/.test(t)?"rtl":"ltr"}}).filter(x=>x.t)}}
+const lev=(a,b)=>{const m=a.length,n=b.length;const d=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);for(let j=1;j<=n;j++)d[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n]};
+function ocrClsFix(L){const known=new Set(["APIC","AC","ASCG","APC"]);for(const id in S.classes){const m=(S.classes[id].name||"").toUpperCase().replace(/[\s_.]/g,"").match(/^\d([A-Z]+)-?\d+$/);if(m)known.add(m[1])}
+  L.forEach(x=>{const m=x.name.match(/^(\d)([A-Z0-9]+)-(\d+)$/);if(!m)return;let lt=m[2].replace(/1/g,"I").replace(/0/g,"O");if(!known.has(lt)){let best=null,bd=9;known.forEach(k=>{const d=lev(lt,k);if(d<bd){bd=d;best=k}});if(best&&bd<=1)lt=best}
+    x.name=m[1]+lt+"-"+m[3];x.key=ctKey(x.name);x.level=lvOfCls(x.name)});
+  const o={};L.forEach(x=>{const p=o[x.key];if(!p)o[x.key]=x;else{p.slots=[...(p.slots||[]),...(x.slots||[])];p.ct=p.ct.length?p.ct:x.ct}});return Object.values(o)}
+
 /* ---------- Emploi du temps du professeur (grille jours × heures) ---------- */
-function mergeTokens(W){const rows=[];W.slice().sort((a,b)=>a.y-b.y||a.x0-b.x0).forEach(w=>{let r=rows.find(r=>Math.abs(r.y-w.y)<2.5);if(!r){r={y:w.y,it:[]};rows.push(r)}r.it.push(w)});const L=[];
-  for(const r of rows){r.it.sort((a,b)=>a.x0-b.x0);let cur=null;for(const w of r.it){if(cur&&w.dir!=="rtl"&&cur.dir!=="rtl"&&w.x0-cur.x1<Math.max(3,.55*Math.min(cur.h,w.h))){cur.t+=(w.x0-cur.x1>1.5?" ":"")+w.t;cur.x1=w.x1;cur.x=(cur.x0+cur.x1)/2}else{cur&&L.push(cur);cur={...w}}}cur&&L.push(cur)}return L}
+function mergeTokens(W){const it=W.map(w=>({...w,y0:w.y0??w.y-w.h/2,y1:w.y1??w.y+w.h/2})).sort((a,b)=>a.x0-b.x0);const L=[];
+  for(const w of it){const ov=c=>Math.min(c.y1,w.y1)-Math.max(c.y0,w.y0);const c=w.dir==="rtl"?null:L.filter(c=>c.dir!=="rtl"&&ov(c)>=.4*Math.min(c.y1-c.y0,w.y1-w.y0)&&w.x0-c.x1<Math.max(3,.55*Math.min(c.h,w.h))).sort((a,b)=>b.x1-a.x1)[0];
+    if(c){c.t+=(w.x0-c.x1>1.5?" ":"")+w.t;c.x1=Math.max(c.x1,w.x1);c.x=(c.x0+c.x1)/2;c.y0=Math.min(c.y0,w.y0);c.y1=Math.max(c.y1,w.y1);c.y=(c.y0+c.y1)/2;c.h=Math.min(c.h,w.h)}else L.push({...w})}
+  return L}
 const TT_RX=/^(\d{1,2})(?:\s*[h:.]\s*(\d{2}))?\s*h?\s*(?:[-–—à\/]|to)\s*(\d{1,2})(?:\s*[h:.]\s*(\d{2}))?\s*h?$/i,TT_R1=/^(\d{1,2})\s*(?:[h:.]\s*(\d{2})\s*h?|h)$/i;
 const p2t=(h,m)=>String(+h).padStart(2,"0")+":"+(m||"00");
 function ttTime(t){t=String(t).trim();let m=t.match(TT_RX);if(m&&+m[1]<24&&+m[3]<24){const s=p2t(m[1],m[2]),e=p2t(m[3],m[4]);return e>s?{s,e}:{s:e,e:s}}
@@ -1317,6 +1410,8 @@ async function docxItems(file){const get=await unzipXlsx(await file.arrayBuffer(
       if(t)W.push({t,x:c+span/2,y:y0+r+.5,x0:c,x1:c+span,h:.6});c+=span}});y0+=rows.length+2}
   return W}
 async function ttFileParse(f){const nm=f.name.toLowerCase();
+  if(/^image\//.test(f.type)||/\.(jpe?g|png|webp|bmp|gif|heic)$/.test(nm)){const W=await ocrItems(f,(st,pr)=>{const el=$("#ctBusy");if(el)el.textContent=(/load|init/i.test(st)?"Préparation de la lecture d'image (la 1re fois, téléchargement ≈ 10 Mo)… ":"Lecture de l'image… ")+(pr?Math.round(pr*100)+" %":"")});
+    const A=ctFromPages([W]);const B=teacherGrid(mergeTokens(W));return ocrClsFix(ttMerge(A,B)).map(x=>({...x,ocr:true}))}
   if(/\.pdf$/.test(nm)||f.type==="application/pdf"){const P=await pdfPages(f);const A=ctFromPages(P);const B=[];P.forEach(W=>B.push(...teacherGrid(mergeTokens(W))));return ttMerge(A,B)}
   if(/\.docx$/.test(nm)){if(!window.DecompressionStream)throw new Error("navigateur trop ancien pour lire .docx");return ttMerge([],teacherGrid(await docxItems(f)))}
   const R=await readTable(f);const rows=R.extra&&R.extra.length>R.length?R.extra:R;return ttMerge([],teacherGrid(rowsToItems(rows)))}
@@ -1361,15 +1456,16 @@ function ctPcSlots(ct,subj){const L=ct.filter(x=>subj?x[3]===subj:isPC(x[3])).ma
   for(const x of L){const l=o[o.length-1];if(l&&l.d===x.d&&l.e===x.s)l.e=x.e;else o.push({...x})}return o}
 const slotTxt=L=>L.length?L.map(x=>DAYS[x.d]+" "+x.s+(x.e?"–"+x.e:"")).join(", "):"aucun";
 function ctImpCard(){const I=S.ctImp;let h=`<div class="card form" id="ctImpCard"><h2>Importer un emploi du temps · استيراد استعمال الزمن</h2>
-  <span class="hint">Votre emploi du temps de professeur (tableau jours × heures avec les noms des classes) ou les emplois du temps des classes « جدول حصص القسم ». PDF, Word (.docx), Excel ou CSV. Rclass crée les classes manquantes et vos séances de la semaine.</span>
-  <div class="tools"><label class="btn primary" for="ctPdf" style="cursor:pointer">📄 Choisir le fichier</label><input type="file" id="ctPdf" accept="application/pdf,.pdf,.docx,.xlsx,.xls,.ods,.csv" multiple hidden></div>`;
-  if(I&&I.busy)h+=`<span class="hint">Lecture du fichier…</span>`;
+  <span class="hint">Votre emploi du temps de professeur (tableau jours × heures avec les noms des classes) ou les emplois du temps des classes « جدول حصص القسم ». PDF, Word (.docx), Excel, CSV ou photo (JPG, PNG). Rclass crée les classes manquantes et vos séances de la semaine.</span>
+  <div class="tools"><label class="btn primary" for="ctPdf" style="cursor:pointer">📄 Choisir le fichier</label><input type="file" id="ctPdf" accept="application/pdf,.pdf,.docx,.xlsx,.xls,.ods,.csv,image/*" multiple hidden></div>`;
+  if(I&&I.busy)h+=`<span class="hint" id="ctBusy">Lecture du fichier…</span>`;
   if(I&&I.err)h+=`<div class="flag">${esc(I.err)}</div>`;
+  if(I&&I.list&&I.list.some(x=>x.ocr))h+=`<div class="flag" style="font-weight:400">📷 Lu sur une photo : vérifiez les noms des classes (modifiables ci-dessous) et les horaires. Une case mal lue peut manquer : vous pourrez l'ajouter dans l'onglet Horaires.</div>`;
   if(I&&I.list&&I.list.length){const on=I.list.filter(x=>x.on);const subs=[...new Set(I.list.flatMap(x=>x.ct.map(y=>y[3])))].sort();
     if(subs.length&&I.list.some(x=>x.ct.length&&!(x.slots&&x.slots.length)))h+=`<label>Ma matière (pour créer mes horaires de séances)<select id="ctSubj">${subs.map(m=>`<option ${m===I.subj?"selected":""}>${esc(m)}</option>`).join("")}</select></label>`;
     h+=`<div style="display:grid;gap:6px">${I.list.map((x,i)=>{const c=x.cid&&S.classes[x.cid];const prof=!!(x.slots&&x.slots.length);const pc=prof?x.slots:ctPcSlots(x.ct,I.subj);const cur=c?(c.slots||[]).slice().sort((a,b)=>(a.d-b.d)||a.s.localeCompare(b.s)):[];const same=c&&slotTxt(cur)===slotTxt(pc);
       return `<div style="border:1px solid var(--line);border-radius:10px;padding:8px;display:grid;gap:4px;${x.on?"":"opacity:.55"}">
-      <label class="ctrow" style="font-weight:700"><input type="checkbox" data-cti="${i}" ${x.on?"checked":""}> ${esc(c?c.name:x.name)} <span class="hint" style="font-weight:400">${c?"classe existante · emploi du temps mis à jour":"nouvelle classe ("+esc(x.level)+")"}</span></label>
+      <label class="ctrow" style="font-weight:700"><input type="checkbox" data-cti="${i}" ${x.on?"checked":""}> ${c?esc(c.name):`<input data-ctn="${i}" value="${esc(x.name)}" style="width:8em;flex:none;font-weight:700">`} <span class="hint" style="font-weight:400">${c?"classe existante · emploi du temps mis à jour":"nouvelle classe ("+esc(x.level)+")"}</span></label>
       <span class="hint">${x.ct.length?x.ct.length+" heures de cours · ":""}${prof?"emploi du temps du professeur":x.ct.length?"vos horaires · <bdi>"+esc(I.subj)+"</bdi>":"aucun horaire trouvé"} : ${esc(slotTxt(pc))}</span>
       ${c&&!same?`<label class="ctrow" style="font-size:.85rem"><input type="checkbox" data-ctu="${i}" ${x.upd?"checked":""}> Remplacer mes horaires actuels (${esc(slotTxt(cur))})</label>`:""}
       ${c&&same?`<span class="hint">✓ Vos horaires sont déjà identiques.</span>`:""}</div>`}).join("")}</div>
@@ -1377,7 +1473,7 @@ function ctImpCard(){const I=S.ctImp;let h=`<div class="card form" id="ctImpCard
   return h+`</div>`}
 async function ctPdfFiles(fs){S.ctImp={busy:true};render();const all=[];
   try{for(const f of fs){const L=await ttFileParse(f);L.forEach(x=>{const i=all.findIndex(y=>y.key===x.key);if(i<0)return all.push(x);const o=all[i];all[i]={...o,...x,ct:x.ct.length?x.ct:o.ct,slots:x.slots&&x.slots.length?x.slots:o.slots}})}}
-  catch(e){S.ctImp={err:/import|fetch|module|Failed/i.test(String(e&&e.message))?"Impossible de charger le lecteur PDF : connectez-vous à Internet une première fois.":"Lecture du fichier impossible ("+((e&&e.message)||"erreur")+")."};return render()}
+  catch(e){console.warn(e);S.ctImp={err:/import|fetch|module|Failed|network|load/i.test(String(e&&e.message))?"Impossible de charger le lecteur (PDF ou image) : connectez-vous à Internet une première fois.":"Lecture du fichier impossible ("+((e&&e.message)||"erreur")+")."};return render()}
   const L=all.filter(x=>x.ct.length||(x.slots&&x.slots.length)||all.some(y=>y.ct.length||(y.slots&&y.slots.length)));
   if(!L.length){S.ctImp={err:all.length?"Classes trouvées ("+all.map(x=>x.name).join(", ")+") mais aucun horaire reconnu : il faut un tableau avec les jours (Lundi…Samedi) et les heures (08–09h, 8h-9h, 08:00-09:00…).":"Aucun emploi du temps reconnu : il faut un tableau avec les jours, les heures et les noms des classes (ex. 1APIC-1, 2AC-3)."};return render()}
   const byKey={};for(const id in S.classes)byKey[ctKey(S.classes[id].name)]=id;
@@ -1523,7 +1619,7 @@ const exBySlot=(c,k)=>(c.exams||[]).find(e=>e.slot===k);
 const curSem=c=>today()>=sem2(c)?"S2":"S1";
 const firstFree=(c,sem)=>{const L=SLOTS.filter(x=>x[0].startsWith(sem));return (L.find(x=>!exBySlot(c,x[0]))||L[L.length-1])[0]};
 const perOK=(c,d)=>!d||inPeriod(c,d,S.period||"year");
-const exPerOK=(c,E)=>{const P=S.period||"year";if(P==="year")return true;if(E.slot)return E.slot.startsWith(P.toUpperCase());return perOK(c,E.date)};
+const exPerOK=(c,E)=>{const P=S.period||"year";if(P==="year")return true;if(P==="custom")return perOK(c,E.date);if(E.slot)return E.slot.startsWith(P.toUpperCase());return perOK(c,E.date)};
 const exMode=c=>c?(c.examMode||(c.level==="1AC"?"pionnier":"normal")):"normal";
 const isPion=c=>exMode(c)==="pionnier";
 function loadXLSX(){if(window.XLSX)return Promise.resolve(window.XLSX);return new Promise((ok,ko)=>{const sc=document.createElement("script");sc.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";sc.onload=()=>window.XLSX?ok(window.XLSX):ko();sc.onerror=ko;document.head.appendChild(sc)})}
@@ -1536,14 +1632,14 @@ async function readXlsxNative(buf){const get=await unzipXlsx(buf);const P=new DO
   const ssT=await get("xl/sharedStrings.xml");const ss=ssT?[...X(ssT).getElementsByTagName("si")].map(si=>[...si.getElementsByTagName("t")].map(t=>t.textContent).join("")):[];
   const wb=X(await get("xl/workbook.xml")),rels=X(await get("xl/_rels/workbook.xml.rels")||"<r/>");const sheets=[...wb.getElementsByTagName("sheet")];
   const target=sh=>{const rid=sh.getAttribute("r:id")||sh.getAttributeNS("http://schemas.openxmlformats.org/officeDocument/2006/relationships","id");const r=[...rels.getElementsByTagName("Relationship")].find(x=>x.getAttribute("Id")===rid);let t=r?r.getAttribute("Target"):"worksheets/sheet1.xml";t=t.replace(/^\/?xl\//,"").replace(/^\//,"");return "xl/"+t};
-  let best=[];const all=[];for(const sh of (sheets.length?sheets:[null])){const txt=await get(sh?target(sh):"xl/worksheets/sheet1.xml");if(!txt)continue;const doc=X(txt);const rows=[];
+  let best=[];const all=[],SH=[];for(const sh of (sheets.length?sheets:[null])){const txt=await get(sh?target(sh):"xl/worksheets/sheet1.xml");if(!txt)continue;const doc=X(txt);const rows=[];
     for(const r of doc.getElementsByTagName("row")){const row=[];for(const c of r.getElementsByTagName("c")){const ref=c.getAttribute("r")||"";const col=ref.replace(/\d+/g,"").split("").reduce((a,ch)=>a*26+ch.charCodeAt(0)-64,0)-1;const t=c.getAttribute("t");const v=c.getElementsByTagName("v")[0];
       let val=t==="s"?ss[+(v&&v.textContent)]||"":t==="inlineStr"?[...c.getElementsByTagName("t")].map(x=>x.textContent).join(""):v?v.textContent:"";if(t!=="s"&&t!=="inlineStr"&&t!=="str"&&/^-?\d+\.\d{6,}$/.test(val))val=String(Math.round(+val*100)/100);row[col>=0?col:row.length]=String(val).trim()}
       rows.push(Array.from(row,x=>x||""))}
-    const f=rows.filter(x=>x.some(Boolean));all.push(...f);if(f.length>best.length)best=f}best.extra=all;return best}
+    const f=rows.filter(x=>x.some(Boolean));SH.push({n:sh?sh.getAttribute("name"):"",rows:f});all.push(...f);if(f.length>best.length)best=f}best.extra=all;best.sheets=SH;return best}
 async function readTable(fl){const nm=fl.name.toLowerCase();
   if(/\.(xlsx|xlsm)$/.test(nm)&&window.DecompressionStream){try{const r=await readXlsxNative(await fl.arrayBuffer());if(r.length)return r}catch(e){}}
-  if(/\.(xlsx|xlsm|xls|ods)$/.test(nm)){const X=await loadXLSX();const wb=X.read(await fl.arrayBuffer(),{type:"array"});let best=[];const all=[];for(const sn of wb.SheetNames){const r=X.utils.sheet_to_json(wb.Sheets[sn],{header:1,raw:false,defval:""}).map(r=>r.map(x=>String(x??"").trim()));{const f=r.filter(x=>x.some(Boolean));all.push(...f);if(f.length>best.length)best=f}}best.extra=all;return best}
+  if(/\.(xlsx|xlsm|xls|ods)$/.test(nm)){const X=await loadXLSX();const wb=X.read(await fl.arrayBuffer(),{type:"array"});let best=[];const all=[],SH=[];for(const sn of wb.SheetNames){const r=X.utils.sheet_to_json(wb.Sheets[sn],{header:1,raw:false,defval:""}).map(r=>r.map(x=>String(x??"").trim()));{const f=r.filter(x=>x.some(Boolean));SH.push({n:sn,rows:f});all.push(...f);if(f.length>best.length)best=f}}best.extra=all;best.sheets=SH;return best}
   const buf=await fl.arrayBuffer();let t=new TextDecoder("utf-8").decode(buf);if(t.includes("\uFFFD"))t=new TextDecoder("windows-1252").decode(buf);return parseCsv(t)}
 const LVMAP={A:"A",B:"B",C:"C",D:"D","أ":"A","ا":"A","ب":"B","ج":"C","د":"D"};
 const lvOf=v=>{v=String(v||"").trim().toUpperCase();return LVMAP[v]||null};
@@ -1664,7 +1760,7 @@ function exCard(c){const EX=(c.exams||[]).filter(E=>exPerOK(c,E)).slice().sort((
   ${(S.exLog||[]).length&&!S.exP?`<div class="flag" style="background:var(--ok-bg,#e6f4ea);color:var(--ok);border-color:var(--ok)">Import terminé<ul class="remind">${S.exLog.map(x=>`<li><span>${esc(x)}</span></li>`).join("")}</ul><div><button class="btn" data-act="exLogClose">Fermer</button></div></div>`:""}
   <details style="border:1px solid var(--line);border-radius:10px;padding:8px 10px"><summary style="cursor:pointer;font-weight:700;font-size:.9rem">Système de notation · نظام التنقيط : ${[...new Set(classList().map(x=>x.level).filter(l=>l&&l!=="Autre"))].sort().map(lv=>esc(lv)+" "+(isPion(classList().find(x=>x.level===lv))?"Pionnier":"normal")).join(" · ")}</summary><div style="display:grid;gap:6px;margin-top:8px">${[...new Set(classList().map(x=>x.level).filter(l=>l&&l!=="Autre"))].sort().map(lv=>{const m=exMode(classList().find(x=>x.level===lv));return `<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px"><b style="min-width:44px">${esc(lv)}</b><div class="seg" role="group"><button data-act="exMode" data-lv="${esc(lv)}" data-m="normal" aria-pressed="${m==="normal"}">Normal · note /20</button><button data-act="exMode" data-lv="${esc(lv)}" data-m="pionnier" aria-pressed="${m==="pionnier"}">Pionnier · note + compétences</button></div></div>`}).join("")}<span class="hint">Système normal : seule la note /20 est importée et affichée. Le passage au système Pionnier (ou le retour) est possible à tout moment ; les données déjà saisies sont conservées.</span></div></details>
   <p class="hint" style="margin:0">${isPion(c)?"Chaque niveau a 2 devoirs au 1er semestre et 3 au 2e. Importez la note /20 et les compétences (6 ou 7, notées A à D) depuis Excel ou CSV : un fichier pour les notes, un pour les compétences, ou un seul fichier avec les deux. Les codes des compétences (C1, C2…) et leurs intitulés sont lus dans le fichier du devoir.":"Importez les notes /20 depuis Excel ou CSV (export Massar accepté) : si le fichier contient plusieurs colonnes (Devoir 1, Devoir 2…), chacune devient un devoir."} Les élèves sont reconnus par leur code ou leur nom et numérotés dans l'ordre Massar du fichier.</p>
-  <div style="display:grid;gap:4px">${["S1","S2"].filter(sm=>(S.period||"year")==="year"||sm===(S.period||"").toUpperCase()).map(sm=>`<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center"><b style="min-width:30px;font-size:.85rem">${sm}</b>${SLOTS.filter(x=>x[0].startsWith(sm)).map(x=>{const E=exBySlot(c,x[0]);const nts=E?Object.values(E.res||{}).map(r=>r.note).filter(v=>v!=null):[];const av=nts.length?nts.reduce((a,b)=>a+b,0)/nts.length:null;const nc=E&&isPion(c)?(E.comps||[]).length:0;
+  <div style="display:grid;gap:4px">${["S1","S2"].filter(sm=>["year","custom"].includes(S.period||"year")||sm===(S.period||"").toUpperCase()).map(sm=>`<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center"><b style="min-width:30px;font-size:.85rem">${sm}</b>${SLOTS.filter(x=>x[0].startsWith(sm)).map(x=>{const E=exBySlot(c,x[0]);const nts=E?Object.values(E.res||{}).map(r=>r.note).filter(v=>v!=null):[];const av=nts.length?nts.reduce((a,b)=>a+b,0)/nts.length:null;const nc=E&&isPion(c)?(E.comps||[]).length:0;
     return `<button class="tag" data-act="exEdit" data-k="${x[0]}" style="padding:4px 10px;cursor:pointer;border:1px solid var(--line);${E?"":"opacity:.75"}" title="Saisir ou modifier">${x[1].split(" · ")[0]} : ${E?`<b class="${av!=null&&av<10?"r":"g"}">${av!=null?f1(av):"–"}</b>${isPion(c)?` · ${nc?nc+" comp.":"<span class=r>compétences manquantes</span>"}`:""}`:"à saisir"} ✎</button>`}).join("")}</div>`).join("")}<span class="hint">Touchez un devoir pour saisir ou modifier les notes${isPion(c)?" et les compétences":""} à la main.</span></div>
   <div class="tools"><label class="btn primary" for="exIn" style="cursor:pointer">Importer des fichiers Excel / CSV</label><input type="file" id="exIn" accept=".xlsx,.xls,.xlsm,.ods,.csv,text/csv" multiple hidden></div>
   ${EX.length?EX.map(E=>{const R=E.res||{};const nts=Object.values(R).map(r=>r.note).filter(x=>x!=null);const avg=nts.length?(nts.reduce((a,b)=>a+b,0)/nts.length).toFixed(2):"–";const K=isPion(c)?E.comps||[]:[];
@@ -1801,9 +1897,9 @@ function viewDetails(){const c=cls();
 }
 function viewEleves(){
   const c=cls();
-  if(!c)return `<div class="card empty"><h2>Aucune classe</h2><p class="hint">Créez d'abord une classe dans l'onglet Classe.</p><button class="btn primary" data-act="go" data-to="classe">Créer une classe</button></div>`;
+  if(!c)return `${stuImpCard()}<div class="card empty"><h2>Aucune classe</h2><p class="hint">Importez vos listes d'élèves ci-dessus (les classes sont créées automatiquement), ou créez une classe dans l'onglet Classe.</p><button class="btn" data-act="go" data-to="classe">Créer une classe</button></div>`;
   const others=classList().filter(x=>x.id!==c.id);
-  return `<div class="card"><div class="form" style="padding-bottom:6px"><h2>Élèves de ${esc(c.name)} · ${(c.students||[]).length}</h2>
+  return `${stuImpCard()}<div class="card"><div class="form" style="padding-bottom:6px"><h2>Élèves de ${esc(c.name)} · ${(c.students||[]).length}</h2>
     <label>Liste Massar : un élève par ligne, dans l'ordre de Massar (code Massar facultatif, collage depuis Excel accepté)<textarea id="bulk" placeholder="J130012345  Amine El Idrissi&#10;J130067890  Salma Bennani&#10;…"></textarea></label>
     <div class="tools"><button class="btn primary" data-act="massarOrder">Appliquer l'ordre Massar</button><button class="btn" data-act="bulk">Ajouter à la fin de la liste</button></div>
     <span class="hint">« Appliquer l'ordre Massar » donne à chaque élève déjà présent son N° Massar (reconnu par le code ou le nom, même s'il vient de Plickers) et ajoute ceux qui manquent. Le N° de carte Plickers ne change pas.</span>
@@ -1970,6 +2066,12 @@ document.addEventListener("click",async e=>{
   if(a==="afPick"&&S.addF){readAF();S.addF.s=t.dataset.s;S.addF.e=t.dataset.e;return render()}
   if(a==="xMore"){S.xMore=!S.xMore;return render()}
   if(a==="ctGo")return ctCommit();
+  if(a==="pQuick"){const k=t.dataset.k,d=new Date(today()+"T12:00:00"),iso=x=>x.toISOString().slice(0,10);
+    if(k==="7"||k==="30"){const f=new Date(d);f.setDate(d.getDate()-(+k-1));S.pFrom=iso(f);S.pTo=iso(d)}
+    else if(k==="m"){S.pFrom=iso(new Date(d.getFullYear(),d.getMonth(),1,12));S.pTo=iso(d)}
+    else{S.pFrom=iso(new Date(d.getFullYear(),d.getMonth()-1,1,12));S.pTo=iso(new Date(d.getFullYear(),d.getMonth(),0,12))}saveUI();return render()}
+  if(a==="stuGo")return stuCommit();
+  if(a==="stuCancel"){S.stuImp=null;return render()}
   if(a==="demoNew")return demoBlock(false);
   if(a==="demoPdf"){S.tab="classe";saveUI();render();const i=$("#ctPdf");if(i){$("#ctImpCard").scrollIntoView({block:"center"});try{i.click()}catch(e){}}return}
   if(a==="demoHide"){try{localStorage.setItem("rc-demo-off"+PSUF,"1")}catch(e){}demoClear();toast("Démonstration masquée — bouton « Voir la démonstration » pour la revoir");return}
@@ -2107,6 +2209,7 @@ document.addEventListener("change",async e=>{
   if(e.target.dataset&&e.target.dataset.modT){S.mods={...(S.mods||{}),[e.target.dataset.modT]:e.target.checked};try{await api.saveCalendar({rel:S.holEdit||{},sched:S.sched||null})}catch(err){toast("Réglage non enregistré.")}return render()}
   if((e.target.id==="plkIn"||e.target.id==="exIn")&&e.target.files&&e.target.files.length&&isDemo(cls())){e.target.value="";return demoBlock(true)}
   if(e.target.id==="ctSubj"&&S.ctImp){S.ctImp.subj=e.target.value;return render()}
+  if(e.target.dataset&&e.target.dataset.ctn!=null&&S.ctImp&&S.ctImp.list){const x=S.ctImp.list[+e.target.dataset.ctn],v=clsNorm(e.target.value.trim());if(x&&v){x.name=v;x.key=ctKey(v);x.level=lvOfCls(v);x.cid=null;for(const id in S.classes)if(!S.classes[id].demo&&ctKey(S.classes[id].name)===x.key)x.cid=id}return render()}
   if(e.target.id==="ctPdf"&&e.target.files&&e.target.files.length){const fs=[...e.target.files];e.target.value="";return ctPdfFiles(fs)}
   if(e.target.dataset&&(e.target.dataset.cti||e.target.dataset.ctu)&&S.ctImp&&S.ctImp.list){const x=S.ctImp.list[+(e.target.dataset.cti||e.target.dataset.ctu)];if(x){if(e.target.dataset.cti)x.on=e.target.checked;else x.upd=e.target.checked}return render()}
   if(e.target.id==="plkIn"&&e.target.files&&e.target.files.length){const fs=[...e.target.files];e.target.value="";if(!cls())return;S.plkQ=fs;S.plkLog=[];S.plkAutoOn=false;S.plk=null;S.plkN=fs.length;return plkNext()}
@@ -2123,6 +2226,10 @@ document.addEventListener("change",async e=>{
   if(e.target.dataset&&e.target.dataset.csel){S.cSel={...(S.cSel||{})};if(e.target.checked)S.cSel[e.target.dataset.csel]=1;else delete S.cSel[e.target.dataset.csel];S.cConfirm=false;return render()}
   if(e.target.dataset&&e.target.dataset.xsel){S.xSel={...(S.xSel||{})};if(e.target.checked)S.xSel[e.target.dataset.xsel]=1;else delete S.xSel[e.target.dataset.xsel];return render()}
   if(e.target.id==="perSel"){S.period=e.target.value;const E=evPer();if(E.per!=="custom")E.per=S.period;saveUI();return render()}
+  if(e.target.id==="stuIn"&&e.target.files&&e.target.files.length){const fs=[...e.target.files];e.target.value="";return stuFiles(fs)}
+  if(e.target.dataset&&e.target.dataset.sti!=null&&S.stuImp&&S.stuImp.list){S.stuImp.list[+e.target.dataset.sti].on=e.target.checked;return render()}
+  if(e.target.dataset&&e.target.dataset.stn!=null&&S.stuImp&&S.stuImp.list){S.stuImp.list[+e.target.dataset.stn].name=e.target.value.trim();return render()}
+  if(e.target.id==="pFrom"||e.target.id==="pTo"){S[e.target.id]=e.target.value;saveUI();return render()}
   if(e.target.id==="sem2In"&&e.target.value){const v=e.target.value;for(const cc of classList()){if(cc.sem2!==v){cc.sem2=v;await saveClass(cc)}}toast("2e semestre à partir du "+fmtD(v));return render()}
   if(e.target.id==="afC"&&S.tab==="edt"){readAF();if(S.addF.cid!==S.cid){const f=S.addF;selectClass(f.cid);S.addF=f;return render()}return}
   if(e.target.id==="xScope"){S.xScope=e.target.value;return render()}
