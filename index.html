@@ -1447,18 +1447,33 @@ function demoDecor(){try{document.body.className=document.body.className.replace
 /* ---------- Import des emplois du temps (PDF) ---------- */
 /* ---------- Lecture d'images (OCR) ---------- */
 function loadTess(){if(window.Tesseract)return Promise.resolve(window.Tesseract);return new Promise((ok,ko)=>{const sc=document.createElement("script");sc.src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";sc.onload=()=>window.Tesseract?ok(window.Tesseract):ko(new Error("import Tesseract"));sc.onerror=()=>ko(new Error("import Tesseract"));document.head.appendChild(sc)})}
+function imgProc(src,W,H){const cv=document.createElement("canvas");cv.width=W;cv.height=H;const g=cv.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,W,H);g.drawImage(src,0,0,W,H);
+  const d=g.getImageData(0,0,W,H),a=d.data,N=W*H,gr=new Float32Array(N);for(let i=0;i<N;i++)gr[i]=.3*a[4*i]+.59*a[4*i+1]+.11*a[4*i+2];
+  const I=new Float64Array((W+1)*(H+1));for(let y=0;y<H;y++){let r=0;for(let x=0;x<W;x++){r+=gr[y*W+x];I[(y+1)*(W+1)+x+1]=I[y*(W+1)+x+1]+r}}
+  const R=15,bw=new Uint8Array(N);for(let y=0;y<H;y++){const y0=Math.max(0,y-R),y1=Math.min(H,y+R+1);for(let x=0;x<W;x++){const x0=Math.max(0,x-R),x1=Math.min(W,x+R+1);const m=(I[y1*(W+1)+x1]-I[y0*(W+1)+x1]-I[y1*(W+1)+x0]+I[y0*(W+1)+x0])/((y1-y0)*(x1-x0));bw[y*W+x]=gr[y*W+x]<m-15?1:0}}
+  const ln=new Uint8Array(N),Lh=Math.round(W/30),Lv=Math.round(H/25),rs=new Float32Array(H),cs=new Float32Array(W),hp=[];
+  for(let y=0;y<H;y++){let x=0;while(x<W){if(!bw[y*W+x]){x++;continue}let e=x;while(e<W&&bw[y*W+e])e++;if(e-x>=Lh){for(let q=x;q<e;q++){ln[y*W+q]=1;if(!(q&3))hp.push(q,y)}rs[y]+=e-x}x=e}}
+  for(let x=0;x<W;x++){let y=0;while(y<H){if(!bw[y*W+x]){y++;continue}let e=y;while(e<H&&bw[e*W+x])e++;if(e-y>=Lv){for(let q=y;q<e;q++)ln[q*W+x]=1;cs[x]+=e-y}y=e}}
+  let best=0,bs=-1;for(let k=-16;k<=16;k++){const t=Math.tan(k*.25*Math.PI/180),hist=new Float32Array(H+W);for(let i=0;i<hp.length;i+=2){const yy=Math.round(hp[i+1]-hp[i]*t+W*.5);if(yy>=0&&yy<H+W)hist[yy]++}let sc=0;for(const v of hist)sc+=v*v;if(sc>bs){bs=sc;best=k*.25}}
+  for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){const i=y*W+x;let v=bw[i];if(v&&(ln[i]||ln[i-1]||ln[i+1]||ln[i-W]||ln[i+W]))v=0;const o=v?0:255;a[4*i]=a[4*i+1]=a[4*i+2]=o;a[4*i+3]=255}
+  g.putImageData(d,0,0);
+  const peaks=(arr,n,thr,md)=>{const P=[];for(let i=0;i<n;i++)if(arr[i]>thr){const l=P[P.length-1];if(l&&i-l.e<=md){l.e=i;l.w+=arr[i];l.s2+=arr[i]*i}else P.push({b:i,e:i,w:arr[i],s2:arr[i]*i})}return P.map(p=>p.s2/p.w)};
+  const mx=a=>{let m=0;for(const v of a)if(v>m)m=v;return m};cv._grid={hs:peaks(rs,H,Math.max(.12*W,.4*mx(rs)),12),vs:peaks(cs,W,Math.max(.08*H,.2*mx(cs)),12),W,H};cv._skew=best;return cv}
 async function imgCanvas(f){const url=URL.createObjectURL(f);try{const im=await new Promise((ok,ko)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=()=>ko(new Error("image illisible"));i.src=url});
-  const k=Math.min(3,Math.max(1,2200/Math.max(im.naturalWidth,im.naturalHeight)));const cv=document.createElement("canvas");cv.width=Math.round(im.naturalWidth*k);cv.height=Math.round(im.naturalHeight*k);const g=cv.getContext("2d");g.drawImage(im,0,0,cv.width,cv.height);
-  const d=g.getImageData(0,0,cv.width,cv.height),a=d.data;for(let i=0;i<a.length;i+=4){let y=.3*a[i]+.59*a[i+1]+.11*a[i+2];y=y<150?Math.max(0,y*.75-10):Math.min(255,y*1.15+20);a[i]=a[i+1]=a[i+2]=y}g.putImageData(d,0,0);return cv}finally{URL.revokeObjectURL(url)}}
-const OCR_D={Z:"2",z:"2",S:"3",s:"3",B:"3",l:"1",L:"1",I:"1",i:"1","|":"1","!":"1",d:"1","1":"1","2":"2","3":"3"};
+  const k=Math.min(3,2200/Math.max(im.naturalWidth,im.naturalHeight));const W=Math.round(im.naturalWidth*k),H=Math.round(im.naturalHeight*k);
+  let cv=imgProc(im,W,H);if(Math.abs(cv._skew)>=.25){const r=document.createElement("canvas");r.width=W;r.height=H;const g=r.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,W,H);g.translate(W/2,H/2);g.rotate(-cv._skew*Math.PI/180);g.drawImage(im,-W/2,-H/2,W,H);cv=imgProc(r,W,H)}
+  return cv}finally{URL.revokeObjectURL(url)}}
+const OCR_D={Z:"2",z:"2",S:"3",s:"3",B:"3",l:"1",L:"1",I:"1",i:"1",J:"1",j:"1",T:"1","|":"1","!":"1","]":"1",d:"1","1":"1","2":"2","3":"3"};
 const ocrFix=t=>{t=String(t).replace(/[“”"'`’]/g,"").replace(/[-–—]+/g,"-").replace(/(^|[^A-Za-z])O(?=\d)/g,"$10").replace(/(\d)O(?![A-Za-z])/g,"$10").replace(/^[|_]+|[|_]+$/g,"").trim();if(/^[\u0600-\u06FF]{1,2}\d{1,2}$|^\d{1,2}[\u0600-\u06FF]{1,2}$/.test(t))t=t.replace(/[\u0600-\u06FF]/g,"")+"h";
-  const m=t.match(/^([ZzSsBLlIi|!d1-3])\s*([A-Za-z(]{3,5})[\s-]*(\d{0,2})$/);if(m&&lev(m[2].toUpperCase().replace("(","C"),"APIC")<=2)return OCR_D[m[1]]+"APIC"+(m[3]?" "+m[3]:"");return t};
+  if(/\d{1,2}\s*[:.]\s*\d{2}/.test(t))t=t.replace(/^[^\d]+|[^\dh]+$/g,"").replace(/\s*([:.])\s*/g,"$1");
+  t=t.replace(/(\d{2})\s+(\d{2})(?=\s*[-–—])/,"$1:$2").replace(/([-–—]\s*\d{2})\s+(\d{2})$/,"$1:$2");
+  const m=t.match(/^([ZzSsBLlIiJjT|!\]d1-3])\s*([A-Za-z(]{3,5}?)[\s-]*([0-9Il|\]!]{0,2})$/);if(m&&lev(m[2].toUpperCase().replace("(","C"),"APIC")<=2){const tr=m[3]?(/^\d+$/.test(m[3])?m[3]:m[3].replace(/[Il|\]!]/g,"1").slice(0,1)):"";return OCR_D[m[1]]+"APIC"+(tr?" "+tr:"")}return t};
 async function ocrItems(f,onP){const T=await loadTess();const cv=await imgCanvas(f);
   const run=async langs=>{const w=await T.createWorker(langs,1,{logger:m=>{if(onP&&m&&m.status)onP(m.status,m.progress)}});
     try{try{await w.setParameters({tessedit_pageseg_mode:"11"})}catch(e){}const {data}=await w.recognize(cv);let words=data.words;if(!words||!words.length){words=[];(data.blocks||[]).forEach(b=>(b.paragraphs||[]).forEach(p=>(p.lines||[]).forEach(l=>words.push(...(l.words||[])))))}return words}finally{try{await w.terminate()}catch(e){}}};
-  let words=await run("fra");if(new Set(words.map(x=>ctDayOf(x.text||""))).size<4)words=await run(["ara","fra"]);
+  const grid=cv._grid;let words=await run("fra");if(new Set(words.map(x=>ctDayOf(x.text||""))).size<4){const w1=words,w2=await run(["ara","fra"]);const inB=(a,b)=>{const cx=(a.bbox.x0+a.bbox.x1)/2,cy=(a.bbox.y0+a.bbox.y1)/2;return cx>=b.bbox.x0&&cx<=b.bbox.x1&&cy>=b.bbox.y0&&cy<=b.bbox.y1};words=w2.concat(w1.filter(a=>a&&a.bbox&&/\d/.test(a.text||"")&&!w2.some(b=>b&&b.bbox&&(inB(a,b)||inB(b,a)))))}
   {
-    return words.filter(x=>x&&x.text&&x.text.trim()&&true).map(x=>{const b=x.bbox;const t=ocrFix(x.text);return {t,x:(b.x0+b.x1)/2,y:(b.y0+b.y1)/2,x0:b.x0,x1:b.x1,y0:b.y0,y1:b.y1,h:Math.max(4,b.y1-b.y0),dir:/[؀-ۿ]/.test(t)?"rtl":"ltr"}}).filter(x=>x.t)}}
+    const W=words.filter(x=>x&&x.text&&x.text.trim()).map(x=>{const b=x.bbox;const t=ocrFix(x.text);return {t,x:(b.x0+b.x1)/2,y:(b.y0+b.y1)/2,x0:b.x0,x1:b.x1,y0:b.y0,y1:b.y1,h:Math.max(4,b.y1-b.y0),dir:/[؀-ۿ]/.test(t)?"rtl":"ltr"}}).filter(x=>x.t);W.grid=grid;return W}}
 const lev=(a,b)=>{const m=a.length,n=b.length;const d=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);for(let j=1;j<=n;j++)d[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n]};
 function ocrClsFix(L){const known=new Set(["APIC","AC","ASCG","APC"]);for(const id in S.classes){const m=(S.classes[id].name||"").toUpperCase().replace(/[\s_.]/g,"").match(/^\d([A-Z]+)-?\d+$/);if(m)known.add(m[1])}
   L.forEach(x=>{const m=x.name.match(/^(\d)([A-Z0-9]+)-(\d+)$/);if(!m)return;let lt=m[2].replace(/1/g,"I").replace(/0/g,"O");if(!known.has(lt)){let best=null,bd=9;known.forEach(k=>{const d=lev(lt,k);if(d<bd){bd=d;best=k}});if(best&&bd<=1)lt=best}
@@ -1472,16 +1487,17 @@ function mergeTokens(W){const it=W.map(w=>({...w,y0:w.y0??w.y-w.h/2,y1:w.y1??w.y
   return L}
 const TT_RX=/^(?:من\s*)?(\d{1,2})(?:\s*[h:.س]\s*(\d{2}))?\s*[hس]?\s*(?:[-–—à\/]|to|إلى|الى|ل)\s*(\d{1,2})(?:\s*[h:.س]\s*(\d{2}))?\s*[hس]?$/i,TT_R1=/^(\d{1,2})\s*(?:[h:.س]\s*(\d{2})\s*[hس]?|[hس])$/i;
 const p2t=(h,m)=>String(+h).padStart(2,"0")+":"+(m||"00");
-function ttTime(t){t=ND(t).trim();let m=t.match(TT_RX);if(m&&+m[1]<24&&+m[3]<24){const s=p2t(m[1],m[2]),e=p2t(m[3],m[4]);return e>s?{s,e}:{s:e,e:s}}
-  m=t.match(TT_R1);if(m&&+m[1]<24)return {s:p2t(m[1],m[2])};if(/^0?\.\d+$/.test(t)){const mi=Math.round(+t*48)*30;return {s:p2t(Math.floor(mi/60),String(mi%60).padStart(2,"0"))}}return null}
+function ttTime(t){t=ND(t).trim().replace(/(\d{1,2})[:.h](\d{2})/g,(m,h,mm)=>h+":"+(["00","15","30","45"].includes(mm)?mm:"00"));let m=t.match(TT_RX);if(m&&+m[1]>=6&&+m[1]<21&&+m[3]>=6&&+m[3]<21&&Math.abs(+m[1]-+m[3])<=4&&+m[1]!==+m[3]){const s=p2t(m[1],m[2]),e=p2t(m[3],m[4]);return e>s?{s,e}:{s:e,e:s}}
+  m=t.match(TT_R1);if(m&&+m[1]<24)return {s:p2t(m[1],m[2])};if(/^0\.\d+$/.test(t)){const mi=Math.round(+t*48)*30;return {s:p2t(Math.floor(mi/60),String(mi%60).padStart(2,"0"))}}return null}
 const CLS_RX=/(?:^|[^A-Za-z0-9])(\d\s*[A-Za-z]{2,6}\s*[-_.]?\s*\d{1,2})(?![0-9])/,CLS_STRICT=/^\d\s*[A-Za-z]{2,6}\s*[-_.]?\s*\d{1,2}$/;
 const clsNorm=t=>String(t).replace(/[\s_.]+/g,"").toUpperCase().replace(/^(\d)([A-Z]+)-?(\d+)$/,"$1$2-$3");
 const clsIn=t=>{const m=ND(t).match(CLS_RX);return m?clsNorm(m[1]):null};
 const lvOfCls=n=>{const m=String(n).match(/^([1-3])(APIC|AC|ASC|ASCG|APC|AEC|ASIC)?/i);return m&&(m[2]||/^[1-3]AC/i.test(n))?m[1]+"AC":"Autre"};
 const medGap=a=>{const g=[];a=[...a].sort((x,y)=>x-y);for(let i=1;i<a.length;i++)if(a[i]-a[i-1]>1e-6)g.push(a[i]-a[i-1]);g.sort((x,y)=>x-y);return g.length?g[Math.floor(g.length/2)]:1};
-function teacherGrid(W){const out={};const add=(n,d,s,e)=>{const o=out[n]=out[n]||{name:n,sl:[]};if(d)o.sl.push({d,s,e})};
+function teacherGrid(W,grid){const out={};const add=(n,d,s,e)=>{const o=out[n]=out[n]||{name:n,sl:[]};if(d)o.sl.push({d,s,e})};
   W.filter(w=>CLS_STRICT.test(ND(w.t).trim())).forEach(w=>add(clsNorm(w.t),0));
-  const days=W.filter(w=>ctDayOf(w.t));
+  let days=W.filter(w=>ctDayOf(w.t));
+  if(new Set(days.map(d=>ctDayOf(d.t))).size<3&&grid){const sy=gridDays(W,grid,days);if(sy){W=W.filter(w=>!ctDayOf(w.t)).concat(sy);days=sy}}
   if(new Set(days.map(d=>ctDayOf(d.t))).size>=3){
     const sx=Math.max(...days.map(d=>d.x))-Math.min(...days.map(d=>d.x)),sy=Math.max(...days.map(d=>d.y))-Math.min(...days.map(d=>d.y));const cols=sx>=sy;
     const A=w=>cols?w.x:w.y,B=w=>cols?w.y:w.x;
@@ -1489,7 +1505,7 @@ function teacherGrid(W){const out={};const add=(n,d,s,e)=>{const o=out[n]=out[n]
     const G=groups.filter(g=>new Set(g.ds.map(d=>ctDayOf(d.t))).size>=3).sort((a,b)=>a.b-b.b);
     G.forEach((g,gi)=>{const b0=g.b,b1=gi+1<G.length?G[gi+1].b:1e9,bP=gi>0?G[gi-1].b:-1e9;const dA=g.ds.map(d=>({a:A(d),d:ctDayOf(d.t)})).sort((x,y)=>x.a-y.a);const colSp=medGap(dA.map(x=>x.a));const minA=dA[0].a,maxA=dA[dA.length-1].a;const tolB=Math.max(.45,(g.ds[0].h||1)*.8);
       let T=W.filter(w=>B(w)>bP&&B(w)<b1&&Math.abs(B(w)-b0)>tolB&&!ctDayOf(w.t)&&(A(w)<minA-.3*colSp||A(w)>maxA+.3*colSp)).map(w=>({b:B(w),...(ttTime(w.t)||{})})).filter(x=>x.s).sort((x,y)=>x.b-y.b);
-      T=T.filter((x,i)=>!i||x.b-T[i-1].b>1e-3);if(!T.length)return;const rowSp=medGap(T.map(x=>x.b));
+      T=T.filter((x,i)=>!i||x.b-T[i-1].b>1e-3);if(grid)T=gridTimes(T,W.filter(w=>clsIn(w.t)&&B(w)>bP&&B(w)<b1&&Math.abs(B(w)-b0)>tolB).map(B));if(!T.length)return;const rowSp=medGap(T.map(x=>x.b));
       T.forEach((x,i)=>{if(!x.e){const nx=T[i+1];x.e=nx&&nx.s>x.s?nx.s:p2t(+x.s.slice(0,2)+1,x.s.slice(3))}});
       W.filter(w=>B(w)>bP&&B(w)<b1&&Math.abs(B(w)-b0)>Math.max(tolB,.2*rowSp)&&!ctDayOf(w.t)&&!ttTime(w.t)).forEach(w=>{const n=clsIn(w.t);if(!n)return;
         const dd=dA.slice().sort((x,y)=>Math.abs(x.a-A(w))-Math.abs(y.a-A(w)))[0];if(Math.abs(dd.a-A(w))>.62*colSp)return;
@@ -1498,6 +1514,27 @@ function teacherGrid(W){const out={};const add=(n,d,s,e)=>{const o=out[n]=out[n]
         pick.forEach(x=>add(n,dd.d,x.s,x.e))})})}
   return Object.values(out).map(o=>{const L=o.sl.sort((a,b)=>(a.d-b.d)||a.s.localeCompare(b.s));const sl=[];for(const x of L){const l=sl[sl.length-1];if(l&&l.d===x.d&&(l.e===x.s||l.s===x.s)){if(x.e>l.e)l.e=x.e}else sl.push({...x})}
     return {key:ctKey(o.name),name:o.name,level:lvOfCls(o.name),ct:[],slots:sl}})}
+const DAYN=["","lundi","mardi","mercredi","jeudi","vendredi","samedi"];
+function gridBands(ls,min){const B=[];for(let i=1;i<ls.length;i++)B.push({a:ls[i-1],b:ls[i],c:(ls[i-1]+ls[i])/2,w:ls[i]-ls[i-1]});const md=B.map(x=>x.w).sort((a,b)=>a-b)[Math.floor(B.length/2)]||0;return B.filter(x=>x.w>Math.max(min,md*.45))}
+function gridDays(W,grid,real){const T=W.filter(w=>ttTime(w.t));if(T.length<2)return null;
+  const sx=Math.max(...T.map(w=>w.x))-Math.min(...T.map(w=>w.x)),sy=Math.max(...T.map(w=>w.y))-Math.min(...T.map(w=>w.y));const rows=sx>=sy;
+  const along=rows?gridBands(grid.hs,8):gridBands(grid.vs,8),across=rows?gridBands(grid.vs,8):gridBands(grid.hs,8);if(along.length<4||across.length<3)return null;
+  const tc=rows?T.map(w=>w.y):T.map(w=>w.x);const tm=tc.sort((a,b)=>a-b)[Math.floor(tc.length/2)];const hi=along.findIndex(b=>tm>=b.a&&tm<=b.b);if(hi<0)return null;
+  const db=along.slice(hi+1,hi+7);if(db.length<3)return null;
+  const AX=w=>rows?w.x:w.y,AL=w=>rows?w.y:w.x;const tSp=medGap(T.map(AX));const y0=db[0].a,y1=db[db.length-1].b;
+  const C=W.filter(w=>clsIn(w.t)&&AL(w)>y0&&AL(w)<y1).map(AX);if(!C.length)return null;const c0=Math.min(...C),c1=Math.max(...C);
+  const cand=[c0-tSp*.9,c1+tSp*.9];const near=v=>W.filter(w=>w.dir==="rtl"&&Math.abs(AX(w)-v)<tSp*.6&&AL(w)>y0&&AL(w)<y1).length;
+  const nl=near(cand[0]),nr=near(cand[1]);const rtlAll=W.filter(w=>w.dir==="rtl").length/W.length;const pos=nl===nr?(rtlAll>.15?cand[1]:cand[0]):(nr>nl?cand[1]:cand[0]);const col={c:pos,w:tSp};
+  let off=0;const votes={};real.forEach(r=>{const v=rows?r.y:r.x;const k=db.findIndex(b=>v>=b.a&&v<=b.b);if(k>=0){const o=ctDayOf(r.t)-(k+1);votes[o]=(votes[o]||0)+1}});const vb=Object.entries(votes).sort((p,q)=>q[1]-p[1])[0];if(vb)off=+vb[0];
+  return db.map((b,k)=>{const d=k+1+off;if(d<1||d>6)return null;return rows?{t:DAYN[d],x:col.c,y:b.c,x0:col.c-10,x1:col.c+10,h:Math.min(30,b.w*.3),syn:1}:{t:DAYN[d],x:b.c,y:col.c,x0:b.c-10,x1:b.c+10,h:Math.min(30,col.w*.3),syn:1}}).filter(Boolean)}
+function gridTimes(T,C){T=T.slice().sort((a,b)=>a.b-b.b);if(T.length<2)return T;const sp=medGap(T.map(x=>x.b));const H=x=>+x.s.slice(0,2);
+  let dir=0;for(let q=1;q<T.length&&!dir;q++){const k=Math.round((T[q].b-T[q-1].b)/sp);if(k)dir=Math.sign((H(T[q])-H(T[q-1]))/k)}if(!dir)return T;
+  const mk=(b,h)=>({b,s:p2t(h),e:p2t(h+1)});const out=[T[0]];
+  for(let q=1;q<T.length;q++){const a=T[q-1],b=T[q],k=Math.round((b.b-a.b)/sp);if(k>=2&&H(b)-H(a)===dir*k)for(let j=1;j<k;j++)out.push(mk(a.b+(b.b-a.b)*j/k,H(a)+dir*j));out.push(b)}
+  const has=v=>C.some(c=>Math.abs(c-v)<sp*.45);const noon=(h1,h2)=>(h1<=12)!==(h2<=12);
+  for(let e=out[out.length-1],n=0;n<8;n++){const h=H(e)+dir,v=e.b+sp;if(h<7||h>19||noon(H(e),h)||!has(v))break;e=mk(v,h);out.push(e)}
+  for(let e=out[0],n=0;n<8;n++){const h=H(e)-dir,v=e.b-sp;if(h<7||h>19||noon(H(e),h)||!has(v))break;e=mk(v,h);out.unshift(e)}
+  return out}
 const rowsToItems=R=>{const W=[];R.forEach((r,y)=>r.forEach((t,x)=>{t=String(t||"").trim();if(t)W.push({t,x:x+.5,y:y+.5,x0:x,x1:x+1,h:.6})}));return W};
 async function docxItems(file){const get=await unzipXlsx(await file.arrayBuffer());const xml=await get("word/document.xml");if(!xml)return [];const NS="http://schemas.openxmlformats.org/wordprocessingml/2006/main";
   const doc=new DOMParser().parseFromString(xml,"application/xml");const W=[];let y0=0;const kids=(n,ln)=>[...n.childNodes].filter(k=>k.localName===ln);
@@ -1509,7 +1546,7 @@ async function docxItems(file){const get=await unzipXlsx(await file.arrayBuffer(
   return W}
 async function ttFileParse(f){const nm=f.name.toLowerCase();
   if(/^image\//.test(f.type)||/\.(jpe?g|png|webp|bmp|gif|heic)$/.test(nm)){const W=await ocrItems(f,(st,pr)=>{const el=$("#ctBusy");if(el)el.textContent=(/load|init/i.test(st)?"Préparation de la lecture d'image (la 1re fois, téléchargement ≈ 10 Mo)… ":"Lecture de l'image… ")+(pr?Math.round(pr*100)+" %":"")});
-    const A=ctFromPages([W]);const B=teacherGrid(mergeTokens(W));return ocrClsFix(ttMerge(A,B)).map(x=>({...x,ocr:true}))}
+    const A=ctFromPages([W]);const B=teacherGrid(mergeTokens(W),W.grid);return ocrClsFix(ttMerge(A,B)).map(x=>({...x,ocr:true}))}
   if(/\.pdf$/.test(nm)||f.type==="application/pdf"){const P=await pdfPages(f);const A=ctFromPages(P);const B=[];P.forEach(W=>B.push(...teacherGrid(mergeTokens(W))));return ttMerge(A,B)}
   if(/\.docx$/.test(nm)){if(!window.DecompressionStream)throw new Error("navigateur trop ancien pour lire .docx");return ttMerge([],teacherGrid(await docxItems(f)))}
   const R=await readTable(f);const rows=R.extra&&R.extra.length>R.length?R.extra:R;return ttMerge([],teacherGrid(rowsToItems(rows)))}
