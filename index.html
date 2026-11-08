@@ -337,9 +337,9 @@ function localApi(){
 function dbApi(db){
   return {
     subClasses(cb){
-      const t=setTimeout(()=>setSync("Connexion lente…"),10000);
-      db.collection("classes").onSnapshot(s=>{const o={};s.docs.forEach(d=>o[d.id]=JSON.parse(JSON.stringify(d.data())));if(!s.metadata.fromCache){clearTimeout(t);setSync("Synchronisé")}cb(o)},
-        e=>{clearTimeout(t);setSync("Erreur de connexion")});
+      const t=setTimeout(()=>{setSync("Connexion lente…");if(S.store==="…"){S.loadSlow=true;render()}},10000);
+      db.collection("classes").onSnapshot(s=>{const o={};s.docs.forEach(d=>o[d.id]=JSON.parse(JSON.stringify(d.data())));if(!s.metadata.fromCache){clearTimeout(t);setSync("Synchronisé")}S.loadErr=null;S.loadSlow=false;cb(o)},
+        e=>{clearTimeout(t);setSync("Erreur de connexion");console.warn(e);S.loadErr=(e&&(e.code||e.message))||String(e);render()});
     },
     subDays(cid,cb){
       return db.collection("classes/"+cid+"/days").onSnapshot(s=>{const o={};s.docs.forEach(d=>o[d.id]=JSON.parse(JSON.stringify(d.data())));cb(o)},()=>setSync("Erreur de connexion"));
@@ -1018,7 +1018,10 @@ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest
  document.addEventListener("pointerdown",e=>{if(e.pointerType==="mouse")start(e.target,e.clientX,e.clientY)},{passive:true});
  document.addEventListener("pointerup",e=>{if(e.pointerType==="mouse")end(e.clientX,e.clientY)},{passive:true})}
 function render(){renderTop();const v=$("#view");
-  if(S.store==="…"){v.innerHTML=`<div class="card empty"><p class="hint">Chargement des classes…</p></div>`;return}
+  if(S.store==="…"){const pb=`<div class="tools" style="justify-content:center"><button class="btn primary" data-act="reloadApp">Réessayer</button>${$("#profBtn")&&!$("#profBtn").hidden?`<button class="btn" data-act="switchAcc">Changer de compte</button>`:""}</div>`;
+    v.innerHTML=S.loadErr?`<div class="card empty"><p><b>Impossible de charger les classes.</b></p><p class="hint">Code : ${esc(S.loadErr)}${/permission/.test(S.loadErr)?" — accès refusé par les règles Firestore.":/unavailable|network/.test(S.loadErr)?" — pas de connexion au serveur.":""}</p>${pb}</div>`
+      :S.loadSlow?`<div class="card empty"><p class="hint">Chargement des classes… la connexion est lente ou coupée.</p><p class="hint">Vérifiez Internet, puis réessayez.</p>${pb}</div>`
+      :`<div class="card empty"><p class="hint">Chargement des classes…</p></div>`;return}
   if(S.stu&&cls()&&(cls().students||[]).some(x=>x.id===S.stu))return v.innerHTML=viewFiche(cls(),S.stu);
   if(S.tab==="edt")return v.innerHTML=viewEdt();
   if(S.tab==="classe")return v.innerHTML=viewClasse();
@@ -1850,6 +1853,8 @@ document.addEventListener("click",async e=>{
   if(a==="afPick"&&S.addF){readAF();S.addF.s=t.dataset.s;S.addF.e=t.dataset.e;return render()}
   if(a==="xMore"){S.xMore=!S.xMore;return render()}
   if(a==="ctGo")return ctCommit();
+  if(a==="reloadApp"){location.reload();return}
+  if(a==="switchAcc"){const b=$("#profBtn");if(b)b.click();return}
   if(a==="ctCancel"){S.ctImp=null;return render()}
   if((a==="ctAll"||a==="ctNone")&&S.ctImp&&S.ctImp.list){S.ctImp.list.forEach(x=>x.on=a==="ctAll");return render()}
   if(a==="xSelNone"){S.xSel={};return render()}
