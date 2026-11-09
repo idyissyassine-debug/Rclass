@@ -262,6 +262,14 @@ details.fold>summary{list-style:none;cursor:pointer;display:flex;align-items:cen
 @media (min-width:1100px){.wrap{max-width:1040px}}
 .ro input,.ro textarea,.ro .seg button,.ro button.btn:not([data-keep]),.ro button.x,.ro .tag button{pointer-events:none;opacity:.5}.ro form,.ro label[for=pgFile]{display:none!important}.ro select#pgLvl{pointer-events:auto;opacity:1}
 .chip.nr{background:var(--ex-bg);color:var(--late)}.step.nr{background:var(--ex-bg);color:var(--late)}
+.boardpick{display:block;width:100%;border:0;cursor:pointer;font:inherit}.boardpick small{font-weight:400;opacity:.75;margin-left:6px;font-size:.72rem}
+.qp{margin:8px 0;padding:8px;border-radius:12px;border:2px solid #f2a900;background:var(--sheet);display:grid;gap:6px}.qp0{border-style:dashed;border-color:var(--line);text-align:center;padding:6px}.qp.undo{border-color:var(--bad)}
+.qph{display:flex;align-items:center;gap:6px}.qpn{flex:1;font-size:1rem;text-align:center}.qn[aria-pressed="true"]{background:var(--board);color:#fff}.qn{border:1px solid var(--line);background:transparent;color:inherit;border-radius:8px;min-width:34px;height:32px;font-size:1.05rem;cursor:pointer}
+.qpb{display:flex;flex-wrap:wrap;gap:5px}.qb{border:1px solid var(--line);background:var(--paper);color:inherit;border-radius:9px;padding:6px 8px;font:inherit;font-size:.82rem;font-weight:700;cursor:pointer;display:inline-flex;gap:5px;align-items:center;min-height:36px}
+.qb b{font-size:.85rem}.qb.z b{opacity:.45}.qb.ex{color:var(--ex)}.qb.plus{color:var(--ok)}.qb.nr{color:var(--late)}.qb.minus{color:var(--bad)}.qb[aria-pressed="true"]{background:var(--board);color:#fff;border-color:var(--board)}.qb:disabled{opacity:.35}
+.qb.pres.A{background:var(--bad-bg);color:var(--bad)}.qb.pres.R{background:var(--ex-bg);color:var(--late)}
+.seat.on{outline:3px solid #f2a900!important;outline-offset:1px;background:#fff1c2!important;color:#3a2a00!important;box-shadow:0 0 0 6px rgba(242,169,0,.25)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .seat.on{background:#5a4300!important;color:#ffe9a8!important}}:root[data-theme="dark"] .seat.on{background:#5a4300!important;color:#ffe9a8!important}
 .ctrow{display:flex!important;flex-direction:row!important;align-items:center;gap:8px;flex-wrap:wrap}.ctrow input{width:auto!important;flex:none;margin:0}
 .profsep{font-size:12px;color:var(--muted);margin:14px 0 6px;display:flex;align-items:center;gap:8px}.profsep:before,.profsep:after{content:"";flex:1;border-top:1px solid var(--line)}.profcloud{width:100%;padding:10px}
 .proflab{display:flex;flex-direction:column;gap:4px;font-size:13px;margin:8px 0}.profact{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
@@ -722,14 +730,24 @@ function cardSeats(c){const L=sorted(c).filter(s=>s.card>0).sort((a,b)=>a.card-b
   const ids=new Set(L.map(s=>s.id));let kept=0;for(const k in (c.seats||{})){const sid=c.seats[k];if(!ids.has(sid)&&!seats[k]&&(c.students||[]).some(x=>x.id===sid)){seats[k]=sid;kept++}}
   return {seats,n,over,without:sorted(c).filter(s=>!(s.card>0)).length,kept}}
 const seatKeys=c=>{const L=lay(c),k=[];for(let r=1;r<=L.rows;r++)for(let t=1;t<=L.cols;t++)for(let s=1;s<=L.per;s++)k.push(r+"-"+t+"-"+s);return k};
-function seatGrid(c,cell){const L=lay(c),seats=c.seats||{};
-  let h=`<div class="card planwrap"><div class="boardbar">TABLEAU · السبورة</div><div class="plan" style="--cols:${L.cols}">`;
+function seatGrid(c,cell,top){const L=lay(c),seats=c.seats||{};
+  let h=`<div class="card planwrap">${top||`<div class="boardbar">TABLEAU · السبورة</div>`}<div class="plan" style="--cols:${L.cols}">`;
   for(let r=1;r<=L.rows;r++)for(let t=1;t<=L.cols;t++){h+=`<div class="desk" style="--per:${L.per}">`;for(let s=1;s<=L.per;s++){const key=r+"-"+t+"-"+s;h+=cell(key,seats[key])}h+=`</div>`}
   return h+`</div><div class="hint" style="text-align:center">Fond de la salle</div></div>`}
 const chipBtn=(m,s,k,lab,cl)=>`<button class="chip ${cl} ${(m[k]||0)?"":"zero"}" data-act="${k}" data-id="${s.id}" aria-label="${lab} pour ${esc(s.name)}">${lab} <span class="v">${m[k]||0}</span></button>`;
 const presLab=p=>p==="P"?"Présent":p==="A"?"Absent":"Retard";
 const CAH={"":"Cahier : non vérifié",ok:"Cahier ✓ complet",abs:"Cahier : غير متوفر",inc:"Cahier : دروس ناقصة"};
 const cahBtn=(m,s,p)=>`<button class="cah ${m.cah||"none"}" data-act="cah" data-id="${s.id}" ${p==="A"?"disabled":""}>${CAH[m.cah||""]}</button>`;
+
+function quickPanel(c,s,FL,st){if(!s)return `<div class="qp qp0"><span class="hint">Touchez un élève · ou le tableau pour un tirage au sort</span></div>`;
+  const m=mark(s.id),p=m.p||"P",ab=p==="A";const n=k=>m[k]||0;const CS={"":"–",ok:"✓",abs:"✗",inc:"½"};
+  const b=(k,lab,cl)=>`<button class="qb ${cl}${n(k)?"":" z"}" data-act="${k}" data-id="${s.id}" ${ab?"disabled":""}>${lab}<b>${n(k)}</b></button>`;
+  return `<div class="qp${S.undo?" undo":""}"><div class="qph"><button class="qn" data-act="stuNav" data-d="-1" aria-label="Élève précédent">‹</button><b class="qpn">${S.pick===s.id?"🎲 ":""}${s.num}. ${esc(s.name)}</b><button class="qn" data-act="stuNav" data-d="1" aria-label="Élève suivant">›</button><button class="qn" data-act="qpNote" aria-pressed="${!!S.qpNote}" aria-label="Remarque">📝</button><button class="qn" data-act="fiche" data-id="${s.id}" aria-label="Fiche">👤</button><button class="qn" data-act="closeSheet" aria-label="Fermer">✕</button></div>
+  ${FL&&FL[s.id]?`<div class="flag" style="margin:0">⚑ ${esc(flagTxt(FL[s.id]))}</div>`:""}
+  <div class="qpb"><button class="qb pres ${p}" data-act="pres" data-id="${s.id}">${p==="P"?"Présent":p==="A"?"Absent":"Retard"}</button>${b("ex","✓ Ex","ex")}${b("plus","+ Rép","plus")}${b("nr","✗ Sans","nr")}${b("minus","− Comp","minus")}
+  <button class="qb cah" data-act="cah" data-id="${s.id}" ${ab?"disabled":""}>Cah<b>${CS[m.cah||""]}</b></button><button class="qb diff" data-act="diff" data-id="${s.id}" aria-pressed="${!!m.diff}" ${ab?"disabled":""}>Diff${m.diff?"<b>✓</b>":""}</button>
+  <button class="qb" data-act="undo" aria-pressed="${!!S.undo}" title="Les touches retirent 1">↶ −1</button></div>
+  ${S.qpNote?`<form class="notebox" id="noteForm" data-id="${s.id}" style="margin:0"><input id="noteIn" placeholder="Remarque…" aria-label="Remarque"><button class="btn" type="submit">Noter</button></form>`:""}</div>`}
 function planSeance(c,st,numMode){
   const by=Object.fromEntries(st.map(s=>[s.id,s]));const placed=new Set(Object.values(c.seats||{}));
   const FL=S._flags||{};
@@ -744,10 +762,11 @@ function planSeance(c,st,numMode){
       +(free.length?`<div class="card form"><b>Sans équipe · ${free.length}</b><div class="numgrid">${free.map(x=>cellFn("",x.id)).join("")}</div></div>`:"")
       +`<span class="hint">Les boutons d'équipe ajoutent 1 point à chaque membre présent (absents exclus). ${S.undo?"Mode correction actif : ils retirent 1 point.":""} Pour modifier les équipes : onglet « Classe ».</span>`
      :`<div class="card empty"><h2>Aucune équipe</h2><p class="hint">Créez les équipes et ajoutez leurs élèves dans l'onglet « Classe ».</p><button class="btn primary" data-act="go" data-to="classe">Créer les équipes</button></div>`}
-  else h=numMode?`<div class="card planwrap"><div class="numgrid">${st.map(x=>cellFn("",x.id)).join("")}</div></div>`:seatGrid(c,cellFn);
+  else{const top=`<button class="boardbar boardpick" data-act="pick" aria-label="Tirer au sort un élève">🎲 TABLEAU · السبورة <small>toucher = tirage au sort</small></button>${quickPanel(c,by[S.selStu],FL,st)}`;
+    h=numMode?`<div class="card planwrap">${top}<div class="numgrid">${st.map(x=>cellFn("",x.id)).join("")}</div></div>`:seatGrid(c,cellFn,top)}
   const loose=st.filter(s=>!placed.has(s.id));
   if(loose.length&&!numMode&&S.mode!=="team")h+=`<div class="card form"><span class="hint">${loose.length} élève(s) sans place. Placez-les dans l'onglet « Classe ».</span><div class="tools">${loose.map(s=>`<button class="btn" data-act="stu" data-id="${s.id}">${s.num}. ${esc(s.name)}</button>`).join("")}</div></div>`;
-  const s=by[S.selStu];
+  const s=numMode==="team"?by[S.selStu]:null;
   if(s){const m=mark(s.id),p=m.p||"P";
     const row=(k,lab)=>`<div class="step ${k}"><span>${lab}</span><button data-act="dec" data-k="${k}" data-id="${s.id}" aria-label="Retirer 1 : ${lab}">−</button><b>${m[k]||0}</b><button data-act="${k}" data-id="${s.id}" aria-label="Ajouter 1 : ${lab}">+</button></div>`;
     const FLs=FL[s.id],sn=(s.notes||[]).filter(n=>n.k===dk());
@@ -1080,7 +1099,7 @@ function viewSeance(c){
   <div class="card summary"><div><b>${P+R}/${st.length}</b><span>Présents</span></div><div><b class="y">${EX}</b><span>Exercices</span></div><div><b class="g">+${PL}</b><span>Bonnes rép.</span></div><div><b class="y">✗${NR}</b><span>Sans rép.</span></div><div><b class="r">−${MI}</b><span>Conduite</span></div></div>
   <div class="tools">
     <div class="seg" role="group" aria-label="Affichage"><button data-mod="plan" data-act="mode" data-m="plan" aria-pressed="${S.mode==="plan"}">Plan</button><button data-act="mode" data-m="num" aria-pressed="${S.mode==="num"}">N° d'ordre</button><button data-act="mode" data-m="liste" aria-pressed="${S.mode==="liste"}">Liste</button></div>
-    <button class="btn" data-act="pick">Tirer au sort (équitable)</button>
+    ${S.mode==="liste"?`<button class="btn" data-act="pick">Tirer au sort (équitable)</button>`:""}
     <button class="btn" data-act="cahAll">Cahiers non vérifiés → complets</button>
     <button class="btn" data-act="undo" aria-pressed="${S.undo}">${S.undo?"Mode correction : actif":"Corriger (−1)"}</button>
     <span class="hint" style="flex-basis:100%">Séance du ${esc(lab)}. ${S.mode==="plan"||S.mode==="team"?"Touchez un élève à sa place pour noter l'appel, un exercice ou un point.":"Touchez le statut pour passer Présent → Absent → Retard."} ${S.undo?"Chaque touche retire 1 point.":"Chaque touche ajoute 1."}</span>
@@ -1088,7 +1107,7 @@ function viewSeance(c){
   ${(()=>{const k=dk(),d=S.days[k]||{},nm=Object.keys(d.marks||{}).length,nn=(c.students||[]).reduce((a,x)=>a+(x.notes||[]).filter(n=>n.k===k).length,0);if(!nm&&!d.lesson&&!nn)return "";
     return S.eraseAsk?`<div class="confirm" style="display:grid;gap:8px"><span>Effacer tout l'enregistrement de cette séance (${esc(lab)}) ?</span><span style="font-weight:400">${[nm?nm+" élève"+(nm>1?"s":"")+" noté"+(nm>1?"s":"")+" (appel, points, cahier)":"",d.lesson?"la leçon « "+esc(d.lesson)+" »":"",nn?nn+" remarque"+(nn>1?"s":""):""].filter(Boolean).join(", ")}. La séance redeviendra vide. Une copie reste dans les sauvegardes automatiques.</span><div class="tools"><button class="btn danger" data-act="eraseYes">Oui, effacer la séance</button><button class="btn" data-act="eraseNo">Garder</button></div></div>`
     :`<div><button class="linkbtn" data-act="eraseAsk" style="color:var(--bad)">Annuler l'enregistrement de cette séance</button></div>`})()}
-  ${S.pick?`<div class="card pick"><span class="hint">Élève interrogé · priorité à ceux qui ont le moins participé</span><b>${esc((st.find(s=>s.id===S.pick)||{}).name)}</b><div class="tools" style="justify-content:center"><button class="btn" data-act="plus" data-id="${S.pick}">+ Bonne réponse</button><button class="btn" data-act="nr" data-id="${S.pick}">✗ Sans réponse</button><button class="btn" data-act="ex" data-id="${S.pick}">✓ Exercice</button><button class="btn" data-act="minus" data-id="${S.pick}">− Comportement</button><button class="btn" data-act="cah" data-id="${S.pick}">Cahier : ${({"":"–",ok:"complet",abs:"absent",inc:"incomplet"})[mark(S.pick).cah||""]}</button><button class="btn" data-act="diff" data-id="${S.pick}" aria-pressed="${!!mark(S.pick).diff}">${mark(S.pick).diff?"✓ Difficulté":"Difficulté"}</button><button class="btn primary" data-act="pick">Un autre</button></div></div>`:""}
+  ${S.pick&&S.mode==="liste"?`<div class="card pick"><span class="hint">Élève interrogé · priorité à ceux qui ont le moins participé</span><b>${esc((st.find(s=>s.id===S.pick)||{}).name)}</b><div class="tools" style="justify-content:center"><button class="btn" data-act="plus" data-id="${S.pick}">+ Bonne réponse</button><button class="btn" data-act="nr" data-id="${S.pick}">✗ Sans réponse</button><button class="btn" data-act="ex" data-id="${S.pick}">✓ Exercice</button><button class="btn" data-act="minus" data-id="${S.pick}">− Comportement</button><button class="btn" data-act="cah" data-id="${S.pick}">Cahier : ${({"":"–",ok:"complet",abs:"absent",inc:"incomplet"})[mark(S.pick).cah||""]}</button><button class="btn" data-act="diff" data-id="${S.pick}" aria-pressed="${!!mark(S.pick).diff}">${mark(S.pick).diff?"✓ Difficulté":"Difficulté"}</button><button class="btn primary" data-act="pick">Un autre</button></div></div>`:""}
   ${S.mode==="plan"?planSeance(c,st):S.mode==="num"?planSeance(c,st,true):S.mode==="team"?planSeance(c,st):`<ul class="card roll ${S.undo?"undo":""}">${st.map(s=>{const m=mark(s.id);const p=m.p||"P";
     return `<li class="${p==="A"?"abs":""}" id="r-${s.id}"><span class="n">${s.num||""}</span><span class="name"><button class="namebtn" data-act="fiche" data-id="${s.id}">${esc(s.name)}</button>${(S._flags||{})[s.id]?` <span title="${esc(flagTxt(S._flags[s.id]))}" style="color:#c07a00">⚑</span>`:""}</span>
       <button class="pres ${p}" data-act="pres" data-id="${s.id}">${presLab(p)}</button>
@@ -2213,6 +2232,7 @@ document.addEventListener("click",async e=>{
   if(a==="edStu"){S.edStu=S.edStu===id?null:id;render();const f=$("#sfName");if(f)f.focus();return}
   if(a==="goToday"){S.date=today();S.xid=null;S.follow=true;S.pick=null;S.selStu=null;return render()}
   if(a==="undo"){S.undo=!S.undo;return render()}
+  if(a==="qpNote"){S.qpNote=!S.qpNote;render();const i=$("#noteIn");if(i)i.focus();return}
   if(a==="backup"){setSync("Préparation…");let B;try{B=await api.exportAll()}catch(err){setSync(api.label);return toast("Lecture des données impossible ("+((err&&(err.code||err.message))||"erreur")+"). Réessayez dans un instant.")}
     const name=`sauvegarde-registre-${today()}.json`;S.bk={name,json:JSON.stringify(B),n:Object.keys(B.classes||{}).length,ns:Object.values(B.classes||{}).reduce((a,c)=>a+(c.students||[]).length,0)};setSync(api.label);render();
     let ok=false;try{ok=await saveFile(name,new Blob([S.bk.json],{type:"application/json"}))}catch(err){ok=false}S.bk.ok=ok;render();return}
@@ -2291,7 +2311,7 @@ document.addEventListener("click",async e=>{
   if(a==="pick"){const pres=sorted(c).filter(s=>(mark(s.id).p||"P")!=="A"&&s.id!==S.pick);if(!pres.length)return toast("Aucun élève présent.");
     const T=Object.fromEntries(totals(c).rows.map(r=>[r.id,r]));const w=pres.map(s=>{const r=T[s.id]||{};const k=(r.plus||0)+Math.max(0,r.ex||0)+(S.picked&&S.picked[s.id]||0);return 1/Math.pow(1+k,2)});
     let tot=w.reduce((a,b)=>a+b,0),x=Math.random()*tot,i=0;while(x>w[i]&&i<w.length-1){x-=w[i];i++}
-    S.pick=pres[i].id;S.picked=S.picked||{};S.picked[S.pick]=(S.picked[S.pick]||0)+1;return render()}
+    S.pick=pres[i].id;S.picked=S.picked||{};S.picked[S.pick]=(S.picked[S.pick]||0)+1;if(S.mode!=="liste")S.selStu=S.pick;return render()}
   if(a==="bulk"){const L=parseMassar($("#bulk").value);if(!L.length)return toast("Collez au moins un nom.");
     const st=[...(c.students||[])];let n=st.reduce((m,s)=>Math.max(m,s.num||0),0);L.forEach(x=>st.push({id:uid(),name:x.name,num:++n,...(x.code?{massar:x.code}:{})}));
     c.students=st;await saveClass(c);toast(L.length+" élève(s) ajouté(s)");return render()}
