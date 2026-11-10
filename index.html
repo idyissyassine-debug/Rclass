@@ -300,11 +300,21 @@ body.cours header.top,body.cours .bnav,body.cours .demobar,body.cours .strip,bod
 .slot{-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
 .hlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;max-height:58vh;overflow:auto}.hlist .btn{padding:7px 6px;font-size:.82rem;text-align:start}
 .hist .alertcard{border-top-color:var(--board);max-width:560px}
-.fcard>h2{cursor:pointer;display:flex;align-items:center;gap:8px}.fcard>h2:after{content:"▾";margin-inline-start:auto;opacity:.5;transition:transform .2s;font-size:.9em}.fcard.shut>h2:after{transform:rotate(-90deg)}.fcard.shut>*:not(h2){display:none!important}.fcard.shut{gap:0!important}
 .studlist li{padding:5px 10px;gap:6px}.studlist .selbox{width:16px;height:16px}.studlist li .snm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .studlist li .ract{display:flex;gap:4px;flex:none}.studlist li .selbox{flex:none}.ract button{width:38px;height:36px;padding:0;display:grid;place-items:center;font-size:1rem;border-radius:9px}
 .cmpbar{display:grid;grid-template-columns:minmax(70px,auto) 1fr 52px;gap:6px;align-items:center;font-size:.85rem}.cmpbar .b{height:12px;border-radius:6px;background:var(--line);overflow:hidden}.cmpbar .b i{display:block;height:100%;background:var(--board)}.cmpbar.me{font-weight:800}.cmpbar.me .b i{background:var(--ok)}.cmpbar small{color:var(--muted)}
 .les2{border-top:1px dashed var(--line);padding-top:6px}
+html,body{max-width:100%;overflow-x:hidden}
+.hdright{flex-wrap:wrap;justify-content:flex-end;row-gap:4px;min-width:0}
+@media (max-width:700px){header.top.mini .brand{flex-wrap:wrap!important}header.top.mini .hdinfo{flex:0 0 auto!important}}
+@media (max-width:480px){.hdright{gap:3px}.hdright .hdbtn{min-width:28px;height:30px;padding:0 5px;font-size:.9rem}#perTop{max-width:66px;height:30px}.syncst{min-height:30px;padding:3px 6px;gap:4px}}
+@media (max-width:700px),(max-height:500px){.bnav{justify-content:center;gap:2px;width:100%;max-width:100vw;box-sizing:border-box}.bnav button{flex:0 1 54px}}
+@media (orientation:landscape) and (max-height:500px){.bnav button{flex:0 1 84px}}
+.fh{margin:0;padding:9px 14px;font-size:.95rem;position:sticky;left:0}.fcard.shut>.fh{padding-block:9px}
+.fht{cursor:pointer}.fcard>.fhd .fht:after,.fcard>h2.fhd:after,.fcard>h3.fhd:after{content:"▾";margin-inline-start:auto;opacity:.5;transition:transform .2s;font-size:.9em;padding-inline-start:8px}
+.fcard>h2.fhd,.fcard>h3.fhd,.fcard>.fhd .fht{display:flex;align-items:center;gap:8px}.fcard.shut>.fhd .fht:after,.fcard.shut>h2.fhd:after,.fcard.shut>h3.fhd:after{transform:rotate(-90deg)}
+.fcard.shut>*:not(.fhd){display:none!important}.fcard.shut{gap:0!important}
+.tcust{display:inline-flex;align-items:center;gap:4px}.tcust input{width:4.2em;padding:6px;border-radius:8px;border:1px solid var(--line);background:var(--sheet);color:inherit;font:inherit}
 </style>
 
 </head><body>
@@ -347,10 +357,10 @@ const DEF={wEx:1,wPlus:1,wNr:0.5,wMinus:1,base:10,step:0.5,latePen:0.5,cahAbs:1,
 
 const S={classes:{},days:{},cid:null,date:today(),tab:"seance",undo:false,sort:{k:"n",d:1},confirmDel:false,pick:null,store:"…",mode:"plan",selStu:null,edSeat:null,edStu:null,follow:true,lastD:1,lastE:"",xid:null,addF:null,wk:null,stu:null,xScope:"all",period:"year",prog:{},pgLvl:null,cancelOpen:false,holEdit:{}};
 let PSUF="";const PR={list:[],cur:null};
-function loadUI(){try{const p=JSON.parse(localStorage.getItem("rc-ui"+PSUF)||"{}");if(p.cid)S.cid=p.cid;if(p.tab)S.tab=p.tab;if(p.mode)S.mode=p.mode;if(p.period)S.period=p.period;if(p.pFrom)S.pFrom=p.pFrom;if(p.pTo)S.pTo=p.pTo;if(typeof p.hdMini==="boolean")S.hdMini=p.hdMini;if(p.theme)S.theme=p.theme;if(p.fold)S.fold=p.fold;if(p.dispWarn)S.dispWarn=p.dispWarn;if(p.fs)S.fs=p.fs;if(p.dZoom)S.dZoom=p.dZoom;if(p.dTheme)S.dTheme=p.dTheme;if(p.dAlpha)S.dAlpha=p.dAlpha}catch(e){}}
+function loadUI(){try{const p=JSON.parse(localStorage.getItem("rc-ui"+PSUF)||"{}");if(p.cid)S.cid=p.cid;if(p.tab)S.tab=p.tab;if(p.mode)S.mode=p.mode;if(p.period)S.period=p.period;if(p.pFrom)S.pFrom=p.pFrom;if(p.pTo)S.pTo=p.pTo;if(typeof p.hdMini==="boolean")S.hdMini=p.hdMini;if(p.theme)S.theme=p.theme;if(p.fold)S.fold=p.fold;if(p.dispWarn)S.dispWarn=p.dispWarn;if(p.fs)S.fs=p.fs;if(p.dZoom)S.dZoom=p.dZoom;if(p.dTheme)S.dTheme=p.dTheme;if(p.dTCust)S.dTCust=p.dTCust;if(p.dAlpha)S.dAlpha=p.dAlpha}catch(e){}}
 loadUI();
 if(typeof S.hdMini!=="boolean"){S.hdMini=null}
-const saveUI=()=>{try{localStorage.setItem("rc-ui"+PSUF,JSON.stringify({cid:S.cid,tab:S.tab,mode:S.mode,period:S.period,pFrom:S.pFrom||"",pTo:S.pTo||"",fold:S.fold||{},dispWarn:S.dispWarn||"name",fs:S.fs||1,dZoom:S.dZoom||1,dTheme:S.dTheme||"dark",dAlpha:S.dAlpha||100,hdMini:S.hdMini,theme:S.theme||"auto"}))}catch(e){}};
+const saveUI=()=>{try{localStorage.setItem("rc-ui"+PSUF,JSON.stringify({cid:S.cid,tab:S.tab,mode:S.mode,period:S.period,pFrom:S.pFrom||"",pTo:S.pTo||"",fold:S.fold||{},dispWarn:S.dispWarn||"name",fs:S.fs||1,dZoom:S.dZoom||1,dTheme:S.dTheme||"dark",dTCust:S.dTCust||"",dAlpha:S.dAlpha||100,hdMini:S.hdMini,theme:S.theme||"auto"}))}catch(e){}};
 
 function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2200)}
 function setSync(t){const b=$("#sync");if(!b)return;t=String(t||"");const k=/Échec|Erreur|refus|impossible/i.test(t)?"err":/Hors ligne/i.test(t)?"off":/…/.test(t)?"busy":"ok";b.className="syncst "+k;b.title=t+" · toucher pour synchroniser";const x=b.querySelector(".st");if(x)x.textContent=t}
@@ -1119,9 +1129,16 @@ function render(){if(S.cours&&S.tab!=="seance"){S.cours=false;wakeOff()}document
   try{const v=$("#view");if(S.tab==="bilan"&&!S.stu&&cls()&&!(cls().students||[]).length&&!v.querySelector(".evalsep"))v.insertAdjacentHTML("beforeend",evalPart());
     foldCards();document.querySelectorAll(".numstrip .on").forEach(o=>{const p=o.parentElement;p.scrollLeft=o.offsetLeft-p.offsetLeft-p.clientWidth/2+o.clientWidth/2});
     if(S.hist)v.insertAdjacentHTML("beforeend",histHtml());if(S.tab==="bilan"&&(S.fold||{}).cmp&&!S.cmpDays&&!S.cmpLoading)cmpLoad()}catch(e){console.warn(e)}}
-function foldCards(){const v=$("#view");if(!v)return;v.querySelectorAll(".card").forEach(cd=>{if(cd.tagName==="DETAILS"||cd.classList.contains("fcard"))return;const h=cd.firstElementChild;if(!h||h.tagName!=="H2"||cd.children.length<2)return;
-  const key="c:"+(S.tab==="eval"?"bilan":S.tab)+":"+h.textContent.trim().replace(/\d+/g,"").slice(0,40);cd.classList.add("fcard");h.dataset.fk=key;h.setAttribute("role","button");h.title="Toucher pour replier / déplier";if((S.fold||{})[key]===false)cd.classList.add("shut")})}
-document.addEventListener("click",e=>{const h=e.target.closest&&e.target.closest(".fcard>h2");if(!h)return;e.preventDefault();e.stopPropagation();const cd=h.parentElement;const shut=!cd.classList.contains("shut");cd.classList.toggle("shut",shut);S.fold={...(S.fold||{}),[h.dataset.fk]:!shut};saveUI()},true);
+function foldCards(){const v=$("#view");if(!v)return;const tab=S.tab==="eval"?"bilan":S.tab;
+  v.querySelectorAll(".card").forEach(cd=>{if(cd.tagName==="DETAILS"||cd.classList.contains("fcard")||cd.closest("details")||cd.parentElement.closest(".card"))return;
+    if(/\b(summary|demobar|empty|qp|confirm)\b/.test(cd.className))return;let h=cd.firstElementChild;if(!h)return;let hd=null,ht=null;
+    if(/^H[23]$/.test(h.tagName)){if(cd.children.length<2)return;hd=ht=h}
+    else{const inn=h.tagName==="DIV"&&h.querySelector(":scope>h2,:scope>h3,:scope>b:first-child");
+      if(inn&&cd.children.length>1){hd=h;ht=inn}
+      else{const t=cd.classList.contains("tablewrap")?"📋 Tableau des élèves · الجدول":cd.classList.contains("planwrap")?"🪑 Plan de classe · المخطط":cd.querySelector("#perSel,#perFrom")?"🗓 Période · الفترة":tab==="edt"?"🗓️ Semaine · الأسبوع":tab==="seance"&&cd.querySelector("[data-id]")?"👥 Élèves · التلاميذ":cd.id==="lessonForm"?"📖 Leçon de la séance · الدرس":"";
+        if(!t)return;hd=ht=document.createElement("h2");hd.className="fh";hd.textContent=t;cd.insertBefore(hd,h)}}
+    const key="c:"+tab+":"+ht.textContent.trim().replace(/\d+/g,"").slice(0,40);cd.classList.add("fcard");hd.classList.add("fhd");ht.classList.add("fht");ht.dataset.fk=key;ht.setAttribute("role","button");ht.title="Toucher pour replier / déplier";if((S.fold||{})[key]===false)cd.classList.add("shut")})}
+document.addEventListener("click",e=>{const h=e.target.closest&&e.target.closest(".fht");if(!h)return;e.preventDefault();e.stopPropagation();const cd=h.closest(".fcard");const shut=!cd.classList.contains("shut");cd.classList.toggle("shut",shut);S.fold={...(S.fold||{}),[h.dataset.fk]:!shut};saveUI()},true);
 function render0(){renderTop();const v=$("#view");
   if(S.store==="…"){const pb=`<div class="tools" style="justify-content:center"><button class="btn primary" data-act="reloadApp">Réessayer</button>${$("#profBtn")&&!$("#profBtn").hidden?`<button class="btn" data-act="switchAcc">Changer de compte</button>`:""}</div>`;
     v.innerHTML=S.loadErr?`<div class="card empty"><p><b>Impossible de charger les classes.</b></p><p class="hint">Code : ${esc(S.loadErr)}${/permission/.test(S.loadErr)?" — accès refusé par les règles Firestore.":/unavailable|network/.test(S.loadErr)?" — pas de connexion au serveur.":""}</p>${pb}</div>`
@@ -1217,7 +1234,6 @@ function viewBilan(c){
   ${cmpCard(c)}
   ${chartSvg(c)}
   <div class="card summary"><div><b>${T.dates.length}</b><span>Séances</span></div><div><b>${avg}</b><span>Moyenne /20</span></div><div><b>${T.rows.reduce((s,r)=>s+r.A,0)}</b><span>Absences</span></div><div><b>${T.rows.reduce((s,r)=>s+r.ex,0)}</b><span>Exercices</span></div></div>
-  <div class="card form"><span class="hint">Devoirs, compétences, Plickers et analyses : onglet <button class="linkbtn" data-act="go" data-to="eval">Évals · التقويم</button>.</span></div>
   <div class="card tablewrap"><table><thead><tr>${th("num","N° Massar")}${th("name","Élève","l")}${th("A","Abs")}${th("R","Ret")}${th("exD","Ex ✓")}${th("exN","Ex ✗")}${th("plus","+ Rép.")}${th("nr","✗ Sans")}${th("rate","% rép.")}${th("minus","− Cond.")}${th("cA","Cah ✗")}${th("cI","Cah ½")}${th("score","Points")}${th("note","/20")}</tr></thead>
   <tbody>${rows.map(r=>`<tr><td>${r.num||""}</td><td class="l"><button class="namebtn" data-act="fiche" data-id="${r.id}">${esc(r.name)}</button></td><td class="${r.A?"r":""}">${r.A}</td><td>${r.R}</td><td class="y">${r.exD}</td><td class="${r.exN?"r":""}">${r.exN}</td><td class="g">${r.plus}</td><td class="${r.nr?"y":""}">${r.nr}</td><td>${r.rate==null?"–":r.rate+"%"}</td><td class="r">${r.minus}</td><td class="${r.cA?"r":""}">${r.cA}</td><td class="${r.cI?"y":""}">${r.cI}</td><td>${r.score>0?"+":""}${+r.score.toFixed(2)}</td><td class="note">${r.note.toFixed(2)}<div class="bar20"><i style="width:${r.note*5}%"></i></div></td></tr>`).join("")}</tbody></table></div>
   <div class="tools"><button class="btn primary" data-act="csv">Télécharger (CSV / Excel)</button><button class="btn" data-act="copy">Copier les notes</button></div>
@@ -1502,7 +1518,7 @@ function dispCard(){const D=dispState(),t=D.timer,open=!!(DW&&!DW.closed),remote
   <div class="grid2"><label>Fond de l'affichage<select id="dTheme"><option value="dark" ${(D.theme||"dark")==="dark"?"selected":""}>🌙 Foncé</option><option value="light" ${D.theme==="light"?"selected":""}>☀️ Clair</option></select></label><label>Opacité du fond : ${D.alpha||100} %<input type="range" id="dAlpha" min="10" max="100" step="10" value="${D.alpha||100}"></label></div>
   ${t&&!t.done?`<div class="tools" style="align-items:center"><b id="dcTime" style="font-size:1.6rem;font-variant-numeric:tabular-nums;min-width:4ch">${fmtMS(tRemain(t))}</b><span class="hint">${esc(t.label)}</span>
     <button class="btn" data-act="tPause">${t.paused?"▶ Reprendre":"⏸ Pause"}</button><button class="btn" data-act="tAdd">+1 min</button><button class="btn" data-act="tStop">■ Arrêter</button></div>`
-  :`<div class="tools">${[1,2,3,5,10,15].map(m=>`<button class="btn" data-act="tStart" data-m="${m}">${m} min</button>`).join("")}<input id="dTMin" type="number" min="1" max="120" placeholder="min" style="width:5em"><button class="btn" data-act="tStart" data-m="x">▶</button></div>`}
+  :`<div class="tools">${[1,2,3,5,10,15].map(m=>`<button class="btn" data-act="tStart" data-m="${m}">${m} min</button>`).join("")}<span class="hint">Autre :</span><span class="tcust"><input id="dTMin" type="number" inputmode="decimal" min="0.5" max="180" step="0.5" placeholder="min" value="${S.dTCust||""}" aria-label="Autre durée en minutes" title="Autre durée (minutes)"><button class="btn primary" data-act="tStart" data-m="x" title="Démarrer cette durée">▶</button></span></div>`}
   <span class="hint">Le tableau (🎲) affiche aussi l'élève tiré au sort. ${remote?"Pilotable depuis le téléphone : ouvrez l'affichage sur le PC avec le même compte en ligne.":"Pilotage depuis le téléphone : compte en ligne nécessaire."} Fenêtre toujours au-dessus avec Chrome ou Edge sur PC.</span></details>`}
 function timerStats(c,dates){const G={};dates.forEach(d=>((S.days[d]||{}).timers||[]).forEach(x=>{const g=G[x.l]=G[x.l]||{n:0,s:0};g.n++;g.s+=x.s}));const L=Object.entries(G);if(!L.length)return "";
   return `<div><b style="font-size:.85rem">Temps moyen des activités</b><ul style="margin:2px 0 0;padding-left:1.3em;font-size:.85rem">${L.map(([l,g])=>`<li>${esc(l)} : ${fmtMS(g.s/g.n*1000)} <span class="hint">(${g.n} fois)</span></li>`).join("")}</ul></div>`}
@@ -1512,7 +1528,7 @@ let WL=null;async function wakeOn(){try{if(navigator.wakeLock&&!WL){WL=await nav
 function wakeOff(){try{WL&&WL.release()}catch(e){}WL=null}
 document.addEventListener("visibilitychange",()=>{if(S.cours&&document.visibilityState==="visible")wakeOn()});
 function ctimeRow(){const t=dispState().timer;return t&&!t.done?`<div class="ctime"><b id="dcTime" style="font-size:1.5rem;font-variant-numeric:tabular-nums;min-width:4ch">${fmtMS(tRemain(t))}</b><span class="hint">${esc(t.label)}</span><button class="btn" data-act="tPause">${t.paused?"▶":"⏸"}</button><button class="btn" data-act="tAdd">+1</button><button class="btn" data-act="tStop">■</button></div>`
-  :`<div class="ctime"><span class="hint">⏱</span>${[1,2,3,5,10].map(m=>`<button class="btn" data-act="tStart" data-m="${m}">${m}′</button>`).join("")}<select id="dTLab" aria-label="Activité" style="padding:5px;border-radius:8px;border:1px solid var(--line);background:var(--sheet)">${TLAB.map(l=>`<option ${l===(S.dTLab||"Exercice")?"selected":""}>${esc(l)}</option>`).join("")}</select></div>`}
+  :`<div class="ctime"><span class="hint">⏱</span>${[1,2,3,5,10].map(m=>`<button class="btn" data-act="tStart" data-m="${m}">${m}′</button>`).join("")}<span class="tcust"><input id="dTMin" type="number" inputmode="decimal" min="0.5" max="180" step="0.5" placeholder="min" value="${S.dTCust||""}" aria-label="Autre durée en minutes" title="Autre durée (minutes)"><button class="btn primary" data-act="tStart" data-m="x" title="Démarrer cette durée">▶</button></span><select id="dTLab" aria-label="Activité" style="padding:5px;border-radius:8px;border:1px solid var(--line);background:var(--sheet)">${TLAB.map(l=>`<option ${l===(S.dTLab||"Exercice")?"selected":""}>${esc(l)}</option>`).join("")}</select></div>`}
 function coursView(c){if(!sessState(c).ok){S.cours=false;return null}
   const st=sorted(c);let P=0,EX=0,NX=0,PL=0,MI=0,NR=0;st.forEach(s=>{const m=mark(s.id);if((m.p||"P")!=="A")P++;EX+=m.ex||0;NX+=m.nex||0;PL+=m.plus||0;MI+=m.minus||0;NR+=m.nr||0});
   S._flags=prevFlags(c);const d=S.days[dk()]||{},open=!!(DW&&!DW.closed);
@@ -1751,12 +1767,17 @@ async function docxItems(file){const get=await unzipXlsx(await file.arrayBuffer(
 async function ttFileParse(f){const nm=f.name.toLowerCase();
   if(/^image\//.test(f.type)||/\.(jpe?g|png|webp|bmp|gif|heic)$/.test(nm)){const W=await ocrItems(f,(st,pr)=>{const el=$("#ctBusy");if(el)el.textContent=(/load|init/i.test(st)?"Préparation de la lecture d'image (la 1re fois, téléchargement ≈ 10 Mo)… ":"Lecture de l'image… ")+(pr?Math.round(pr*100)+" %":"")});
     const M=mergeTokens(W);const A=ctFromPages([W]);const B=teacherGrid(M,W.grid);let R=ttMerge(A,B);if(!R.some(x=>x.ct.length||(x.slots&&x.slots.length)))R=ttMerge(sessionGrid(M),R.filter(x=>!x.ct.length));return ocrClsFix(R).map(x=>({...x,ocr:true}))}
-  if(/\.pdf$/.test(nm)||f.type==="application/pdf"){const P=await pdfPages(f);const A=ctFromPages(P);const B=[];P.forEach(W=>B.push(...teacherGrid(mergeTokens(W))));let R=ttMerge(A,B);if(!R.some(x=>x.ct.length||(x.slots&&x.slots.length))){const C=[];P.forEach(W=>C.push(...sessionGrid(mergeTokens(W))));if(C.length)R=ttMerge(C,[])}return R}
+  if(/\.pdf$/.test(nm)||f.type==="application/pdf"){const P=await pdfPages(f);const A=ctFromPages(P);const B=[];P.forEach(W=>B.push(...teacherGrid(mergeTokens(W))));let R=ttMerge(A,B);if(!R.some(x=>x.ct.length||(x.slots&&x.slots.length))){const C=[];P.forEach(W=>C.push(...sessionGrid(mergeTokens(W))));if(C.length)R=ttMerge(C,[])}
+    if(!R.some(x=>x.ct.length||(x.slots&&x.slots.length))&&P.reduce((n,W)=>n+W.length,0)<40*P.length){const el=$("#ctBusy");if(el)el.textContent="PDF scanné : lecture comme une photo…";const all=[];for(const im of await pdfToImgs(f)){(await ttFileParse(im)).forEach(x=>{const i=all.findIndex(y=>y.key===x.key);if(i<0)all.push(x);else all[i]={...all[i],...x,ct:x.ct.length?x.ct:all[i].ct,slots:x.slots&&x.slots.length?x.slots:all[i].slots}})}if(all.length)return all}
+    return R}
   if(/\.docx$/.test(nm)){if(!window.DecompressionStream)throw new Error("navigateur trop ancien pour lire .docx");return ttMerge([],teacherGrid(await docxItems(f)))}
   const R=await readTable(f);const rows=R.extra&&R.extra.length>R.length?R.extra:R;return ttMerge([],teacherGrid(rowsToItems(rows)))}
 function ttMerge(A,B){const m={};A.forEach(x=>m[x.key]={...x,slots:null});
   B.forEach(x=>{const o=m[x.key];if(o){if(x.slots.length)o.slots=x.slots}else m[x.key]=x});return Object.values(m)}
 
+async function pdfToImgs(f){const pj=await loadPdfJs();const doc=await pj.getDocument({data:new Uint8Array(await f.arrayBuffer()),isEvalSupported:false}).promise;const out=[];
+  for(let p=1;p<=Math.min(doc.numPages,12);p++){const pg=await doc.getPage(p);const v0=pg.getViewport({scale:1});const vp=pg.getViewport({scale:Math.min(3,2400/Math.max(v0.width,v0.height))});const cv=document.createElement("canvas");cv.width=Math.round(vp.width);cv.height=Math.round(vp.height);const cx=cv.getContext("2d");cx.fillStyle="#fff";cx.fillRect(0,0,cv.width,cv.height);
+    await pg.render({canvasContext:cx,viewport:vp}).promise;const bl=await new Promise(r=>cv.toBlob(r,"image/png"));out.push(new File([bl],f.name.replace(/\.pdf$/i,"")+"-p"+p+".png",{type:"image/png"}))}return out}
 async function loadPdfJs(){if(window.__pdfjs)return window.__pdfjs;const B="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/";
   const m=await import(B+"pdf.min.mjs");m.GlobalWorkerOptions.workerSrc=B+"pdf.worker.min.mjs";return window.__pdfjs=m}
 const ctHM=z=>{const m=String(z).trim().match(/^(\d{1,2})\s*[:hH]\s*(\d{2})$/);return m?String(+m[1]).padStart(2,"0")+":"+m[2]:""};
@@ -2240,11 +2261,11 @@ function viewEleves(){
   const c=cls();
   if(!c)return `${stuImpCard()}<div class="card empty"><h2>Aucune classe</h2><p class="hint">Importez vos listes d'élèves ci-dessus (les classes sont créées automatiquement), ou créez une classe dans l'onglet Classe.</p><button class="btn" data-act="go" data-to="classe">Créer une classe</button></div>`;
   const others=classList().filter(x=>x.id!==c.id);
-  return `${stuImpCard()}<div class="card"><div class="form" style="padding-bottom:6px"><h2>Élèves de ${esc(c.name)} · ${(c.students||[]).length}</h2>
+  return `${stuImpCard()}<div class="card form"><h2>➕ Ajouter des élèves · liste Massar</h2>
     <label>Liste Massar : un élève par ligne, dans l'ordre de Massar (code Massar facultatif, collage depuis Excel accepté)<textarea id="bulk" placeholder="J130012345  Amine El Idrissi&#10;J130067890  Salma Bennani&#10;…"></textarea></label>
     <div class="tools"><button class="btn primary" data-act="massarOrder">Appliquer l'ordre Massar</button><button class="btn" data-act="bulk">Ajouter à la fin de la liste</button></div>
     <span class="hint">« Appliquer l'ordre Massar » donne à chaque élève déjà présent son N° Massar (reconnu par le code ou le nom, même s'il vient de Plickers) et ajoute ceux qui manquent. Le N° de carte Plickers ne change pas.</span>
-    <div class="tools"><span class="hint">Touchez « Modifier » pour changer le nom, le numéro ou la classe d'un élève.</span></div></div>
+</div><div class="card"><h2 style="margin:0;padding:12px 14px 8px;font-size:1.05rem">👥 Élèves de ${esc(c.name)} · ${(c.students||[]).length}</h2>
     ${(()=>{const st=sorted(c),sel=st.filter(x=>(S.sSel||{})[x.id]);if(!st.length)return "";
       const R=S.rmConfirm&&S.rmConfirm.ids.map(i=>st.find(x=>x.id===i)).filter(Boolean);
       return `<div class="tools" style="padding:0 14px 8px;align-items:center"><button class="btn" data-act="sSelAll">Tout sélectionner</button>${sel.length?`<button class="btn" data-act="sSelNone">Désélectionner</button><button class="btn danger" data-act="rmSelAsk">Supprimer la sélection (${sel.length})</button>`:""}</div>
@@ -2405,7 +2426,7 @@ document.addEventListener("click",async e=>{
   if(a==="dZoom"){dispZoom(+t.dataset.v);return}
   if(a==="cours"){S.cours=true;S.tab="seance";try{const r=document.documentElement;if(r.requestFullscreen&&!document.fullscreenElement&&matchMedia("(max-width:900px)").matches)r.requestFullscreen().catch(()=>{})}catch(e){}wakeOn();render();window.scrollTo(0,0);return}
   if(a==="coursX"){S.cours=false;try{if(document.fullscreenElement)document.exitFullscreen()}catch(e){}wakeOff();render();return}
-  if(a==="tStart"){const m=t.dataset.m==="x"?parseFloat(($("#dTMin")||{}).value):+t.dataset.m;if(!(m>0))return toast("Indiquez la durée en minutes.");const lab=($("#dTLab")||{}).value||S.dTLab||"Exercice";S.dTLab=lab;dispPush({blank:false,timer:{start:Date.now(),dur:m*60000,label:lab,paused:false,by:DEV,cid:S.cid,key:dk()}});return}
+  if(a==="tStart"){const m=t.dataset.m==="x"?parseFloat(($("#dTMin")||{}).value):+t.dataset.m;if(!(m>0))return toast("Indiquez la durée en minutes.");if(t.dataset.m==="x"){S.dTCust=m;saveUI()}const lab=($("#dTLab")||{}).value||S.dTLab||"Exercice";S.dTLab=lab;dispPush({blank:false,timer:{start:Date.now(),dur:m*60000,label:lab,paused:false,by:DEV,cid:S.cid,key:dk()}});return}
   if(a==="tPause"){const tm=dispState().timer;if(!tm)return;const now=Date.now();dispPush({timer:tm.paused?{...tm,paused:false,start:tm.start+(now-tm.pausedAt),pausedAt:null}:{...tm,paused:true,pausedAt:now}});return}
   if(a==="tAdd"){const tm=dispState().timer;if(!tm)return;dispPush({timer:{...tm,dur:tm.dur+60000,done:false}});return}
   if(a==="tStop"){const tm=dispState().timer;if(!tm)return;const sec=tElapsed(tm)/1000;if(tm.cid===S.cid&&sec>=10){const d=S.days[tm.key]=S.days[tm.key]||{marks:{}};d.timers=[...(d.timers||[]),{l:tm.label,s:Math.round(sec),at:Date.now()}];queueDay(S.cid,tm.key)}dispPush({timer:null});toast("Durée enregistrée : "+fmtMS(sec*1000));return}
