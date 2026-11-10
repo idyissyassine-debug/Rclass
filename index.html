@@ -315,6 +315,12 @@ html,body{max-width:100%;overflow-x:hidden}
 .fcard>h2.fhd,.fcard>h3.fhd,.fcard>.fhd .fht{display:flex;align-items:center;gap:8px}.fcard.shut>.fhd .fht:after,.fcard.shut>h2.fhd:after,.fcard.shut>h3.fhd:after{transform:rotate(-90deg)}
 .fcard.shut>*:not(.fhd){display:none!important}.fcard.shut{gap:0!important}
 .tcust{display:inline-flex;align-items:center;gap:4px}.tcust input{width:4.2em;padding:6px;border-radius:8px;border:1px solid var(--line);background:var(--sheet);color:inherit;font:inherit}
+.hdbtn.rl{position:relative;min-width:26px!important;width:26px;height:26px!important;padding:0!important;font-size:.95rem!important;border-radius:50%}
+.hdbtn.rl i{position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:#7ee2b8;border:1px solid var(--board)}.hdbtn.rl.busy i{background:#f2c14e;animation:blink 1s infinite}.hdbtn.rl.err i{background:#ff6b5e}.hdbtn.rl.off i{background:#b9c2c0}
+@media (max-width:700px){header.top.mini .brand{flex-wrap:nowrap!important}header.top.mini .hdinfo{flex:0 1 auto!important;min-width:0}header.top.mini .hdright{flex-wrap:nowrap}#classSelMini{max-width:min(112px,26vw)!important}header.top.mini .hdright{gap:3px}}
+@media (max-width:345px){header.top.mini .brand{flex-wrap:wrap!important}}
+#histBox:empty{display:none}
+.jr{width:100%;border-collapse:collapse;font-size:.8rem}.jr th,.jr td{border:1px solid var(--line);padding:4px 6px;vertical-align:top;text-align:start}.jr th{background:var(--paper)}
 </style>
 
 </head><body>
@@ -323,7 +329,7 @@ html,body{max-width:100%;overflow-x:hidden}
     <div class="brand">
       <div><h1><svg class="hlogo" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="lgbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2a7559"/><stop offset="1" stop-color="#17463a"/></linearGradient><pattern id="lgdots" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.3" fill="#ffffff" opacity=".07"/></pattern></defs><rect width="512" height="512" rx="112" fill="url(#lgbg)"/><rect width="512" height="512" rx="112" fill="url(#lgdots)"/><path d="M120 412 V100 H252 C324 100 368 142 368 202 C368 248 342 282 300 296 L370 412 H294 L232 304 H188 V412 Z M188 160 V246 H246 C278 246 298 229 298 203 C298 177 278 160 246 160 Z" fill="#f4f8f5"/><rect x="120" y="436" width="160" height="12" rx="6" fill="#f4f8f5" opacity=".35"/><circle cx="380" cy="372" r="78" fill="#f2c14e" stroke="#1d5444" stroke-width="14"/><path d="M345 374 L370 399 L417 349" fill="none" stroke="#17463a" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/></svg>Rclass</h1><div class="ar">تدبير القسم · الحضور والمشاركة والسلوك</div></div>
       <div class="hdinfo" id="hdInfo"></div>
-      <div class="hdright"><button class="syncst busy" id="sync" title="Chargement…"><i></i><span class="st">Chargement…</span><span aria-hidden="true">🔄</span></button><button class="hdbtn" id="saveBtn" title="Enregistrer maintenant" aria-label="Enregistrer maintenant">💾</button><button class="hdbtn fsbtn" id="fsBtn" title="Taille du texte" aria-label="Taille du texte">Aa</button><select id="perTop" aria-label="Période" title="Période affichée"><option value="year">Année</option><option value="s1">S1</option><option value="s2">S2</option><option value="custom">Dates</option></select><button class="hdbtn" id="profBtn" hidden title="Changer de compte" aria-label="Changer de compte">👤</button><button class="hdbtn" id="themeBtn" aria-label="Thème" title="Thème clair / sombre">🌗</button><button class="hdbtn" id="hdPin" hidden title="Toujours afficher l'en-tête" aria-label="Toujours afficher l'en-tête">📌</button><button class="hdbtn" id="hdToggle" aria-label="Réduire l'en-tête" title="Réduire l'en-tête">⌃</button></div>
+      <div class="hdright"><button class="hdbtn rl busy" id="sync" title="Actualiser la page" aria-label="Actualiser la page"><i></i>↻</button><button class="hdbtn fsbtn" id="fsBtn" title="Taille du texte" aria-label="Taille du texte">Aa</button><select id="perTop" aria-label="Période" title="Période affichée"><option value="year">Année</option><option value="s1">S1</option><option value="s2">S2</option><option value="custom">Dates</option></select><button class="hdbtn" id="profBtn" hidden title="Changer de compte" aria-label="Changer de compte">👤</button><button class="hdbtn" id="themeBtn" aria-label="Thème" title="Thème clair / sombre">🌗</button><button class="hdbtn" id="hdPin" hidden title="Toujours afficher l'en-tête" aria-label="Toujours afficher l'en-tête">📌</button><button class="hdbtn" id="hdToggle" aria-label="Réduire l'en-tête" title="Réduire l'en-tête">⌃</button></div>
     </div>
     <div class="bar">
       <select id="classSel" aria-label="Classe"></select>
@@ -343,6 +349,7 @@ html,body{max-width:100%;overflow-x:hidden}
   <button data-tab="edt" aria-selected="false" aria-label="Horaires"><i>🗓️</i><span>Horaires</span></button><button data-tab="seance" aria-selected="true" aria-label="Séance"><i>✅</i><span>Séance</span></button><button data-tab="bilan" aria-selected="false" aria-label="Bilan et évaluations"><i>📊</i><span>Bilan</span></button><button data-tab="classe" aria-selected="false" aria-label="Classe"><i>🪑</i><span>Classe</span></button><button data-tab="eleves" aria-selected="false" aria-label="Élèves"><i>👥</i><span>Élèves</span></button><button data-tab="details" aria-selected="false" aria-label="Détails"><i>⚙️</i><span>Détails</span></button>
 </nav>
 <main><div class="wrap" id="view"></div></main>
+<div id="histBox"></div>
 <div class="toast" id="toast" hidden></div>
 <div class="alertwrap" id="alertBox" hidden><div class="alertcard" role="alertdialog" aria-modal="true" aria-labelledby="alertT"><b id="alertT"></b><div id="alertM"></div><button class="btn primary" id="alertOk">J'ai compris</button></div></div>
 
@@ -363,7 +370,7 @@ if(typeof S.hdMini!=="boolean"){S.hdMini=null}
 const saveUI=()=>{try{localStorage.setItem("rc-ui"+PSUF,JSON.stringify({cid:S.cid,tab:S.tab,mode:S.mode,period:S.period,pFrom:S.pFrom||"",pTo:S.pTo||"",fold:S.fold||{},dispWarn:S.dispWarn||"name",fs:S.fs||1,dZoom:S.dZoom||1,dTheme:S.dTheme||"dark",dTCust:S.dTCust||"",dAlpha:S.dAlpha||100,hdMini:S.hdMini,theme:S.theme||"auto"}))}catch(e){}};
 
 function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2200)}
-function setSync(t){const b=$("#sync");if(!b)return;t=String(t||"");const k=/Échec|Erreur|refus|impossible/i.test(t)?"err":/Hors ligne/i.test(t)?"off":/…/.test(t)?"busy":"ok";b.className="syncst "+k;b.title=t+" · toucher pour synchroniser";const x=b.querySelector(".st");if(x)x.textContent=t}
+function setSync(t){const b=$("#sync");if(!b)return;t=String(t||"");const k=/Échec|Erreur|refus|impossible/i.test(t)?"err":/Hors ligne/i.test(t)?"off":/…/.test(t)?"busy":"ok";b.className="hdbtn rl "+k;b.title=t+" · toucher pour actualiser la page"}
 const FSL=[1,1.1,1.2,1.35,.9];
 function fsApply(){document.documentElement.style.setProperty("--fs",S.fs||1);const b=$("#fsBtn");if(b)b.title="Taille du texte : "+Math.round((S.fs||1)*100)+" % · toucher pour changer"}
 function fsCycle(){const i=FSL.indexOf(S.fs||1);S.fs=FSL[(i+1)%FSL.length];fsApply();saveUI();toast("Taille du texte : "+Math.round(S.fs*100)+" %")}
@@ -371,7 +378,7 @@ async function saveNow(silent){clearTimeout(queueDay.t);try{await flush()}catch(
 async function syncNow(){if(!api)return;setSync("Synchronisation…");await saveNow(true);
   if(api.cloud&&FB.F&&FB.fs){try{await FB.F.disableNetwork(FB.fs);await FB.F.enableNetwork(FB.fs);if(navigator.onLine&&FB.F.waitForPendingWrites)await Promise.race([FB.F.waitForPendingWrites(FB.fs),new Promise(r=>setTimeout(r,8000))])}catch(e){console.warn(e)}}
   setSync(api.label);toast(api.cloud?(navigator.onLine?"☁️ Synchronisé avec vos autres appareils":"Hors ligne : envoi automatique au retour d'Internet"):"✓ Données enregistrées sur cet appareil")}
-$("#sync").addEventListener("click",()=>syncNow());$("#saveBtn").addEventListener("click",()=>saveNow());$("#fsBtn").addEventListener("click",fsCycle);fsApply();
+$("#sync").addEventListener("click",async()=>{setSync("Enregistrement…");try{await Promise.race([saveNow(true),new Promise(r=>setTimeout(r,4000))])}catch(e){}location.reload()});$("#fsBtn").addEventListener("click",fsCycle);fsApply();
 async function saveFile(name,blob){const dl=window.claude?await window.claude.use("downloads").catch(()=>null):null;
   if(dl){try{await dl.save({filename:name,data:blob});return true}catch(e){toast("Téléchargement annulé");return false}}
   try{const u=URL.createObjectURL(blob);const a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);toast("Fichier enregistré dans Téléchargements");return true}catch(e){toast("Téléchargement impossible");return false}}
@@ -435,14 +442,15 @@ function dbApi(db){
   };
 }
 
+function dayDoc(dd){dd=dd||{};const o={marks:dd.marks||{}};if(dd.lesson)o.lesson=dd.lesson;if(dd.lid){o.lid=dd.lid;o.part=dd.part}if(dd.lid2){o.lid2=dd.lid2;o.part2=dd.part2}if((dd.timers||[]).length)o.timers=dd.timers;if(dd.phase)o.phase=dd.phase;if(dd.phase2)o.phase2=dd.phase2;if(typeof dd.step==="number")o.step=dd.step;if(typeof dd.step2==="number")o.step2=dd.step2;return o}
 /* écriture différée d'une séance (une écriture à la fois) */
 const pending=new Map();let writing=false;
-function queueDay(cid,date){markRec(cid,date);pending.set(cid+"|"+date,[cid,date]);setSync("Enregistrement…");clearTimeout(queueDay.t);queueDay.t=setTimeout(flush,600)}
+function queueDay(cid,date){markRec(cid,date);pending.set(cid+"|"+date,[cid,date,cid===S.cid?S.days[date]:null]);setSync("Enregistrement…");clearTimeout(queueDay.t);queueDay.t=setTimeout(flush,600)}
 async function flush(){
   if(writing)return;writing=true;
   while(pending.size){
-    const [k,[cid,date]]=pending.entries().next().value;pending.delete(k);
-    try{const dd=S.days[date]||{};await api.saveDay(cid,date,{marks:dd.marks||{},...(dd.lesson?{lesson:dd.lesson}:{}),...(dd.lid?{lid:dd.lid,part:dd.part}:{}),...(dd.lid2?{lid2:dd.lid2,part2:dd.part2}:{}),...((dd.timers||[]).length?{timers:dd.timers}:{}),...(dd.phase?{phase:dd.phase}:{}),...(typeof dd.step==="number"?{step:dd.step}:{})})}
+    const [k,[cid,date,ref]]=pending.entries().next().value;pending.delete(k);
+    try{const dd=(cid===S.cid&&S.days[date])||ref;if(!dd)continue;await api.saveDay(cid,date,dayDoc(dd))}
     catch(e){setSync("Échec de l'enregistrement");toast(e&&e.code==="quota_exceeded"?"Espace plein : supprimez une ancienne classe.":"Enregistrement impossible. Vérifiez la connexion.");writing=false;return}
   }
   writing=false;setSync(api.label);
@@ -481,11 +489,12 @@ function syncRec(c){if(!c)return;const rec={};for(const k in S.days){const d=S.d
 const CANR=["Jour férié · عطلة رسمية","Vacances · عطلة مدرسية","Absence du professeur · رخصة","Activité de l'établissement","Autre motif"];
 let unsubDays=null;
 function selectClass(cid){S.cancelOpen=false;S.eraseAsk=false;S.sSel={};S.rmConfirm=null;S.edTeam=null;S.tmClear=false;
+  if(cid===S.cid&&unsubDays&&S.classes[cid]){S.pick=null;S.confirmDel=false;S.stu=null;saveUI();return render()}
   S.cid=cid;S.days={};S.pick=null;S.confirmDel=false;S.stu=null;saveUI();
   if(unsubDays){unsubDays();unsubDays=null}
   if(cid&&S.classes[cid]){unsubDays=api.subDays(cid,o=>{
     // ne pas écraser une séance en cours d'enregistrement
-    for(const [k,[c,d]] of pending){if(c===cid&&S.days[d])o[d]=S.days[d]}
+    for(const [k,[c,d,ref]] of pending){if(c===cid&&(S.days[d]||ref))o[d]=S.days[d]||ref}
     S.days=o;syncRec(S.classes[cid]);render()})}
   render();
 }
@@ -555,7 +564,7 @@ const partLab=(i,p)=>p==="s"?`${i.t} (suite)`:nOf(i)>1?`${i.t} ${p}/${nOf(i)}`:i
 const itemDone=(c,i)=>{const d=c.done||{};let k=0;for(let p=1;p<=nOf(i);p++)if(d[i.id+":"+p])k++;return k};
 function progPct(c){const it=progItems(c);if(!it.length)return null;const t=it.reduce((a,i)=>a+nOf(i),0);const n=it.reduce((a,i)=>a+itemDone(c,i),0);return {n,t,pc:Math.round(100*n/t),items:it.filter(i=>itemDone(c,i)===nOf(i)).length,ti:it.length}}
 function nextStep(c){const items=progItems(c);if(!items.length)return null;const o=curOrd(c),cur=dk();
-  const hist=allKeys(c).filter(x=>x.ord<o&&x.k!==cur).map(x=>{const d=S.days[x.k]||{};return d.lid2&&items.some(i=>i.id===d.lid2)?{lid:d.lid2,part:d.part2}:d}).filter(d=>d.lid&&items.some(i=>i.id===d.lid));
+  const hist=allKeys(c).filter(x=>x.ord<o&&x.k!==cur).map(x=>{const d=S.days[x.k]||{};return d.lid2&&items.some(i=>i.id===d.lid2)?{lid:d.lid2,part:d.part2,step:d.step2,phase:d.phase2}:d}).filter(d=>d.lid&&items.some(i=>i.id===d.lid));
   if(!hist.length){const i=items[0];return {i,p:1}}
   const last=hist[hist.length-1];let lp=0;for(let j=hist.length-1;j>=0;j--){if(hist[j].lid!==last.lid)break;if(typeof hist[j].part==="number"){lp=hist[j].part;break}}
   const idx=items.findIndex(i=>i.id===last.lid),it=items[idx];
@@ -576,6 +585,7 @@ function lessonFormHtml(c){const items=progItems(c),k=dk(),d=S.days[k]||{},done=
   <div class="notebox"><input id="lessonIn" ${items.length&&!free?"hidden":""} value="${esc(d.lid?"":(d.lesson||""))}" placeholder="Ex. : La masse volumique – activité 2" aria-label="Leçon en texte libre"><button class="btn primary" type="submit">${d.lesson?"Modifier":"Enregistrer"}</button></div>
   ${isPion(c)&&d.lid&&isConso(items.find(x=>x.id===d.lid),d.part)?`<span class="hint">${(items.find(x=>x.id===d.lid)||{}).ty==="dev"?"Séance de devoir : pas d'étapes à renseigner.":"Séance de consolidation et révision : exercices uniquement, pas d'étapes à renseigner."}</span>`:""}
   ${isPion(c)&&d.lid&&!isConso(items.find(x=>x.id===d.lid),d.part)?`<div style="display:grid;gap:4px"><b style="font-size:.85rem">Dernière étape réalisée dans cette séance · آخر فقرة منجزة</b><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px">${PHASES.map((ph,i)=>`<button type="button" class="btn" data-act="phase" data-v="${i+1}" style="padding:6px 4px;font-size:.78rem;line-height:1.15;border-color:${ph[2]};${(d.phase||0)>=i+1?`background:${ph[2]};color:#fff`:`color:${ph[2]}`}">${i+1}. ${ph[0]}<br><span style="opacity:.8;font-weight:400">${ph[1]} min</span></button>`).join("")}</div><span class="hint">${d.phase?d.phase<6?`Arrêt à l'étape ${d.phase} : la prochaine séance proposera de reprendre à « ${PHASES[d.phase][0]} ».`:"Séance terminée jusqu'à la clôture.":"Touchez la dernière étape atteinte avant la fin de la séance."}</span></div>`:""}
+  ${isPion(c)&&d.lid2&&!isConso(items.find(x=>x.id===d.lid2),d.part2)?`<div style="display:grid;gap:4px"><b style="font-size:.85rem">2e leçon · dernière étape réalisée · آخر فقرة منجزة</b><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px">${PHASES.map((ph,i)=>`<button type="button" class="btn" data-act="phase" data-slot="2" data-v="${i+1}" style="padding:6px 4px;font-size:.78rem;line-height:1.15;border-color:${ph[2]};${(d.phase2||0)>=i+1?`background:${ph[2]};color:#fff`:`color:${ph[2]}`}">${i+1}. ${ph[0]}</button>`).join("")}</div></div>`:""}
   <span class="hint">« (suite) » : la leçon n'est pas terminée et continue sur une séance de plus que prévu.</span>
   ${l?`<span class="hint">Séance précédente (${fmtD(l.date)}) : ${esc(lessonOf(l.k))}</span>`:""}
   ${!items.length?`<span class="hint">Ajoutez le programme du niveau ${esc(c.level||"")} dans l'onglet Détails pour choisir les leçons dans une liste et suivre l'avancement.</span>`:""}</form>`}
@@ -608,21 +618,23 @@ function actPlanEditor(i){const D=S.planEd.D;
   <div class="tools"><button class="btn primary" data-act="planSave">Enregistrer</button><button class="btn" data-act="planClose">Fermer</button><button class="btn" data-act="planReset" style="color:var(--bad)">Recommencer</button></div></div>`}
 function readPlan(){const D=S.planEd&&S.planEd.D;if(!D)return;document.querySelectorAll("[data-plt]").forEach(e=>{const x=D[+e.dataset.plt];if(x)x.t=e.value});document.querySelectorAll("[data-plq]").forEach(e=>{const x=D[+e.dataset.plq];if(x)x.q=Math.max(1,parseInt(e.value)||1)})}
 /* côté séance */
-function planReach(c,lid){let mx=-1;const cur=dk();for(const k in S.days){if(k===cur)continue;const d=S.days[k];if(d&&d.lid===lid&&typeof d.step==="number")mx=Math.max(mx,d.step)}return mx}
-function planCard(c){if(isPion(c))return "";const k=dk(),d=S.days[k]||{};if(!d.lid)return "";const it=progItems(c).find(i=>i.id===d.lid);if(!it||it.ty!=="lecon")return "";
-  const P=it.plan||[];if(!P.length)return `<div class="card form"><span class="hint">Aucune activité prévue pour « ${esc(it.t)} ». Définissez-les dans l'onglet Détails → Programme annuel → bouton « Activités » du cours.</span></div>`;
+function planReach(c,lid){let mx=-1;const cur=dk(),o=curOrd(c);for(const k in S.days){if(k===cur)continue;const ki=keyInfo(c,k);if(!ki||ki.ord>=o)continue;const d=S.days[k];if(!d)continue;if(d.lid===lid&&typeof d.step==="number")mx=Math.max(mx,d.step);if(d.lid2===lid&&typeof d.step2==="number")mx=Math.max(mx,d.step2)}return mx}
+function planCard(c,slot){if(isPion(c))return "";const k=dk(),d0=S.days[k]||{},two=slot===2;let prop="";let d={lid:two?d0.lid2:d0.lid,part:two?d0.part2:d0.part,step:two?d0.step2:d0.step};
+  if(!d.lid&&!two&&!d0.lesson){const nx=nextStep(c);if(nx&&nx.i.ty==="lecon"){d={lid:nx.i.id,part:nx.p};prop=nx.i.id+"|"+nx.p}}
+  if(!d.lid)return "";const it=progItems(c).find(i=>i.id===d.lid);if(!it||it.ty!=="lecon")return "";
+  const P=it.plan||[];if(!P.length)return prop||two?"":`<div class="card form"><span class="hint">Aucune activité prévue pour « ${esc(it.t)} ». Définissez-les dans l'onglet Détails → Programme annuel → bouton « Activités » du cours.</span></div>`;
   const reach=planReach(c,it.id),SS=planSessions(P),p=typeof d.part==="number"?d.part:SS.length;const ses=SS[Math.min(p,SS.length)-1]||[];const endIx=ses.length?ses[ses.length-1].ix:P.length-1;
   const from=Math.min(reach+1,ses.length?ses[0].ix:0);const show=P.map((x,ix)=>({...x,ix})).filter(x=>x.ix>=from&&x.ix<=Math.max(endIx,reach+1));const cur=typeof d.step==="number"?d.step:null;const ok=sessState(c).ok;
   const PD=c.plkDone||{};
-  return `<div class="card form" id="planCard"><h2>Plan du cours « ${esc(it.t)} »${typeof d.part==="number"?` · séance ${d.part}/${SS.length}`:""}</h2>
+  return `<div class="card form" id="planCard${two?2:""}"><h2>${two?"2e leçon · ":prop?"Prévu · ":""}Plan du cours « ${esc(it.t)} »${typeof d.part==="number"?` · séance ${d.part}/${SS.length}`:""}</h2>
   ${reach>=0&&reach<P.length-1?`<span class="hint">Lors des séances précédentes, arrêt après : <b style="font-size:inherit">${esc(P[reach].t)}</b>.</span>`:""}
-  <span class="hint">Touchez le dernier élément réalisé dans cette séance.</span>
+  <span class="hint">Touchez le dernier élément réalisé dans cette séance${prop?" (la leçon est alors enregistrée pour cette séance)":""} · آخر فقرة منجزة.</span>
   <div style="display:grid;gap:4px">${show.map(x=>{const doneB=x.ix<=reach,doneN=cur!==null&&x.ix<=cur&&x.ix>reach;const col=PK[x.kind][1];
-    return `<button class="btn" data-act="planStep" data-ix="${x.ix}" ${ok?"":"disabled"} style="justify-content:flex-start;text-align:start;display:flex;gap:8px;align-items:center;padding:6px 10px;border-color:${col};${doneN?`background:${col};color:#fff`:doneB?"opacity:.55":""}"><span style="font-size:.7rem;font-weight:800;min-width:74px;${doneN?"":`color:${col}`}">${PK[x.kind][0]}</span><span style="flex:1">${esc(x.t)}${x.kind==="plk"?` · ${x.q||"?"} questions`:""}</span>${doneB||doneN?"✓":""}</button>`}).join("")}</div>
+    return `<button class="btn" data-act="planStep" data-slot="${two?2:1}" data-prop="${prop}" data-ix="${x.ix}" ${ok?"":"disabled"} style="justify-content:flex-start;text-align:start;display:flex;gap:8px;align-items:center;padding:6px 10px;border-color:${col};${doneN?`background:${col};color:#fff`:doneB?"opacity:.55":""}"><span style="font-size:.7rem;font-weight:800;min-width:74px;${doneN?"":`color:${col}`}">${PK[x.kind][0]}</span><span style="flex:1">${esc(x.t)}${x.kind==="plk"?` · ${x.q||"?"} questions`:""}</span>${doneB||doneN?"✓":""}</button>`}).join("")}</div>
   ${cur!==null?`<span class="hint">${cur>=P.length-1?"✓ Cours terminé.":cur<endIx?`Prochaine séance : reprise à « ${esc(P[cur+1].t)} ».`:"Séance réalisée comme prévu."}</span>`:""}
   ${(()=>{const dn=P.filter(x=>x.kind==="plk"&&PD[it.id+":"+x.id]);return dn.length?`<div style="display:grid;gap:4px"><span class="hint">Plickers faits</span>${dn.map(x=>`<div style="display:flex;gap:8px;align-items:center"><span class="g" style="flex:1">✓ ${esc(x.t)} · ${x.q||"?"} questions · ${fmtD((keyInfo(c,PD[it.id+":"+x.id])||{date:""}).date||"")}</span>${S.plkUndo===x.id?`<button class="btn danger" data-act="plkUndoYes" data-id="${x.id}" style="padding:4px 10px">Confirmer</button><button class="btn" data-act="plkUndoNo" style="padding:4px 10px">Non</button>`:`<button class="btn" data-act="plkUndo" data-id="${x.id}" style="padding:4px 10px" title="Annuler « fait »">↶ Annuler</button>`}</div>`).join("")}</div>`:""})()}</div>`}
 function plkPending(c){const PD=c.plkDone||{};const out=[];
-  for(const it of progItems(c)){if(!(it.plan||[]).length)continue;let mx=-1;for(const k in S.days){const d=S.days[k];if(d&&d.lid===it.id&&typeof d.step==="number")mx=Math.max(mx,d.step)}
+  for(const it of progItems(c)){if(!(it.plan||[]).length)continue;let mx=-1;for(const k in S.days){const d=S.days[k];if(d&&d.lid===it.id&&typeof d.step==="number")mx=Math.max(mx,d.step);if(d&&d.lid2===it.id&&typeof d.step2==="number")mx=Math.max(mx,d.step2)}
     it.plan.forEach((x,ix)=>{if(x.kind==="plk"&&ix<=mx&&!PD[it.id+":"+x.id]){const SS=planSessions(it.plan);const si=SS.findIndex(ses=>ses.some(y=>y.ix===ix));out.push({it,x,ses:si+1})}})}
   return out}
 function plkPendCard(c){if(isPion(c))return "";const L=plkPending(c);const PD=c.plkDone||{},k0=dk(),cur=(S.days[k0]||{}).lid;
@@ -768,10 +780,10 @@ function dayNav(dir){let ds=S.date,ok=false;for(let i=0;i<200;i++){ds=addDays(ds
 {let ss=null;document.addEventListener("touchstart",e=>{const st=e.target.closest&&e.target.closest("#dayStrip");if(!st||e.touches.length!==1){ss=null;return}const p=e.touches[0];ss={x:p.clientX,y:p.clientY,sl:st.scrollLeft,max:st.scrollWidth-st.clientWidth,t:Date.now()}},{passive:true});
  document.addEventListener("touchend",e=>{if(!ss)return;const p=e.changedTouches[0],o=ss;ss=null;if(!p)return;const dx=p.clientX-o.x,dy=p.clientY-o.y;if(Date.now()-o.t>900||Math.abs(dx)<50||Math.abs(dy)>Math.abs(dx)*.6)return;if(dx<0&&o.sl<o.max-4)return;if(dx>0&&o.sl>4)return;clearTimeout(LP.t);dayNav(dx<0?1:-1)},{passive:true})}
 const LP={t:null,fired:false};
-document.addEventListener("pointerdown",e=>{const b=e.target.closest&&e.target.closest(".slot[data-act=goSess]");if(!b)return;LP.fired=false;LP.x=e.clientX;LP.y=e.clientY;clearTimeout(LP.t);LP.t=setTimeout(()=>{LP.fired=true;try{navigator.vibrate&&navigator.vibrate(25)}catch(_){}S.hist=b.dataset.id;render()},550)},true);
+document.addEventListener("pointerdown",e=>{const b=e.target.closest&&e.target.closest(".slot[data-act=goSess]");if(!b)return;LP.fired=false;LP.x=e.clientX;LP.y=e.clientY;clearTimeout(LP.t);LP.t=setTimeout(()=>{LP.fired=true;LP.at=Date.now();try{navigator.vibrate&&navigator.vibrate(25)}catch(_){}S.hist=b.dataset.id;render()},550)},true);
 document.addEventListener("pointermove",e=>{if(LP.t&&Math.hypot(e.clientX-LP.x,e.clientY-LP.y)>10)clearTimeout(LP.t)},true);
 ["pointerup","pointercancel"].forEach(ev=>document.addEventListener(ev,()=>clearTimeout(LP.t),true));
-document.addEventListener("click",e=>{if(LP.fired&&e.target.closest&&e.target.closest(".slot")){LP.fired=false;e.stopPropagation();e.preventDefault()}},true);
+document.addEventListener("click",e=>{if(LP.fired){LP.fired=false;if(Date.now()-(LP.at||0)<4000&&!(e.target.closest&&e.target.closest(".hlist"))){e.stopPropagation();e.preventDefault()}}},true);
 document.addEventListener("contextmenu",e=>{const b=e.target.closest&&e.target.closest(".slot[data-act=goSess]");if(b){e.preventDefault();clearTimeout(LP.t);if(!S.hist){S.hist=b.dataset.id;render()}}},true);
 function histDates(c){const t=today(),out=new Map();const y=+t.slice(0,4)-(+t.slice(5,7)<9?1:0),y0=y+"-09-01";
   const add=(date,x)=>{const k=x?"X-"+x.id:date;if(out.has(k))return;out.set(k,{k,date,x:x?x.id:"",lab:x?XS[x.type]:"",can:!!canOf(c,k,date),rec:!!(c.rec||{})[k]||(c.id===S.cid&&Object.keys(((S.days[k]||{}).marks)||{}).length>0),on:c.id===S.cid&&S.date===date&&(S.xid||"")===(x?x.id:"")})};
@@ -917,7 +929,7 @@ async function dedupeClasses(){let merged=0;
     g.sort((a,b)=>((b.students||[]).length+Object.keys(daysOf[b.id]).length)-((a.students||[]).length+Object.keys(daysOf[a.id]).length));
     const keep=JSON.parse(JSON.stringify(g[0])),kd=daysOf[keep.id];
     for(const dup of g.slice(1)){mergeInto(keep,kd,JSON.parse(JSON.stringify(dup)),daysOf[dup.id]);merged++}
-    recomputeFrom(keep,kd);await api.saveClass(keep.id,keep);for(const k in kd)await api.saveDay(keep.id,k,{marks:kd[k].marks||{},...(kd[k].lesson?{lesson:kd[k].lesson}:{}),...(kd[k].lid?{lid:kd[k].lid,part:kd[k].part}:{}),...(kd[k].lid2?{lid2:kd[k].lid2,part2:kd[k].part2}:{}),...((kd[k].timers||[]).length?{timers:kd[k].timers}:{}),...(kd[k].phase?{phase:kd[k].phase}:{}),...(typeof kd[k].step==="number"?{step:kd[k].step}:{})});
+    recomputeFrom(keep,kd);await api.saveClass(keep.id,keep);for(const k in kd)await api.saveDay(keep.id,k,dayDoc(kd[k]));
     for(const dup of g.slice(1)){await api.deleteClass(dup.id);delete S.classes[dup.id]}S.classes[keep.id]=keep}
   return merged}
 function restoreCard(){const P=S.pendingRestore;if(!P)return "";const B=P.B;const cl=Object.values(B.classes||{});const ns=cl.reduce((a,c)=>a+(c.students||[]).length,0),nd=Object.values(B.days||{}).reduce((a,d)=>a+Object.keys(d).length,0);
@@ -1101,7 +1113,7 @@ const TABL={edt:"Horaires",seance:"Séance",bilan:"Bilan",eval:"Évals",classe:"
 const hdPref=()=>S.hdMini===null?window.innerHeight<520:S.hdMini;
 function hdApply(){const h=document.querySelector("header.top");if(!h)return;const mini=hdPref()&&!S.hdOpen;h.classList.toggle("mini",mini);
   const c=cls();const inf=$("#hdInfo");if(inf){const ids=Object.keys(S.classes).sort((a,b)=>(S.classes[a].name||"").localeCompare(S.classes[b].name||""));
-    inf.innerHTML=(ids.length?`<select id="classSelMini" aria-label="Changer de classe">${ids.map(id=>`<option value="${id}" ${id===S.cid?"selected":""}>${esc(S.classes[id].name)}</option>`).join("")}</select>`:"")+`<span class="hdnav"><button class="hdbtn" data-nav="-1" aria-label="Page précédente">‹</button><span class="hdtab">${esc(TABL[S.tab]||"")}</span><button class="hdbtn" data-nav="1" aria-label="Page suivante">›</button></span>`}
+    inf.innerHTML=(ids.length?`<select id="classSelMini" aria-label="Changer de classe">${ids.map(id=>`<option value="${id}" ${id===S.cid?"selected":""}>${esc(S.classes[id].name)}</option>`).join("")}</select>`:"")}
   const tg=$("#hdToggle");if(tg){tg.textContent=mini?"☰":"⌃";tg.setAttribute("aria-label",mini?"Afficher le menu":"Réduire l'en-tête");tg.title=mini?"Afficher le menu et les onglets":"Réduire l'en-tête"}
   const pn=$("#hdPin");if(pn)pn.hidden=!(hdPref()&&S.hdOpen);
   const pt=$("#perTop");if(pt)pt.value=S.period||"year";themeApply();fsApply()}
@@ -1128,7 +1140,7 @@ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest
 function render(){if(S.cours&&S.tab!=="seance"){S.cours=false;wakeOff()}document.body.classList.toggle("cours",!!S.cours);render0();demoDecor();
   try{const v=$("#view");if(S.tab==="bilan"&&!S.stu&&cls()&&!(cls().students||[]).length&&!v.querySelector(".evalsep"))v.insertAdjacentHTML("beforeend",evalPart());
     foldCards();document.querySelectorAll(".numstrip .on").forEach(o=>{const p=o.parentElement;p.scrollLeft=o.offsetLeft-p.offsetLeft-p.clientWidth/2+o.clientWidth/2});
-    if(S.hist)v.insertAdjacentHTML("beforeend",histHtml());if(S.tab==="bilan"&&(S.fold||{}).cmp&&!S.cmpDays&&!S.cmpLoading)cmpLoad()}catch(e){console.warn(e)}}
+    {const hb=$("#histBox");if(hb)hb.innerHTML=S.hist?histHtml():""}if(S.tab==="bilan"&&(S.fold||{}).cmp&&!S.cmpDays&&!S.cmpLoading)cmpLoad()}catch(e){console.warn(e)}}
 function foldCards(){const v=$("#view");if(!v)return;const tab=S.tab==="eval"?"bilan":S.tab;
   v.querySelectorAll(".card").forEach(cd=>{if(cd.tagName==="DETAILS"||cd.classList.contains("fcard")||cd.closest("details")||cd.parentElement.closest(".card"))return;
     if(/\b(summary|demobar|empty|qp|confirm)\b/.test(cd.className))return;let h=cd.firstElementChild;if(!h)return;let hd=null,ht=null;
@@ -1172,7 +1184,7 @@ function viewSeance(c){
     <ul class="remind">${fl.map(i=>`<li><button class="namebtn" data-act="stu" data-id="${i}">${byId[i].num}. ${esc(byId[i].name)}</button><span>${esc(flagWhy(S._flags[i]))}</span></li>`).join("")}</ul></div>`:"";
   const X=(c.extras||[]).slice().sort((a,b)=>(b.date+b.s).localeCompare(a.date+a.s)),cx=X.find(x=>x.id===S.xid);const SS=sessState(c);const CN=canOf(c,dk(),S.date),CAN=CN&&CN.why;
   const out=`
-  <div class="sessbar"><button class="btn" data-act="histOpen" title="Séances précédentes (ou appui long sur la classe en haut)">📅 ${esc(lab)}</button>${isT?"":`<button class="btn primary" data-act="goToday">Aujourd'hui</button>`}${SS.ok&&!CAN?`<button class="btn ${isT?"primary":""}" data-act="cours" title="Mode cours : plein écran, plan, minuteur et notation seulement">🎓 Mode cours</button>`:""}</div><!--endbar-->
+  <div class="sessbar"><button class="btn" data-keep data-act="histOpen" title="Séances précédentes (ou appui long sur la classe en haut)">📅 ${esc(lab)}</button>${isT?"":`<button class="btn primary" data-keep data-act="goToday">Aujourd'hui</button>`}${SS.ok&&!CAN?`<button class="btn ${isT?"primary":""}" data-act="cours" title="Mode cours : plein écran, plan, minuteur et notation seulement">🎓 Mode cours</button>`:""}</div><!--endbar-->
 
   ${S.cancelOpen?`<form class="card form" id="cancelForm"><h2>Annuler cette séance</h2><label>Motif<select id="canR">${CANR.map(r=>`<option>${esc(r)}</option>`).join("")}</select></label><span class="hint">La séance apparaîtra barrée dans l'emploi du temps et ne pourra plus être notée. Vous pourrez la rétablir.</span><div class="tools"><button class="btn danger" type="submit">Confirmer l'annulation</button><button type="button" class="btn" data-act="cancelOpen">Fermer</button></div></form>`:""}
   ${cx?`<div class="past xbanner">${XT[cx.type]} · ${esc(lab)} · ${hrs(cx)}<br><span style="font-weight:400">Faites l'appel puis validez. Les exercices, la participation, le comportement et le cahier notés ici comptent dans la note des activités.</span></div><div class="tools"><button class="btn primary" data-act="valAppel">Valider l'appel</button></div>
@@ -1181,7 +1193,7 @@ function viewSeance(c){
     <label>Déroulement et observations<textarea id="xDev" style="min-height:90px" placeholder="Activités réalisées, difficultés rencontrées, suites à donner…">${esc(cx.dev||"")}</textarea></label>
     <div><button class="btn primary" type="submit">Enregistrer la fiche</button></div></form>`:isT?"":`<div class="past">Vous modifiez une séance passée : ${esc(lab)}.</div>`}
   ${SS.ok?lessonFormHtml(c):""}
-  ${SS.ok?`<div data-mod="prog" style="display:contents">${planCard(c)}</div>`:""}
+  ${SS.ok?`<div data-mod="prog" style="display:contents">${planCard(c)}${planCard(c,2)}</div>`:""}
   <div data-mod="plk" style="display:contents">${SS.ok?plkPendCard(c):""}</div>
   ${flagBox}
   ${cx&&(cx.targets||[]).length?(()=>{const C=concerned(c,cx.targets);const les=cx.targets.map(k=>{const ki=keyInfo(c,k);return (ki?fmtD(ki.date):"")+(lessonOf(k)?" – "+lessonOf(k):"")});return `<div class="hint">Séances reprises : ${esc(les.join(" · "))}</div>`+(C.length?concernedHtml(C,"Élèves concernés par cette séance",true):"")})():cx&&cx.type==="soutien"?(()=>{const D=diffGrouped(c);return D.length?concernedHtml(D.map(g=>({st:g.st,items:g.items.map(i=>({...i,w:["Difficulté"]}))})),"Élèves signalés en difficulté",true):""})():""}
@@ -1558,6 +1570,36 @@ function cmpCard(c){const by=S.cmpBy||"cls",met=S.cmpMet||"rep",per=S.period||"y
   <label>Indicateur<select id="cmpMet">${MET.map(([v,l])=>`<option value="${v}" ${v===met?"selected":""}>${l}</option>`).join("")}</select></label>
   ${S.cmpLoading?`<span class="hint">Lecture des séances de toutes les classes…</span>`:!S.cmpDays?`<button class="btn" data-act="cmpReload">Charger la comparaison</button>`:L.length?`<div style="display:grid;gap:4px">${L.map(x=>`<div class="cmpbar ${x.me?"me":""}"><span>${esc(x.k)}</span><span class="b"><i style="width:${Math.max(2,x.v/mx*100)}%"></i></span><span style="text-align:end">${fmt(x.v)}</span></div>`).join("")}</div>`:`<span class="hint">Pas encore de données pour cette période.</span>`}
   ${S.cmpDays&&by!=="elv"?`<div class="tools"><span class="hint" style="flex:1">${PER[per]||""} · en vert : ${by==="niv"?"le niveau":"la classe"} actuel(le). Les moyennes tiennent compte du nombre d'élèves présents.</span><button class="btn" data-act="cmpReload" title="Actualiser">↻</button></div>`:""}</details>`}
+
+/* ---------- Journal des séances (export par niveau) ---------- */
+function dayContent(c,d){const its=progItems(c);const seg=(lid,part,step,phase)=>{const it=its.find(i=>i.id===lid);if(!it)return "";let t=partLab(it,part);if((it.plan||[]).length&&typeof step==="number"&&it.plan[step])t+=" → jusqu'à « "+it.plan[step].t+" »";else if(phase&&PHASES[phase-1])t+=" → étape "+phase+" : "+PHASES[phase-1][0];else{const sp=stepOf(it,part);if(sp)t+=" – "+sp.t}return t};
+  if(!d.lid)return d.lesson||"";const a=seg(d.lid,d.part,d.step,d.phase),b=d.lid2?seg(d.lid2,d.part2,d.step2,d.phase2):"";return [a||d.lesson||"",b].filter(Boolean).join(" ＋ ")}
+async function journalData(from,to,lv){const out={};const L=classList().filter(c=>!lv||c.level===lv).sort((a,b)=>String(a.level).localeCompare(String(b.level))||a.name.localeCompare(b.name,"fr",{numeric:true}));
+  for(const c of L){const days=c.id===S.cid?S.days:await api.getDays(c.id);const nm=id=>{const s=(c.students||[]).find(x=>x.id===id);return s?s.num+". "+s.name:""};
+    for(const k in days){if(String(k).startsWith("T-"))continue;const ki=keyInfo(c,k);if(!ki||ki.date<from||ki.date>to)continue;const d=days[k]||{},mk=d.marks||{};const can=canOf(c,k,ki.date);
+      if(!d.lesson&&!Object.keys(mk).length&&!(can&&(c.cancel||{})[k]))continue;
+      const abs=[],dif=[];(c.students||[]).forEach(s=>{const m=mk[s.id];if(!m)return;if(m.p==="A")abs.push(s.num+". "+s.name);if(m.diff)dif.push(s.num+". "+s.name)});
+      const pl=(c.tests||[]).filter(t=>t.date===ki.date).map(t=>{const V=Object.values(t.res||{}).map(r=>r&&r.pc).filter(v=>v!=null),lo=V.filter(v=>v<(t.thr??50)).length;return t.title+(V.length?" : moyenne "+Math.round(V.reduce((a,b)=>a+b,0)/V.length)+" % · "+V.length+" élèves"+(lo?" · "+lo+" sous "+(t.thr??50)+" %":""):"")});
+      (out[c.level||"Autre"]=out[c.level||"Autre"]||[]).push({date:ki.date,ord:ki.ord,cls:c.name,type:ki.lab,content:can&&(c.cancel||{})[k]?"Séance annulée : "+can.why:dayContent(c,d),plk:pl.join(" · "),abs,dif})}}
+  for(const l in out)out[l].sort((a,b)=>a.ord.localeCompare(b.ord)||a.cls.localeCompare(b.cls,"fr",{numeric:true}));return out}
+const JH=["Date","Classe","Séance","Contenu réalisé","Plickers","Absents","En difficulté"];
+const jRow=r=>[fmtD(r.date),r.cls,r.type,r.content,r.plk,r.abs.join(", "),r.dif.join(", ")];
+function jTables(D,st){const th=st?' style="border:1px solid #888;padding:4px 6px;background:#e8efe9;text-align:left"':"",td=st?' style="border:1px solid #888;padding:4px 6px;vertical-align:top"':"";
+  return Object.keys(D).sort().map(l=>`<h3${st?' style="margin:14px 0 6px"':' style="margin:8px 0 4px"'}>Niveau ${esc(l)} · ${D[l].length} séance(s)</h3><div style="overflow-x:auto"><table class="jr"${st?' style="border-collapse:collapse;width:100%;font-size:10pt"':""}><thead><tr>${JH.map(h=>`<th${th}>${h}</th>`).join("")}</tr></thead><tbody>${D[l].map(r=>`<tr>${jRow(r).map(v=>`<td${td}>${esc(v)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`).join("")}
+function jRange(){const f=($("#jFrom")||{}).value||S.jFrom||addDays(today(),-30),t=($("#jTo")||{}).value||S.jTo||today(),lv=($("#jLv")||{}).value||"";S.jFrom=f;S.jTo=t;S.jLv=lv;return {f,t,lv}}
+async function journalRun(kind){const {f,t,lv}=jRange();if(f>t)return toast("La date de début est après la date de fin.");setSync("Lecture des séances…");let D;try{D=await journalData(f,t,lv)}catch(e){setSync(api.label);return toast("Lecture impossible. Vérifiez la connexion.")}setSync(api.label);
+  if(!Object.keys(D).length){S.jr=null;render();return toast("Aucune séance enregistrée sur cette période.")}
+  if(kind==="view"){S.jr=D;return render()}
+  const nm=`journal-seances-${lv||"tous-niveaux"}-${f}_${t}`;
+  if(kind==="csv"){const q=v=>'"'+String(v??"").replace(/"/g,'""')+'"';let csv="﻿";for(const l of Object.keys(D).sort()){csv+=q("Niveau "+l)+"\r\n"+JH.map(q).join(";")+"\r\n"+D[l].map(r=>jRow(r).map(q).join(";")).join("\r\n")+"\r\n\r\n"}return saveFile(nm+".csv",new Blob([csv],{type:"text/csv"}))}
+  const html=`<html><head><meta charset="utf-8"><title>Journal des séances</title><style>@page{size:A4 landscape;margin:12mm}body{font-family:Arial,sans-serif}</style></head><body><h2>Journal des séances · دفتر النصوص</h2><p>Période : du ${fmtD(f)} au ${fmtD(t)}${lv?" · niveau "+esc(lv):""}</p>${jTables(D,true)}</body></html>`;
+  return saveFile(nm+".doc",new Blob(["﻿"+html],{type:"application/msword"}))}
+function journalCard(){const lvs=[...new Set(classList().map(c=>c.level).filter(Boolean))].sort();if(!classList().length)return "";
+  return `<div class="card form"><h2>📒 Journal des séances · دفتر النصوص</h2><span class="hint">Tableau par niveau : dates des séances réalisées, contenu, résultat Plickers, absents et élèves en difficulté.</span>
+  <div class="grid2"><label>Du<input type="date" id="jFrom" value="${S.jFrom||addDays(today(),-30)}"></label><label>Au<input type="date" id="jTo" value="${S.jTo||today()}"></label></div>
+  <label>Niveau<select id="jLv"><option value="">Tous les niveaux</option>${lvs.map(l=>`<option ${S.jLv===l?"selected":""}>${esc(l)}</option>`).join("")}</select></label>
+  <div class="tools"><button class="btn primary" data-act="jView">Afficher</button><button class="btn" data-act="jDoc">⬇ Word (imprimable)</button><button class="btn" data-act="jCsv">⬇ Excel (CSV)</button>${S.jr?`<button class="btn" data-act="jClose">Masquer</button>`:""}</div>
+  ${S.jr?jTables(S.jr,false):""}</div>`}
 
 /* ---------- Blocs repliables ---------- */
 const fOpen=(k,d)=>((S.fold||{})[k]??d)?"open":"";
@@ -2244,7 +2286,7 @@ function teamEditor(c){const T=teamsOf(c),st=sorted(c),by=Object.fromEntries(st.
     <span class="hint">« Répartir » remplace les équipes actuelles par des équipes équilibrées (notes mélangées). Vous pouvez ensuite déplacer des élèves.</span>
     ${T.length?(S.tmClear?`<div class="confirm">Supprimer toutes les équipes ? <button class="btn danger" data-act="tmClearYes">Oui</button><button class="btn" data-act="tmClearNo">Non</button></div>`:`<div><button class="linkbtn" data-act="tmClear" style="color:var(--bad)">Supprimer toutes les équipes</button></div>`):""}</div>`}
 function viewDetails(){const c=cls();
-  return `${restoreCard()}${dupCard()}${modCard()}${adminCard()}
+  return `${restoreCard()}${dupCard()}${modCard()}${adminCard()}${journalCard()}
   <div class="card form"><h2>Sauvegarde · نسخة احتياطية</h2><p class="hint" style="margin:0">Enregistrez toutes vos classes, plans, horaires et notes dans un fichier. La restauration ajoute ou remplace les classes du fichier sans effacer les autres. Ce bouton accepte aussi les fichiers « séance » et « journée ».</p>
   ${S.bk?`<div class="flag" style="background:var(--ok-bg,#e6f4ea);color:var(--ok);border-color:var(--ok);display:grid;gap:6px"><span>Sauvegarde prête : ${S.bk.n} classe(s), ${S.bk.ns} élève(s)${S.bk.ok?" · fichier « "+esc(S.bk.name)+" » téléchargé":""}</span><span style="font-weight:400">Si aucun fichier n'apparaît dans vos Téléchargements, utilisez « Partager » (WhatsApp, e-mail, Drive…) ou « Copier » puis collez le texte sur l'autre appareil (Détails → Coller une sauvegarde).</span>
     <div class="tools"><button class="btn primary" data-act="bkShare">Partager le fichier</button><button class="btn" data-act="bkCopy">Copier la sauvegarde</button><button class="btn" data-act="bkDl">Télécharger à nouveau</button><button class="btn" data-act="bkClose">Fermer</button></div><textarea id="bkText" hidden readonly style="min-height:60px;font-size:.7rem">${esc(S.bk.json)}</textarea></div>`:""}
@@ -2310,6 +2352,10 @@ document.addEventListener("click",async e=>{
   if(a==="selClass"){S.xid=null;selectClass(id);if(S.tab==="classe")setTimeout(()=>{const d=document.getElementById("clsDetail");if(d)d.scrollIntoView({behavior:"smooth",block:"start"})},80);return}
   if(a==="goImport"){S.imp={kind:t.dataset.k,ref:t.dataset.ref||null};S.tab="eval";saveUI();render();const inp=document.getElementById(t.dataset.k==="plk"?"plkIn":"exIn");if(inp){inp.scrollIntoView({block:"center"});try{inp.click()}catch(err){}}toast(t.dataset.k==="plk"?"Choisissez le fichier CSV Plickers":"Choisissez le fichier Excel des notes");return}
   if(a==="goEvalPlk"){S.tab="eval";S.plkOpen=t.dataset.t;saveUI();render();const d=document.querySelector(`details[data-plo="${t.dataset.t}"]`);if(d)d.scrollIntoView({block:"start"});return}
+  if(a==="jView")return journalRun("view");
+  if(a==="jDoc")return journalRun("doc");
+  if(a==="jCsv")return journalRun("csv");
+  if(a==="jClose"){S.jr=null;return render()}
   if(a==="histX"){S.hist=null;return render()}
   if(a==="histOpen"){S.hist=S.cid;return render()}
   if(a==="dayNav"){return dayNav(+t.dataset.d)}
@@ -2383,7 +2429,7 @@ document.addEventListener("click",async e=>{
   if(a==="pg1ac"){S.pgAsk=true;return render()}
   if(a==="pg1acNo"){S.pgAsk=false;return render()}
   if(a==="pg1acYes"){const items=JSON.parse(JSON.stringify(PROG1AC.items));S.prog={...(S.prog||{}),"1AC":{items}};S.pgAsk=false;S.pgLvl="1AC";try{await api.saveProgramme("1AC",{items})}catch(err){toast("Programme non enregistré.");return}toast("Programmation 1AC chargée : "+items.length+" éléments");return render()}
-  if(a==="phase"&&c){const g=sessState(c);if(!g.ok)return toast(g.msg);const key=dk();const d=S.days[key]=S.days[key]||{marks:{}};const v=+t.dataset.v;d.phase=d.phase===v?v-1||undefined:v;if(!d.phase)delete d.phase;queueDay(S.cid,key);return render()}
+  if(a==="phase"&&c){const g=sessState(c);if(!g.ok)return toast(g.msg);const key=dk();const d=S.days[key]=S.days[key]||{marks:{}};const v=+t.dataset.v,f=t.dataset.slot==="2"?"phase2":"phase";d[f]=d[f]===v?v-1||undefined:v;if(!d[f])delete d[f];queueDay(S.cid,key);return render()}
   if(a==="planEd"){const lv=S.pgLvl||(c&&LEVELS.includes(c.level)?c.level:"1AC");const it=((S.prog||{})[lv]||{}).items[+t.dataset.n];if(!it)return;if(S.planEd&&S.planEd.id===it.id){S.planEd=null;return render()}S.planEd={lv,id:it.id,D:JSON.parse(JSON.stringify(it.plan||[]))};return render()}
   if(a==="planClose"){S.planEd=null;return render()}
   if(a==="planGen"&&S.planEd){const it=((S.prog||{})[S.planEd.lv]||{}).items.find(x=>x.id===S.planEd.id);S.planEd.D=planGen(it,Math.max(1,Math.min(30,parseInt($("#planN").value)||1)));return render()}
@@ -2394,7 +2440,7 @@ document.addEventListener("click",async e=>{
     const add=kind==="act"?[{id:uid(),kind:"act",t:"Activité "+(nA+1)},{id:uid(),kind:"concl",t:"Conclusion de l'activité "+(nA+1)}]:kind==="plk"?[{id:uid(),kind:"plk",t:"Plickers",q:5}]:[{id:uid(),kind:"bilan",t:"Bilan de la séance "+(si+1)}];
     const last=ses[ses.length-1];let at=last?last.ix+1:D.length;if(kind!=="bilan"&&last&&last.kind==="bilan")at=last.ix;D.splice(at,0,...add);return render()}
   if(a==="planSave"&&S.planEd){readPlan();const lv=S.planEd.lv;const items=[...(((S.prog||{})[lv]||{}).items||[])].map(x=>x.id===S.planEd.id?{...x,plan:S.planEd.D}:x);S.prog[lv]={items};try{await api.saveProgramme(lv,{items})}catch(err){return toast("Programme non enregistré.")}S.planEd=null;toast("Activités enregistrées");return render()}
-  if(a==="planStep"&&c){const g=sessState(c);if(!g.ok)return toast(g.msg);const key=dk();const d=S.days[key]=S.days[key]||{marks:{}};const v=+t.dataset.ix;if(d.step===v)delete d.step;else d.step=v;queueDay(S.cid,key);return render()}
+  if(a==="planStep"&&c){const g=sessState(c);if(!g.ok)return toast(g.msg);const key=dk();const d=S.days[key]=S.days[key]||{marks:{}};d.marks=d.marks||{};const v=+t.dataset.ix,f=t.dataset.slot==="2"?"step2":"step";if(t.dataset.prop&&!d.lid){const [li,pp]=t.dataset.prop.split("|");const it=progItems(c).find(i=>i.id===li);if(it){d.lid=li;d.part=pp==="s"?"s":+pp;d.lesson=partLab(it,d.part)}}if(d[f]===v)delete d[f];else d[f]=v;queueDay(S.cid,key);recomputeDone(c);return render()}
   if(a==="plkUndo"){S.plkUndo=t.dataset.id;return render()}
   if(a==="plkUndoNo"){S.plkUndo=null;return render()}
   if(a==="plkUndoYes"&&c){const d=S.days[dk()]||{};const m={...(c.plkDone||{})};delete m[(t.dataset.lid||d.lid)+":"+t.dataset.id];c.plkDone=m;S.plkUndo=null;await saveClass(c);toast("Plickers remis « à faire »");return render()}
