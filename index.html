@@ -654,7 +654,7 @@ function clsDetail(c){const P=progPct(c),its=progItems(c),PD=c.plkDone||{};const
   ${P?`<div class="bar20" style="height:10px;border-radius:5px"><i style="width:${P.pc}%"></i></div><b>Programme : ${P.pc} % · ${P.n}/${P.t} séances</b>`:`<span class="hint">Aucun programme pour le niveau ${esc(c.level||"")} (onglet Détails).</span>`}
   ${c.lastLesson?`<span class="hint">Dernière leçon : ${esc(c.lastLesson.t)} · ${fmtD(c.lastLesson.date)}</span>`:""}
   ${ctOf(c)?(()=>{const N=ctNow(c);return `<details data-mod="ct" ${S.ctOpen?"open":""} data-ctd="1"><summary style="cursor:pointer;font-weight:700;font-size:.95rem">📍 Où est la classe ? ${N.cur?`<span class="g">maintenant : <bdi>${esc(N.cur.m)}</bdi>${N.cur.room?" · "+esc(N.cur.room):""} (jusqu'à ${N.cur.e})</span>`:`<span class="hint" style="font-weight:400">pas de cours en ce moment</span>`}</summary><div style="display:grid;gap:6px;margin-top:6px">
-    ${N.nx?`<span class="hint">Ensuite aujourd'hui : <bdi>${esc(N.nx.m)}</bdi>${N.nx.room?" · "+esc(N.nx.room):""} à ${N.nx.s}</span>`:""}${ctGrid(c)}</div></details>`})():""}
+    ${N.nx?`<span class="hint">Ensuite aujourd'hui : <bdi>${esc(N.nx.m)}</bdi>${N.nx.room?" · "+esc(N.nx.room):""} à ${N.nx.s}</span>`:""}${ctGrid(c)}</div></details>`})():`<div data-mod="ct" style="display:grid;gap:6px">${S.ctEd?ctGrid(c):`<button class="linkbtn" data-act="ctEd" style="justify-self:start">✏️ Saisir l'emploi du temps de la classe à la main</button>`}</div>`}
   ${lessons.length?`<div class="tablewrap"><table><thead><tr><th class="l">Leçon</th><th>Séances</th>${isPion(c)?"":"<th>Activités</th>"}<th>Plickers</th></tr></thead><tbody>${lessons.map(o=>`<tr><td class="l"><b>${esc(o.it.t)}</b></td><td class="${o.k>=o.n?"g":""}">${o.k}/${o.n}</td>${isPion(c)?"":`<td>${o.acts?`${o.aDone}/${o.acts}`:"–"}</td>`}<td>${o.plks?`${o.pDone}/${o.plks}`:"–"}</td></tr>`).join("")}</tbody></table></div>`:""}
   <div data-mod="plk" style="display:grid;gap:8px"><b style="font-size:.95rem">Plickers</b>
   ${PL.length||other.length?`<div style="display:grid;gap:6px">${PL.map(o=>{const done=PD[o.ref];const t=tests.find(x=>x.plk===o.ref);const st=t&&tStat(t);
@@ -748,23 +748,33 @@ const CTPARA=[[3,"14:00","18:00","الدعم التربوي وأنشطة موا�
 const ctKey=n=>String(n||"").toUpperCase().replace(/[^0-9A-Z]/g,"");
 /* Informatique (emploi du temps du professeur d'informatique, salle 7) */
 const CTINFO={"3APIC1":[1,"15:00","16:00"],"3APIC2":[1,"16:00","17:00"],"2APIC1":[2,"09:00","10:00"],"1APIC1":[2,"10:00","11:00"],"1APIC2":[2,"11:00","12:00"],"2APIC2":[6,"08:00","09:00"],"1APIC3":[6,"09:00","10:00"],"2APIC3":[6,"10:00","11:00"]};
-const ctOf=c=>{if(!c)return null;const old=!c.demo&&(c.created||"")<"2026-11-09";const L=c.ct||(old?CT0[ctKey(c.name)]:null)||null;if(!L||!old)return L;const x=CTINFO[ctKey(c.name)];
+const ctOf=c=>{if(!c)return null;const old=!c.demo&&(c.created||"")<"2026-11-09";const L=c.ct||(old?CT0[ctKey(c.name)]:null)||null;if(!L||!old||c.ctEdit)return L;const x=CTINFO[ctKey(c.name)];
   if(!x||L.some(y=>/معلوم|إعلام|informati/i.test(y[3]))||L.some(y=>y[0]===x[0]&&y[1]<x[2]&&y[2]>x[1]))return L;return [...L,[x[0],x[1],x[2],"المعلوميات","SALLE7"]]};
 const isPC=m=>/فيزياء/.test(m||"");
-const ctShort=m=>/إسلامية/.test(m)?"إسلامية":/بدنية/.test(m)?"بدنية":/فيزياء/.test(m)?"فيزياء":/علوم/.test(m)?"علوم":m.replace(/^ال/,"").split(" ")[0];
+const ctShort=m=>/إسلامية/.test(m)?"إسلامية":/بدنية/.test(m)?"بدنية":/فيزياء/.test(m)?"فيزياء":/معلوم/.test(m)?"معلوميات":/علوم/.test(m)?"علوم":m.replace(/^ال/,"").split(" ")[0];
 function ctDay(c,ds){const L=ctOf(c);if(!L)return [];const d=wd(ds);return [...L.filter(x=>x[0]===d).map(x=>({s:tfTime(x[1],ds,false),e:tfTime(x[2],ds,true),m:x[3],room:x[4]})),...CTPARA.filter(x=>x[0]===d).map(x=>({s:tfTime(x[1],ds,false),e:tfTime(x[2],ds,true),m:x[3],room:"",para:true}))].sort((a,b)=>a.s.localeCompare(b.s))}
 function ctClash(c,ds,s0,e0){return ctDay(c,ds).filter(x=>!x.para&&s0<x.e&&(e0||s0)>x.s)}
 function ctFree(c,ds){const busy=ctDay(c,ds).filter(x=>!x.para);const mine=sessionsOn(ds);
   return PERIODS.map(([a,b])=>({s:tfTime(a,ds,false),e:tfTime(b,ds,true)})).filter(p=>!busy.some(x=>p.s<x.e&&p.e>x.s)&&!mine.some(x=>p.s<(x.e||x.s)&&p.e>x.s)&&!(wd(ds)===6&&p.s>="13:00")&&wd(ds)!==0)}
 function ctNow(c){const t=today(),n=nowHM();const L=ctDay(c,t);const cur=L.find(x=>x.s<=n&&n<x.e);const nx=L.find(x=>x.s>n);return {cur,nx}}
-function ctGrid(c){const L=ctOf(c);if(!L)return `<span class="hint">Emploi du temps de la classe non disponible.</span>`;const t=today();
+function ctGrid(c){const L0=ctOf(c),ed=!!S.ctEd;if(!L0&&!ed)return `<span class="hint">Emploi du temps de la classe non disponible.</span><div class="tools"><button class="btn" data-act="ctEd">✏️ Saisir l'emploi du temps à la main</button></div>`;const L=L0||[],t=today();
   const head=PERIODS.map(p=>`<th style="font-size:.66rem;padding:2px">${p[0].slice(0,2)}h</th>`).join("");
-  const rows=[1,2,3,4,5,6].map(d=>{const cells=PERIODS.map(([a,b])=>{const x=L.find(y=>y[0]===d&&y[1]<b&&y[2]>a);const para=CTPARA.find(y=>y[0]===d&&y[1]<b&&y[2]>a);
-      if(x)return `<td style="font-size:.62rem;padding:2px;line-height:1.1;${isPC(x[3])?"background:var(--ok-bg);font-weight:700":""}" title="${esc(x[3])} · ${esc(x[4])}"><span dir="rtl">${esc(ctShort(x[3]))}</span><br><span class="hint" style="font-size:.6rem">${esc(x[4].replace("SALLE","S"))}</span></td>`;
-      if(para)return `<td style="font-size:.58rem;padding:2px;background:var(--late-bg)" title="${esc(para[3])}">${d===3?"Soutien":"Act."}</td>`;
-      return `<td style="background:repeating-linear-gradient(135deg,transparent 0 3px,var(--line) 3px 4px)"></td>`}).join("");
+  const rows=[1,2,3,4,5,6].map(d=>{const cells=PERIODS.map(([a,b],pi)=>{const x=L.find(y=>y[0]===d&&y[1]<b&&y[2]>a);const para=CTPARA.find(y=>y[0]===d&&y[1]<b&&y[2]>a);const sel=ed&&S.ctCell===d+"|"+pi;
+      const at=ed?` data-act="ctCell" data-d="${d}" data-p="${pi}" role="button" tabindex="0"`:"",ring=sel?"outline:3px solid var(--pick-line,#f2c14e);outline-offset:-2px;":ed?"cursor:pointer;":"";
+      if(x)return `<td${at} style="${ring}font-size:.62rem;padding:2px;line-height:1.1;${isPC(x[3])?"background:var(--ok-bg);font-weight:700":""}" title="${esc(x[3])} · ${esc(x[4]||"")}"><span dir="rtl">${esc(ctShort(x[3]))}</span><br><span class="hint" style="font-size:.6rem">${esc(String(x[4]||"").replace("SALLE","S"))}</span></td>`;
+      if(para&&!ed)return `<td style="font-size:.58rem;padding:2px;background:var(--late-bg)" title="${esc(para[3])}">${d===3?"Soutien":"Act."}</td>`;
+      return `<td${at} style="${ring}background:repeating-linear-gradient(135deg,transparent 0 3px,var(--line) 3px 4px)">${ed?`<span class="hint" style="font-size:.8rem">＋</span>`:""}</td>`}).join("");
     return `<tr><th class="l" style="font-size:.7rem;padding:2px 4px;${wd(t)===d?"color:var(--board)":""}">${DAYS[d]}</th>${cells}</tr>`}).join("");
-  return `<div class="tablewrap"><table style="min-width:420px"><thead><tr><th></th>${head}</tr></thead><tbody>${rows}</tbody></table></div><span class="hint">En vert : Physique-Chimie. Hachuré : pas de cours (heures possibles pour un soutien). Les horaires suivent l'horaire en vigueur (normal, hiver, Ramadan).</span>`}
+  let form="";
+  if(ed&&S.ctCell){const [d,pi]=S.ctCell.split("|").map(Number),[a,b]=PERIODS[pi],x=L.find(y=>y[0]===d&&y[1]<b&&y[2]>a);const subs=[...new Set([...CT_SUBJ.map(r=>r[1]),...L.map(y=>y[3])])];const cur=x?x[3]:"";
+    form=`<div class="card form" style="background:var(--paper)"><b>${DAYS_FULL[d]} · ${a}–${b}</b>
+    <div class="grid2"><label>Matière · المادة<select id="ctEdSub"><option value="">— Choisir —</option>${subs.map(m=>`<option ${m===cur?"selected":""}>${esc(m)}</option>`).join("")}<option value="__o">Autre…</option></select></label><label>Salle · القاعة<input id="ctEdRoom" value="${esc(x?x[4]||"":"")}" placeholder="Salle 7" maxlength="20"></label></div>
+    <input id="ctEdOther" placeholder="Autre matière (nom libre)" maxlength="40" hidden>
+    <div class="tools"><button class="btn primary" data-act="ctCellSave">Enregistrer</button>${x?`<button class="btn" data-act="ctCellClr" style="color:var(--bad)">🗑 Vider la case</button>`:""}<button class="btn" data-act="ctCellX">Annuler</button></div></div>`}
+  return `<div class="tablewrap"><table style="min-width:420px"><thead><tr><th></th>${head}</tr></thead><tbody>${rows}</tbody></table></div>${form}
+  <div class="tools">${ed?`<span class="hint" style="flex:1">Touchez une case pour la remplir, la modifier ou la vider.</span><button class="btn primary" data-act="ctEd">✓ Terminer</button>`:`<span class="hint" style="flex:1">En vert : Physique-Chimie. Hachuré : pas de cours (heures possibles pour un soutien). Les horaires suivent l'horaire en vigueur (normal, hiver, Ramadan).</span><button class="btn" data-act="ctEd" title="Modifier l'emploi du temps à la main" aria-label="Modifier l'emploi du temps">✏️</button>`}</div>`}
+function ctCellSet(c,d,pi,subj,room){const [a,b]=PERIODS[pi];const out=[];(ctOf(c)||[]).forEach(y=>{if(y[0]!==d||y[2]<=a||y[1]>=b)return out.push([...y]);if(y[1]<a)out.push([y[0],y[1],a,y[3],y[4]||""]);if(y[2]>b)out.push([y[0],b,y[2],y[3],y[4]||""])});
+  if(subj)out.push([d,a,b,subj,room||""]);out.sort((p,q)=>p[0]-q[0]||p[1].localeCompare(q[1]));c.ct=out;c.ctEdit=true;c.ctAt=today();return saveClass(c)}
 function slotsOn(day){const out=[];for(const id in S.classes)(S.classes[id].slots||[]).forEach(sl=>{if(+sl.d===day)out.push({cid:id,...sl})});return out.sort((a,b)=>a.s.localeCompare(b.s))}
 const XS={soutien:"Soutien",rattrapage:"Rattrapage",supp:"Supplémentaire"};
 const XT={soutien:"Soutien · دعم",rattrapage:"Rattrapage · تعويض",supp:"Séance supplémentaire · حصة إضافية"};
@@ -2363,6 +2373,11 @@ document.addEventListener("click",async e=>{
   if(a==="histOpen"){S.hist=S.cid;return render()}
   if(a==="dayNav"){return dayNav(+t.dataset.d)}
   if(a==="les2"){S.les2=true;return render()}
+  if(a==="ctEd"){S.ctEd=!S.ctEd;S.ctCell=null;if(S.ctEd)S.ctOpen=true;return render()}
+  if(a==="ctCell"){S.ctCell=t.dataset.d+"|"+t.dataset.p;return render()}
+  if(a==="ctCellX"){S.ctCell=null;return render()}
+  if(a==="ctCellSave"||a==="ctCellClr"){if(!S.ctCell)return;const [d,pi]=S.ctCell.split("|").map(Number);let sub="";if(a==="ctCellSave"){const v=$("#ctEdSub").value;sub=v==="__o"?ctSubj($("#ctEdOther").value.trim()):v;if(!sub||sub==="?")return toast("Choisissez la matière.")}
+    const room=a==="ctCellSave"?$("#ctEdRoom").value.trim():"";S.ctCell=null;await ctCellSet(c,d,pi,sub,room);toast(sub?"Case enregistrée":"Case vidée");return render()}
   if(a==="cmpBy"){S.cmpBy=t.dataset.v;return render()}
   if(a==="cmpReload"){S.cmpDays=null;return cmpLoad()}
   if(a==="goSess"){S.hist=null;S.date=t.dataset.date;S.xid=t.dataset.x||null;S.follow=!S.xid&&S.date===today();S.tab="seance";S.selStu=null;S.pick=null;saveUI();return selectClass(id)}
@@ -2671,6 +2686,7 @@ document.addEventListener("change",async e=>{
   if(e.target.dataset&&e.target.dataset.sti!=null&&S.stuImp&&S.stuImp.list){S.stuImp.list[+e.target.dataset.sti].on=e.target.checked;return render()}
   if(e.target.dataset&&e.target.dataset.stn!=null&&S.stuImp&&S.stuImp.list){S.stuImp.list[+e.target.dataset.stn].name=e.target.value.trim();return render()}
   if(e.target.id==="dWarn"){S.dispWarn=e.target.value;saveUI();return}
+  if(e.target.id==="ctEdSub"){const o=$("#ctEdOther");if(o){o.hidden=e.target.value!=="__o";if(!o.hidden)o.focus()}return}
   if(e.target.id==="dTLab"){S.dTLab=e.target.value;return}
   if(e.target.id==="cmpMet"){S.cmpMet=e.target.value;return render()}
   if(e.target.id==="dTheme"){S.dTheme=e.target.value;saveUI();return dispPush({theme:S.dTheme})}
