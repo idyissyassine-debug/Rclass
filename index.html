@@ -321,6 +321,28 @@ html,body{max-width:100%;overflow-x:hidden}
 @media (max-width:345px){header.top.mini .brand{flex-wrap:wrap!important}}
 #histBox:empty{display:none}
 .jr{width:100%;border-collapse:collapse;font-size:.8rem}.jr th,.jr td{border:1px solid var(--line);padding:4px 6px;vertical-align:top;text-align:start}.jr th{background:var(--paper)}
+/* ---------- Accueil ---------- */
+body.home header.top,body.home .bnav{display:none!important}body.home main .wrap{padding-top:14px;padding-bottom:28px}
+#homeBtn{font-size:1.05rem}
+.hm{display:grid;gap:16px;max-width:860px;margin:0 auto}
+.hmtop{display:flex;align-items:center;gap:10px}.hmtop .who{flex:1;min-width:0}.hmtop h1{margin:0;font-family:var(--f-display);font-size:1.7rem;line-height:1.1;letter-spacing:-.01em;color:var(--board)}
+.hmtop .dt{color:var(--muted);font-size:.9rem}.hmtop .dt:first-letter{text-transform:uppercase}
+.hmic{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:var(--sheet);color:var(--ink);font-size:1.05rem;font-weight:800;display:grid;place-items:center;cursor:pointer;flex:none}
+.hmacc{display:flex;align-items:center;gap:10px;width:100%;text-align:start;border:1px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:14px;padding:10px 12px;cursor:pointer;font:inherit}
+.hmacc .av{width:38px;height:38px;border-radius:50%;background:var(--board);color:var(--board-ink);display:grid;place-items:center;font-weight:800;flex:none}.hmacc b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hmacc small{color:var(--muted)}.hmacc .go{margin-inline-start:auto;font-weight:700;color:var(--board);white-space:nowrap;font-size:.86rem}
+.hmnow{border-radius:18px;padding:16px;background:var(--board);color:var(--board-ink);display:grid;gap:10px}
+.hmnow .k{font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;opacity:.8;font-weight:700}.hmnow .t{font-family:var(--f-display);font-size:1.45rem;line-height:1.15;font-weight:800}.hmnow .s{opacity:.9;font-size:.92rem}
+.hmnow .acts{display:flex;gap:8px;flex-wrap:wrap}.hmnow button{border:0;border-radius:12px;padding:11px 16px;font:inherit;font-weight:800;cursor:pointer;background:var(--board-ink);color:var(--board);min-height:44px}.hmnow button.alt{background:rgba(255,255,255,.16);color:var(--board-ink);border:1px solid rgba(255,255,255,.3)}
+.hmcls{display:flex;gap:6px;flex-wrap:wrap}.hmcls button{border:1px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:999px;padding:7px 13px;font:inherit;font-weight:700;font-size:.88rem;cursor:pointer;min-height:36px}.hmcls button[aria-pressed=true]{background:var(--board);color:var(--board-ink);border-color:var(--board)}
+.hmgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}@media (min-width:680px){.hmgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.hmt{--tc:#0F8A7E;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:12px;row-gap:2px;align-items:center;text-align:start;border:1px solid var(--line);border-inline-start:5px solid var(--tc);background:var(--sheet);color:var(--ink);border-radius:16px;padding:14px 12px;min-height:92px;cursor:pointer;font:inherit;transition:transform .12s,box-shadow .12s}
+.hmt .ic{grid-row:1/3;width:46px;height:46px;border-radius:13px;display:grid;place-items:center;font-size:1.5rem;background:color-mix(in srgb,var(--tc) 16%,transparent)}
+.hmt b{font-size:1.02rem;line-height:1.15;align-self:end}.hmt .ar{font-size:.86rem;color:var(--muted);align-self:start;line-height:1.2;text-align:left}.hmt .st{grid-column:1/3;font-size:.78rem;color:var(--muted);margin-top:6px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.hmt:hover{box-shadow:0 6px 18px rgba(0,0,0,.09)}.hmt:active{transform:scale(.98)}
+.hmt:focus-visible,.hmic:focus-visible,.hmacc:focus-visible,.hmcls button:focus-visible,.hmnow button:focus-visible,.hmsh button:focus-visible{outline:3px solid #F29F05;outline-offset:2px}
+.hmsec{font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:800;margin:2px 2px -6px}
+.hmsh{display:flex;gap:8px;flex-wrap:wrap}.hmsh button{display:inline-flex;align-items:center;gap:8px;border:1px dashed var(--line);background:transparent;color:var(--ink);border-radius:12px;padding:10px 14px;font:inherit;font-weight:700;font-size:.9rem;cursor:pointer;min-height:44px}
+@media (prefers-reduced-motion:reduce){.hmt{transition:none}}
 </style>
 
 </head><body>
@@ -328,6 +350,7 @@ html,body{max-width:100%;overflow-x:hidden}
   <div class="wrap">
     <div class="brand">
       <div><h1><svg class="hlogo" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="lgbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2a7559"/><stop offset="1" stop-color="#17463a"/></linearGradient><pattern id="lgdots" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.3" fill="#ffffff" opacity=".07"/></pattern></defs><rect width="512" height="512" rx="112" fill="url(#lgbg)"/><rect width="512" height="512" rx="112" fill="url(#lgdots)"/><path d="M120 412 V100 H252 C324 100 368 142 368 202 C368 248 342 282 300 296 L370 412 H294 L232 304 H188 V412 Z M188 160 V246 H246 C278 246 298 229 298 203 C298 177 278 160 246 160 Z" fill="#f4f8f5"/><rect x="120" y="436" width="160" height="12" rx="6" fill="#f4f8f5" opacity=".35"/><circle cx="380" cy="372" r="78" fill="#f2c14e" stroke="#1d5444" stroke-width="14"/><path d="M345 374 L370 399 L417 349" fill="none" stroke="#17463a" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/></svg>Rclass</h1><div class="ar">تدبير القسم · الحضور والمشاركة والسلوك</div></div>
+      <button class="hdbtn" id="homeBtn" data-tab="home" title="Accueil · الرئيسية" aria-label="Accueil">🏠</button>
       <div class="hdinfo" id="hdInfo"></div>
       <div class="hdright"><button class="hdbtn rl busy" id="sync" title="Actualiser la page" aria-label="Actualiser la page"><i></i>↻</button><button class="hdbtn fsbtn" id="fsBtn" title="Taille du texte" aria-label="Taille du texte">Aa</button><select id="perTop" aria-label="Période" title="Période affichée"><option value="year">Année</option><option value="s1">S1</option><option value="s2">S2</option><option value="custom">Dates</option></select><button class="hdbtn" id="profBtn" hidden title="Changer de compte" aria-label="Changer de compte">👤</button><button class="hdbtn" id="themeBtn" aria-label="Thème" title="Thème clair / sombre">🌗</button><button class="hdbtn" id="hdPin" hidden title="Toujours afficher l'en-tête" aria-label="Toujours afficher l'en-tête">📌</button><button class="hdbtn" id="hdToggle" aria-label="Réduire l'en-tête" title="Réduire l'en-tête">⌃</button></div>
     </div>
@@ -364,7 +387,7 @@ const DEF={wEx:1,wPlus:1,wNr:0.5,wMinus:1,base:10,step:0.5,latePen:0.5,cahAbs:1,
 
 const S={classes:{},days:{},cid:null,date:today(),tab:"seance",undo:false,sort:{k:"n",d:1},confirmDel:false,pick:null,store:"…",mode:"plan",selStu:null,edSeat:null,edStu:null,follow:true,lastD:1,lastE:"",xid:null,addF:null,wk:null,stu:null,xScope:"all",period:"year",prog:{},pgLvl:null,cancelOpen:false,holEdit:{}};
 let PSUF="";const PR={list:[],cur:null};
-function loadUI(){try{const p=JSON.parse(localStorage.getItem("rc-ui"+PSUF)||"{}");if(p.cid)S.cid=p.cid;if(p.tab)S.tab=p.tab;if(p.mode)S.mode=p.mode;if(p.period)S.period=p.period;if(p.pFrom)S.pFrom=p.pFrom;if(p.pTo)S.pTo=p.pTo;if(typeof p.hdMini==="boolean")S.hdMini=p.hdMini;if(p.theme)S.theme=p.theme;if(p.fold)S.fold=p.fold;if(p.dispWarn)S.dispWarn=p.dispWarn;if(p.fs)S.fs=p.fs;if(p.dZoom)S.dZoom=p.dZoom;if(p.dTheme)S.dTheme=p.dTheme;if(p.dTCust)S.dTCust=p.dTCust;if(p.dAlpha)S.dAlpha=p.dAlpha}catch(e){}}
+function loadUI(){try{const p=JSON.parse(localStorage.getItem("rc-ui"+PSUF)||"{}");if(p.cid)S.cid=p.cid;if(p.tab)S.tab=p.tab;if(p.mode)S.mode=p.mode;if(p.period)S.period=p.period;if(p.pFrom)S.pFrom=p.pFrom;if(p.pTo)S.pTo=p.pTo;if(typeof p.hdMini==="boolean")S.hdMini=p.hdMini;if(p.theme)S.theme=p.theme;if(p.fold)S.fold=p.fold;if(p.dispWarn)S.dispWarn=p.dispWarn;if(p.fs)S.fs=p.fs;if(p.dZoom)S.dZoom=p.dZoom;if(p.dTheme)S.dTheme=p.dTheme;if(p.dTCust)S.dTCust=p.dTCust;if(p.dAlpha)S.dAlpha=p.dAlpha}catch(e){}try{if(!sessionStorage.getItem("rc-home")){S.tab="home";sessionStorage.setItem("rc-home","1")}}catch(e){S.tab="home"}}
 loadUI();
 if(typeof S.hdMini!=="boolean"){S.hdMini=null}
 const saveUI=()=>{try{localStorage.setItem("rc-ui"+PSUF,JSON.stringify({cid:S.cid,tab:S.tab,mode:S.mode,period:S.period,pFrom:S.pFrom||"",pTo:S.pTo||"",fold:S.fold||{},dispWarn:S.dispWarn||"name",fs:S.fs||1,dZoom:S.dZoom||1,dTheme:S.dTheme||"dark",dTCust:S.dTCust||"",dAlpha:S.dAlpha||100,hdMini:S.hdMini,theme:S.theme||"auto"}))}catch(e){}};
@@ -1141,7 +1164,7 @@ document.addEventListener("change",e=>{if(e.target.id==="classSel"&&S.hdOpen){S.
   if(e.target.id==="perTop"){S.period=e.target.value;const E=evPer();if(E.per!=="custom")E.per=S.period;saveUI();render();if(S.period==="custom"&&!S.pFrom&&!S.pTo){S.tab="bilan";saveUI();render()}toast("Période : "+PER[S.period]+(S.period==="custom"?" — choisissez les dates dans Bilan":""))}},true);
 window.addEventListener("resize",()=>{if(S.hdMini===null)hdApply()});
 const TABORD=["edt","seance","bilan","classe","eleves","details"];
-function goTab(dir){if(S.cours)return;const i=TABORD.indexOf(S.tab);const n=TABORD[(i+dir+TABORD.length)%TABORD.length];S.stu=null;S.selStu=null;S.tab=n;S.confirmDel=false;saveUI();render();window.scrollTo(0,0)}
+function goTab(dir){if(S.cours||S.tab==="home")return;const i=TABORD.indexOf(S.tab);const n=TABORD[(i+dir+TABORD.length)%TABORD.length];S.stu=null;S.selStu=null;S.tab=n;S.confirmDel=false;saveUI();render();window.scrollTo(0,0)}
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-nav]");if(b){e.stopPropagation();goTab(+b.dataset.nav)}},true);
 {let sw=null;const NOSW=".dstrip,.alertwrap,input,select,textarea,button,a,label,summary,.tablewrap,.planwrap,.plan,.numgrid,.week,.sheet,svg,.seg,.tools,.slot,.desk";
  const start=(t,x,y)=>{sw=(!t.closest||t.closest("header.top")||t.closest(NOSW)||t.closest(".alertbox,#alertBox,.toast"))?null:{x,y,t:Date.now()}};
@@ -1150,7 +1173,7 @@ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest
  document.addEventListener("touchend",e=>{const p=e.changedTouches[0];if(p)end(p.clientX,p.clientY)},{passive:true});
  document.addEventListener("pointerdown",e=>{if(e.pointerType==="mouse")start(e.target,e.clientX,e.clientY)},{passive:true});
  document.addEventListener("pointerup",e=>{if(e.pointerType==="mouse")end(e.clientX,e.clientY)},{passive:true})}
-function render(){if(S.cours&&S.tab!=="seance"){S.cours=false;wakeOff()}document.body.classList.toggle("cours",!!S.cours);render0();demoDecor();
+function render(){if(S.cours&&S.tab!=="seance"){S.cours=false;wakeOff()}document.body.classList.toggle("cours",!!S.cours);document.body.classList.toggle("home",S.tab==="home");navHist();render0();demoDecor();
   try{const v=$("#view");if(S.tab==="bilan"&&!S.stu&&cls()&&!(cls().students||[]).length&&!v.querySelector(".evalsep"))v.insertAdjacentHTML("beforeend",evalPart());
     foldCards();document.querySelectorAll(".numstrip .on").forEach(o=>{const p=o.parentElement;p.scrollLeft=o.offsetLeft-p.offsetLeft-p.clientWidth/2+o.clientWidth/2});
     {const hb=$("#histBox");if(hb)hb.innerHTML=S.hist?histHtml():""}if(S.tab==="bilan"&&(S.fold||{}).cmp&&!S.cmpDays&&!S.cmpLoading)cmpLoad()}catch(e){console.warn(e)}}
@@ -1169,6 +1192,7 @@ function render0(){renderTop();const v=$("#view");
     v.innerHTML=S.loadErr?`<div class="card empty"><p><b>Impossible de charger les classes.</b></p><p class="hint">Code : ${esc(S.loadErr)}${/permission/.test(S.loadErr)?" — accès refusé par les règles Firestore.":/unavailable|network/.test(S.loadErr)?" — pas de connexion au serveur.":""}</p>${pb}</div>`
       :S.loadSlow?`<div class="card empty"><p class="hint">Chargement des classes… la connexion est lente ou coupée.</p><p class="hint">Vérifiez Internet, puis réessayez.</p>${pb}</div>`
       :`<div class="card empty"><p class="hint">Chargement des classes…</p></div>`;return}
+  if(S.tab==="home")return v.innerHTML=viewHome();
   if(S.stu&&cls()&&(cls().students||[]).some(x=>x.id===S.stu))return v.innerHTML=viewFiche(cls(),S.stu);
   if(S.tab==="edt")return v.innerHTML=viewEdt();
   if(S.tab==="classe")return v.innerHTML=viewClasse();
@@ -1613,6 +1637,40 @@ function journalCard(){const lvs=[...new Set(classList().map(c=>c.level).filter(
   <label>Niveau<select id="jLv"><option value="">Tous les niveaux</option>${lvs.map(l=>`<option ${S.jLv===l?"selected":""}>${esc(l)}</option>`).join("")}</select></label>
   <div class="tools"><button class="btn primary" data-act="jView">Afficher</button><button class="btn" data-act="jDoc">⬇ Word (imprimable)</button><button class="btn" data-act="jCsv">⬇ Excel (CSV)</button>${S.jr?`<button class="btn" data-act="jClose">Masquer</button>`:""}</div>
   ${S.jr?jTables(S.jr,false):""}</div>`}
+
+/* ---------- Accueil (page d'entrée) ---------- */
+const NAVH={pushed:false,prev:null};
+function navHist(){try{if(NAVH.prev==="home"&&S.tab!=="home"&&!NAVH.pushed){window.history.pushState({rc:"p"},"");NAVH.pushed=true}}catch(e){}NAVH.prev=S.tab}
+window.addEventListener("popstate",()=>{NAVH.pushed=false;if(S.tab!=="home"){S.tab="home";S.stu=null;S.cours=false;S.hist=null;try{wakeOff()}catch(e){}saveUI();render();window.scrollTo(0,0)}});
+function homeNow(){const t=today(),n=nowHM();const ok=x=>{const c=S.classes[x.cid];return c&&!canOf(c,x.x?"X-"+x.x:t,t)};const L=sessionsOn(t).filter(ok);
+  const cur=L.find(x=>x.s<=n&&n<(x.e||"99")),nx=L.find(x=>x.s>n);const nm=x=>esc(S.classes[x.cid].name),at=x=>`data-id="${x.cid}" data-date="${x.date||t}" data-x="${x.x||""}"`;
+  if(cur)return `<section class="hmnow" aria-label="Séance en cours"><span class="k">● En cours · الحصة الحالية</span><span class="t">${nm(cur)}</span><span class="s">${cur.s} – ${cur.e||""}${nx?` · ensuite ${nm(nx)} à ${nx.s}`:""}</span><div class="acts"><button data-act="goSess" ${at(cur)}>Ouvrir la séance</button><button class="alt" data-act="homeCours" ${at(cur)}>🎓 Mode cours</button></div></section>`;
+  if(nx)return `<section class="hmnow" aria-label="Prochaine séance"><span class="k">Prochaine séance · الحصة المقبلة</span><span class="t">${nm(nx)} à ${nx.s}</span><span class="s">${L.length} séance(s) aujourd'hui</span><div class="acts"><button data-act="goSess" ${at(nx)}>Préparer la séance</button></div></section>`;
+  let ds=t,F=null;for(let i=0;i<21&&!F;i++){ds=addDays(ds,1);const M=sessionsOn(ds).filter(x=>{const c=S.classes[x.cid];return c&&!canOf(c,x.x?"X-"+x.x:ds,ds)});if(M.length)F={...M[0],date:ds}}
+  if(F)return `<section class="hmnow" aria-label="Prochaine séance"><span class="k">${L.length?"Journée terminée":"Pas de séance aujourd'hui"} · الحصة المقبلة</span><span class="t">${nm(F)}</span><span class="s">${new Date(F.date+"T12:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})} à ${F.s}</span><div class="acts"><button data-act="goSess" ${at(F)}>Ouvrir cette séance</button><button class="alt" data-tab="edt">🗓️ Voir la semaine</button></div></section>`;
+  return ""}
+function viewHome(){const L=classList(),c=cls(),t=today(),local=!(api&&api.cloud),nm=(PR.cur&&PR.cur.name)||"";const nT=sessionsOn(t).length;
+  const tile=(tab,ic,fr,ar,st,tc)=>`<button class="hmt" data-tab="${tab}" style="--tc:${tc}" aria-label="${fr} · ${ar}"><span class="ic" aria-hidden="true">${ic}</span><b>${fr}</b><span class="ar" dir="rtl">${ar}</span><span class="st">${st}</span></button>`;
+  const P=c?progPct(c):null;
+  return `<div class="hm">
+  <div class="hmtop"><div class="who"><h1>Rclass</h1><div class="dt">${new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})}</div></div>
+    <button class="hmic" data-act="homeFs" title="Taille du texte" aria-label="Taille du texte">Aa</button><button class="hmic" data-act="homeTheme" title="Thème clair / sombre" aria-label="Thème clair ou sombre">🌓</button></div>
+  <button class="hmacc" data-act="switchAcc" aria-label="${local?"Se connecter ou changer d'utilisateur":"Changer de compte"}"><span class="av" aria-hidden="true">${local?esc((nm||"?").trim().charAt(0).toUpperCase()):"☁"}</span><span style="min-width:0"><b>${esc(nm||"Utilisateur")}</b><small>${local?"Données sur cet appareil seulement · نسخة محلية":"Compte en ligne · synchronisé"}</small></span><span class="go">${local?"Se connecter ›":"Changer ›"}</span></button>
+  ${S.store==="…"?"":homeNow()}
+  ${L.length>1?`<div class="hmsec">Classe active · القسم</div><div class="hmcls" role="group" aria-label="Classe active">${L.map(x=>`<button data-act="homeCls" data-id="${x.id}" aria-pressed="${x.id===S.cid}">${esc(x.name)}</button>`).join("")}</div>`:""}
+  ${!L.length?`<div class="card empty"><h2>Bienvenue</h2><p class="hint">Commencez par créer une classe et coller la liste des élèves.</p><button class="btn primary" data-tab="classe">Créer ma première classe</button></div>`:""}
+  <div class="hmsec">Menu · القائمة</div>
+  <div class="hmgrid">
+    ${tile("seance","✅","Séance","الحصة",nT?nT+" séance(s) aujourd'hui":"Appel, exercices, participation","#0F8A7E")}
+    ${tile("edt","🗓️","Horaires","استعمال الزمن","Semaine, vacances, séances en plus","#1D5FD1")}
+    ${tile("bilan","📊","Bilan","الحصيلة والتقويم","Notes d'activités, devoirs, comparaison","#8E2443")}
+    ${tile("classe","🪑","Classe","القسم",c?(P?"Programme : "+P.pc+" %":"Plan de salle, programme"):"Créer une classe","#56691F")}
+    ${tile("eleves","👥","Élèves","التلاميذ",c?(c.students||[]).length+" élève(s) · "+esc(c.name):"Listes et fiches","#C2700A")}
+    ${tile("details","⚙️","Détails","الإعدادات","Barème, programme, sauvegarde","#4B5A67")}
+  </div>
+  <div class="hmsec">Raccourcis · اختصارات</div>
+  <div class="hmsh"><button data-act="homeDisp">📺 Affichage élèves</button><button data-act="homeJournal">📒 Journal des séances</button><button data-tab="details">💾 Sauvegarde</button></div>
+  </div>`}
 
 /* ---------- Blocs repliables ---------- */
 const fOpen=(k,d)=>((S.fold||{})[k]??d)?"open":"";
@@ -2358,7 +2416,7 @@ setInterval(()=>followTick(false),60000);
 /* ---------- Actions ---------- */
 document.addEventListener("click",async e=>{
   const t=e.target.closest("[data-act],[data-tab],[data-sort]");if(!t)return;
-  if(t.dataset.tab){S.stu=null;S.tab=t.dataset.tab;S.confirmDel=false;saveUI();return render()}
+  if(t.dataset.tab){if(t.dataset.tab==="home"&&NAVH.pushed){try{window.history.back();return}catch(e){}}S.stu=null;S.tab=t.dataset.tab;S.confirmDel=false;if(S.tab==="home")S.cours=false;saveUI();window.scrollTo(0,0);return render()}
   if(t.dataset.sort){const k=t.dataset.sort;S.sort=S.sort.k===k?{k,d:-S.sort.d}:{k,d:k==="name"||k==="num"?1:-1};return render()}
   const a=t.dataset.act,id=t.dataset.id,c=cls();
   if(a==="goEleves"||a==="go"){S.tab=t.dataset.to||"eleves";saveUI();return render()}
@@ -2369,6 +2427,12 @@ document.addEventListener("click",async e=>{
   if(a==="jDoc")return journalRun("doc");
   if(a==="jCsv")return journalRun("csv");
   if(a==="jClose"){S.jr=null;return render()}
+  if(a==="homeFs")return fsCycle(),render();
+  if(a==="homeTheme"){const b=$("#themeBtn");if(b)b.click();return}
+  if(a==="homeCls"){if(t.dataset.id===S.cid)return;return selectClass(t.dataset.id)}
+  if(a==="homeCours"){S.date=t.dataset.date;S.xid=t.dataset.x||null;S.follow=!S.xid;S.tab="seance";S.cours=true;try{wakeOn()}catch(e){}saveUI();return selectClass(t.dataset.id)}
+  if(a==="homeDisp"){S.tab="seance";S.fold={...(S.fold||{}),disp:true};saveUI();render();const el=document.querySelector("[data-fold=disp]");if(el)el.scrollIntoView({block:"center"});return}
+  if(a==="homeJournal"){S.tab="details";saveUI();render();const el=$("#jFrom");if(el){const cd=el.closest(".card");if(cd&&cd.classList.contains("shut"))cd.classList.remove("shut");el.scrollIntoView({block:"center"})}return}
   if(a==="histX"){S.hist=null;return render()}
   if(a==="histOpen"){S.hist=S.cid;return render()}
   if(a==="dayNav"){return dayNav(+t.dataset.d)}
