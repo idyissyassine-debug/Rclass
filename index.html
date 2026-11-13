@@ -1327,24 +1327,34 @@ function sessionDates(c){const set=new Set([today(),S.date]);for(const d in S.da
 function geSlots(d,a,b){const out=[];classList().forEach(c=>(c.slots||[]).forEach(x=>{if(+x.d===d&&x.s<b&&(x.e||addH(x.s))>a)out.push({c,x})}));return out}
 function geExtras(date,a,b){const out=[];classList().forEach(c=>(c.extras||[]).forEach(x=>{if(x.date===date&&x.s<b&&(x.e||addH(x.s))>a)out.push({c,x})}));return out}
 function gridEd(){const G=S.ge,off=G.mode==="off",wk=S.wk||monday(today()),list=classList();const f=ds=>new Date(ds+"T12:00").toLocaleDateString("fr-FR",{day:"numeric",month:"short"});
+  const cc=!off&&G.cid?S.classes[G.cid]:null,CT=cc?(ctOf(cc)||[]):[];
+  const head=`<div class="seg" role="group" aria-label="Type de saisie"><button data-act="geMode" data-v="x" aria-pressed="${!off}">＋ Soutien / rattrapage / supp.</button><button data-act="geMode" data-v="off" aria-pressed="${off}">Séances officielles</button></div>`;
+  const foot=`<div class="tools"><button class="btn primary" data-act="geClose">✓ Terminer</button><button class="linkbtn" data-act="addOpen">Autre horaire (formulaire détaillé)</button></div>`;
+  const clsPick=`<div class="gepick" role="group" aria-label="Classe">${list.map(c=>`<button class="btn ${cc&&c.id===cc.id?"primary":""}" data-act="geCls" data-cid="${c.id}">${esc(c.name)}</button>`).join("")}</div>`;
+  if(!off&&!cc)return `<div class="card form"><h2>Séances en plus · دعم، تعويض، إضافية</h2>${head}<b>1. Choisissez la classe · اختر القسم</b>${clsPick}<span class="hint">L'emploi du temps de la classe s'affichera ensuite pour choisir l'heure.</span>${foot}</div>`;
   const rows=[1,2,3,4,5,6].map(d=>{const date=addDays(wk,d-1),blk=!off&&dateBlock(date);
-    return `<tr><th class="l">${DAYS[d]}${off?"":`<br><span style="font-weight:400">${new Date(date+"T12:00").getDate()}</span>`}</th>${PERIODS.map(([a,b],pi)=>{const O=geSlots(d,a,b),X=off?[]:geExtras(date,a,b),sel=G.cell===d+"|"+pi;
-      if(blk)return `<td class="blk" title="${esc(blk)}">—</td>`;
-      const inner=(off?O.map(o=>`<b>${esc(o.c.name)}</b>`).join(""):O.map(o=>`<span class="off">${esc(o.c.name)}</span>`).join("")+X.map(o=>`<span class="gx ${o.x.type}" title="${XS[o.x.type]}">${esc(o.c.name)}</span>`).join(""));
+    return `<tr><th class="l">${DAYS[d]}${off?"":`<br><span style="font-weight:400">${new Date(date+"T12:00").getDate()}</span>`}</th>${PERIODS.map(([a,b],pi)=>{const sel=G.cell===d+"|"+pi;
+      if(blk)return `<td class="blk" title="${esc(blk)}">—</td>`;let inner="";
+      if(off)inner=geSlots(d,a,b).map(o=>`<b>${esc(o.c.name)}</b>`).join("");
+      else{const X=(cc.extras||[]).filter(x=>x.date===date&&x.s<b&&(x.e||addH(x.s))>a),y=CT.find(z=>z[0]===d&&z[1]<b&&z[2]>a),mine=(cc.slots||[]).some(x=>+x.d===d&&x.s<b&&(x.e||addH(x.s))>a),busy=geSlots(d,a,b).filter(o=>o.c.id!==cc.id);
+        inner=X.length?X.map(x=>`<span class="gx ${x.type}" title="${XS[x.type]}">${XS[x.type].slice(0,5)}.</span>`).join(""):y?`<span class="${isPC(y[3])?"":"off"}" style="${isPC(y[3])?"color:var(--ok);font-weight:800":""}" dir="rtl">${esc(ctShort(y[3]))}</span>`:mine?`<span style="color:var(--ok);font-weight:800">PC</span>`:"";
+        if(busy.length&&!X.length)inner+=`<span style="display:block;color:var(--bad);font-size:.55rem" title="Vous avez cours avec ${esc(busy.map(o=>o.c.name).join(", "))}">⚠</span>`}
       return `<td class="${inner?"":"emp"} ${sel?"sel":""}" data-act="geCell" data-d="${d}" data-p="${pi}" role="button" tabindex="0" aria-label="${DAYS_FULL[d]} ${a}">${inner||"＋"}</td>`}).join("")}</tr>`}).join("");
   let form="";
-  if(G.cell){const [d,pi]=G.cell.split("|").map(Number),[a,b]=PERIODS[pi],date=addDays(wk,d-1),O=geSlots(d,a,b),X=off?[]:geExtras(date,a,b);
-    form=`<div class="card form" style="background:var(--paper)"><b>${DAYS_FULL[d]}${off?"":" "+f(date)} · ${a}–${b}</b>
-    ${off?O.map(o=>`<div class="tools"><span style="flex:1"><b>${esc(o.c.name)}</b> <span class="hint">${hrs(o.x)}</span></span><button class="btn" data-act="rmSlot" data-cid="${o.c.id}" data-d="${o.x.d}" data-s="${o.x.s}" style="color:var(--bad)">🗑 Retirer</button></div>`).join(""):O.map(o=>`<span class="hint">Séance officielle : ${esc(o.c.name)} ${hrs(o.x)}</span>`).join("")+X.map(o=>`<div class="tools"><span style="flex:1"><b>${esc(o.c.name)}</b> · ${XS[o.x.type]} <span class="hint">${hrs(o.x)}</span></span><button class="btn" data-act="goSess" data-id="${o.c.id}" data-date="${o.x.date}" data-x="${o.x.id}">Ouvrir</button><button class="btn" data-act="rmX" data-cid="${o.c.id}" data-x="${o.x.id}" style="color:var(--bad)">🗑</button></div>`).join("")}
-    ${off?"":`<div class="seg" role="group" aria-label="Type de séance">${[["soutien","Soutien · دعم"],["rattrapage","Rattrapage · تعويض"],["supp","Supplémentaire · إضافية"]].map(([v,l])=>`<button data-act="geType" data-v="${v}" aria-pressed="${(G.type||"soutien")===v}">${l}</button>`).join("")}</div>`}
-    <span class="hint">${off?"Ajouter une classe à cette heure (chaque semaine) · اختر القسم":"Choisissez la classe · اختر القسم"}</span>
-    <div class="gepick">${list.map(c=>`<button class="btn" data-act="${off?"geAddOff":"geAddX"}" data-cid="${c.id}">${esc(c.name)}</button>`).join("")}</div></div>`}
-  return `<div class="card form"><h2>${off?"Séances officielles · الحصص الرسمية":"Séances en plus · دعم، تعويض، إضافية"}</h2>
-  <div class="seg" role="group" aria-label="Type de saisie"><button data-act="geMode" data-v="x" aria-pressed="${!off}">＋ Soutien / rattrapage / supp.</button><button data-act="geMode" data-v="off" aria-pressed="${off}">Séances officielles</button></div>
-  ${off?`<span class="hint">Grille de la semaine type : touchez ＋ puis choisissez la classe. Les séances se répètent chaque semaine.</span>`:`<div class="weekhead"><button class="btn" data-act="wk" data-n="-7" aria-label="Semaine précédente">‹</button><div><b>Semaine du ${f(wk)} au ${f(addDays(wk,5))}</b></div><button class="btn" data-act="wk" data-n="7" aria-label="Semaine suivante">›</button></div><span class="hint">Touchez une case libre, choisissez le type puis la classe. En gris : séances officielles.</span>`}
+  if(G.cell){const [d,pi]=G.cell.split("|").map(Number),[a,b]=PERIODS[pi],date=addDays(wk,d-1);
+    if(off){const O=geSlots(d,a,b);form=`<div class="card form" style="background:var(--paper)"><b>${DAYS_FULL[d]} · ${a}–${b}</b>
+      ${O.map(o=>`<div class="tools"><span style="flex:1"><b>${esc(o.c.name)}</b> <span class="hint">${hrs(o.x)}</span></span><button class="btn" data-act="rmSlot" data-cid="${o.c.id}" data-d="${o.x.d}" data-s="${o.x.s}" style="color:var(--bad)">🗑 Retirer</button></div>`).join("")}
+      <span class="hint">Ajouter une classe à cette heure (chaque semaine) · اختر القسم</span><div class="gepick">${list.map(c=>`<button class="btn" data-act="geAddOff" data-cid="${c.id}">${esc(c.name)}</button>`).join("")}</div></div>`}
+    else{const X=(cc.extras||[]).filter(x=>x.date===date&&x.s<b&&(x.e||addH(x.s))>a),y=CT.find(z=>z[0]===d&&z[1]<b&&z[2]>a),busy=geSlots(d,a,b).filter(o=>o.c.id!==cc.id);
+      form=`<div class="card form" style="background:var(--paper)"><b>${esc(cc.name)} · ${DAYS_FULL[d]} ${f(date)} · ${a}–${b}</b>
+      ${X.map(x=>`<div class="tools"><span style="flex:1"><b>${XS[x.type]}</b> <span class="hint">${hrs(x)}</span></span><button class="btn" data-act="goSess" data-id="${cc.id}" data-date="${x.date}" data-x="${x.id}">Ouvrir</button><button class="btn" data-act="rmX" data-cid="${cc.id}" data-x="${x.id}" style="color:var(--bad)">🗑 Supprimer</button></div>`).join("")}
+      ${y&&!X.length?`<span class="hint">Heure normalement occupée par : <b dir="rtl">${esc(y[3])}</b>. L'emploi du temps officiel n'est pas modifié : la séance ajoutée ne concerne que cette semaine.</span>`:""}
+      ${busy.length?`<span class="hint" style="color:var(--bad)">⚠ Vous avez déjà cours avec ${esc(busy.map(o=>o.c.name).join(", "))} à cette heure.</span>`:""}
+      ${X.length?"":`<b style="font-size:.9rem">3. Type de séance · نوع الحصة</b><div class="gepick">${[["soutien","Soutien · دعم"],["rattrapage","Rattrapage · تعويض"],["supp","Supplémentaire · إضافية"]].map(([v,l])=>`<button class="btn" data-act="geAddX" data-v="${v}">${l}</button>`).join("")}</div>`}</div>`}}
+  return `<div class="card form"><h2>${off?"Séances officielles · الحصص الرسمية":"Séances en plus · دعم، تعويض، إضافية"}</h2>${head}
+  ${off?`<span class="hint">Grille de la semaine type : touchez ＋ puis choisissez la classe. Les séances se répètent chaque semaine.</span>`:`<b>1. Classe · القسم</b>${clsPick}<div class="weekhead"><button class="btn" data-act="wk" data-n="-7" aria-label="Semaine précédente">‹</button><div><b>Semaine du ${f(wk)} au ${f(addDays(wk,5))}</b></div><button class="btn" data-act="wk" data-n="7" aria-label="Semaine suivante">›</button></div><b>2. Touchez l'heure dans l'emploi du temps de ${esc(cc.name)} · اختر الساعة</b>${CT.length?"":`<span class="hint">Emploi du temps de la classe non renseigné : seules vos séances apparaissent (PC).</span>`}`}
   <div style="overflow-x:auto"><table class="get"><thead><tr><th class="l"></th>${PERIODS.map(p=>`<th>${p[0].slice(0,2)}h</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div>
-  ${form}
-  <div class="tools"><button class="btn primary" data-act="geClose">✓ Terminer</button><button class="linkbtn" data-act="addOpen">Autre horaire (formulaire détaillé)</button></div></div>`}
+  ${form}${foot}</div>`}
 async function geAdd(c,off,d,pi){const [a,b]=PERIODS[pi];
   if(off){const L=c.slots=(c.slots||[]).slice();if(L.some(x=>+x.d===d&&x.s<b&&(x.e||addH(x.s))>a))return toast(c.name+" a déjà une séance à cette heure.");
     const pr=L.find(x=>+x.d===d&&(x.e||addH(x.s))===a),nx=L.find(x=>+x.d===d&&x.s===b);
@@ -2497,7 +2507,8 @@ document.addEventListener("click",async e=>{
   if(a==="geMode"){S.ge={...S.ge,mode:t.dataset.v,cell:null};return render()}
   if(a==="geCell"){S.ge.cell=t.dataset.d+"|"+t.dataset.p;return render()}
   if(a==="geType"){S.ge.type=t.dataset.v;return render()}
-  if(a==="geAddOff"||a==="geAddX"){const cc=S.classes[t.dataset.cid];if(!cc||!S.ge||!S.ge.cell)return;const [d,pi]=S.ge.cell.split("|").map(Number);return geAdd(cc,a==="geAddOff",d,pi)}
+  if(a==="geCls"){S.ge={...S.ge,cid:t.dataset.cid,cell:null};return render()}
+  if(a==="geAddOff"||a==="geAddX"){if(a==="geAddX")S.ge.type=t.dataset.v;const cc=S.classes[a==="geAddX"?S.ge.cid:t.dataset.cid];if(!cc||!S.ge||!S.ge.cell)return;const [d,pi]=S.ge.cell.split("|").map(Number);return geAdd(cc,a==="geAddOff",d,pi)}
   if(a==="addOpen"){S.ge=null;const L=classList();S.addF={cid:S.cid||(L[0]||{}).id,type:"off",d:S.lastD||1,date:today(),s:S.lastE||"08:00",e:addH(S.lastE||"08:00")};render();const f=$("#afC");if(f)f.focus();return}
   if(a==="addClose"){S.addF=null;return render()}
   if(a==="rmX"){const cc=S.classes[t.dataset.cid];if(!cc)return;cc.extras=(cc.extras||[]).filter(x=>x.id!==t.dataset.x);if(S.xid===t.dataset.x)S.xid=null;await saveClass(cc);toast("Séance supprimée");return render()}
