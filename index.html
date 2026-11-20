@@ -352,6 +352,20 @@ body.home header.top,body.home .bnav{display:none!important}body.home main .wrap
 .get td b{display:block}.get td .off{color:var(--muted)}.get td .gx{display:block;border-radius:5px;padding:1px 2px;margin-top:1px;font-weight:700}
 .get .gx.soutien{border:1px dashed var(--late);background:var(--late-bg)}.get .gx.rattrapage{border:3px double #d9822b}.get .gx.supp{border:1px solid #1d5fd1;border-left-width:4px}
 .gepick{display:flex;gap:6px;flex-wrap:wrap}.gepick button{min-height:40px}
+table.bil th:nth-child(2),table.bil td:nth-child(2){position:sticky;left:0;z-index:2;background:var(--sheet);box-shadow:2px 0 4px rgba(0,0,0,.08);max-width:42vw}
+table.bil thead th:nth-child(2){z-index:3;background:var(--paper)}table.bil td:nth-child(2) .namebtn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40vw;display:block;text-align:start}
+.qb.qm{color:var(--bad)}.chip.qm{color:var(--bad)}
+.seat .fl{right:auto!important;left:3px!important}
+.seat .cb{position:absolute;top:2px;right:3px;width:15px;height:15px;border-radius:50%;display:grid;place-items:center;font-size:.6rem;font-weight:900;color:#fff;line-height:1}
+.seat .cb.ok{background:#1b8a5a}.seat .cb.inc{background:#d9822b}.seat .cb.abs{background:var(--bad)}
+.scards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:0 14px 14px}
+.scard{border:1px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:12px;padding:10px 6px;display:grid;gap:2px;justify-items:center;text-align:center;cursor:pointer;font:inherit;min-height:74px;min-width:0}
+.scard .n{font-family:var(--f-display);font-weight:800;font-size:1.15rem;color:var(--board);line-height:1}.scard .m{font-size:.8rem;font-weight:700;line-height:1.15;overflow-wrap:anywhere}
+.scard[aria-expanded=true]{border:2px solid var(--board);background:color-mix(in srgb,var(--board) 10%,var(--sheet))}
+.sdet{grid-column:1/-1;border:2px solid var(--board);border-radius:12px;background:var(--paper);padding:12px;display:grid;gap:10px}
+.sdet .hd{display:flex;align-items:center;gap:8px}.sdet .hd b{flex:1;font-size:1.05rem}.sdet .nt{font-family:var(--f-display);font-weight:800;font-size:1.4rem;color:var(--board)}
+.sdet .kv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.sdet .kv div{background:var(--sheet);border:1px solid var(--line);border-radius:9px;padding:6px 4px;text-align:center;display:grid}
+.sdet .kv b{font-size:1rem}.sdet .kv span{font-size:.68rem;color:var(--muted);line-height:1.15}
 </style>
 
 </head><body>
@@ -397,10 +411,10 @@ const DEF={wEx:1,wPlus:1,wNr:0.5,wMinus:1,base:10,step:0.5,latePen:0.5,cahAbs:1,
 const S={classes:{},days:{},cid:null,date:today(),tab:"seance",undo:false,sort:{k:"n",d:1},confirmDel:false,pick:null,store:"…",mode:"plan",selStu:null,edSeat:null,edStu:null,follow:true,lastD:1,lastE:"",xid:null,addF:null,wk:null,stu:null,xScope:"all",period:"year",prog:{},pgLvl:null,cancelOpen:false,holEdit:{}};
 let PSUF="";const PR={list:[],cur:null};
 const FRESH={on:(()=>{try{if(sessionStorage.getItem("rc-home"))return false;sessionStorage.setItem("rc-home","1");return true}catch(e){return true}})()};
-function loadUI(){try{const p=JSON.parse(localStorage.getItem("rc-ui"+PSUF)||"{}");if(p.cid)S.cid=p.cid;if(p.tab)S.tab=p.tab;if(p.mode)S.mode=p.mode;if(p.period)S.period=p.period;if(p.pFrom)S.pFrom=p.pFrom;if(p.pTo)S.pTo=p.pTo;if(typeof p.hdMini==="boolean")S.hdMini=p.hdMini;if(p.theme)S.theme=p.theme;if(p.fold)S.fold=p.fold;if(p.dispWarn)S.dispWarn=p.dispWarn;if(p.fs)S.fs=p.fs;if(p.dZoom)S.dZoom=p.dZoom;if(p.dTheme)S.dTheme=p.dTheme;if(p.dTCust)S.dTCust=p.dTCust;if(p.dAlpha)S.dAlpha=p.dAlpha}catch(e){}if(FRESH.on)S.tab="home"}
+function loadUI(){try{const p=JSON.parse(localStorage.getItem("rc-ui"+PSUF)||"{}");if(p.cid)S.cid=p.cid;if(p.tab)S.tab=p.tab;if(p.mode)S.mode=p.mode;if(p.period)S.period=p.period;if(p.pFrom)S.pFrom=p.pFrom;if(p.pTo)S.pTo=p.pTo;if(typeof p.hdMini==="boolean")S.hdMini=p.hdMini;if(p.theme)S.theme=p.theme;if(p.fold)S.fold=p.fold;if(p.dispWarn)S.dispWarn=p.dispWarn;if(p.fs)S.fs=p.fs;if(p.dZoom)S.dZoom=p.dZoom;if(p.dTheme)S.dTheme=p.dTheme;if(p.dTCust)S.dTCust=p.dTCust;if(p.eView)S.eView=p.eView;if(p.dAlpha)S.dAlpha=p.dAlpha}catch(e){}if(FRESH.on)S.tab="home"}
 loadUI();
 if(typeof S.hdMini!=="boolean"){S.hdMini=null}
-const saveUI=()=>{try{localStorage.setItem("rc-ui"+PSUF,JSON.stringify({cid:S.cid,tab:S.tab,mode:S.mode,period:S.period,pFrom:S.pFrom||"",pTo:S.pTo||"",fold:S.fold||{},dispWarn:S.dispWarn||"name",fs:S.fs||1,dZoom:S.dZoom||1,dTheme:S.dTheme||"dark",dTCust:S.dTCust||"",dAlpha:S.dAlpha||100,hdMini:S.hdMini,theme:S.theme||"auto"}))}catch(e){}};
+const saveUI=()=>{try{localStorage.setItem("rc-ui"+PSUF,JSON.stringify({cid:S.cid,tab:S.tab,mode:S.mode,period:S.period,pFrom:S.pFrom||"",pTo:S.pTo||"",fold:S.fold||{},dispWarn:S.dispWarn||"name",fs:S.fs||1,dZoom:S.dZoom||1,dTheme:S.dTheme||"dark",dTCust:S.dTCust||"",eView:S.eView||"list",dAlpha:S.dAlpha||100,hdMini:S.hdMini,theme:S.theme||"auto"}))}catch(e){}};
 
 function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2200)}
 function setSync(t){const b=$("#sync");if(!b)return;t=String(t||"");const k=/Échec|Erreur|refus|impossible/i.test(t)?"err":/Hors ligne/i.test(t)?"off":/…/.test(t)?"busy":"ok";b.className="hdbtn rl "+k;b.title=t+" · toucher pour actualiser la page"}
@@ -544,7 +558,7 @@ const mark=(sid,date=dk())=>((S.days[date]||{}).marks||{})[sid]||{};
 function setMark(sid,patch){
   const key=dk();const d=S.days[key]=S.days[key]||{marks:{}};d.marks=d.marks||{};
   const m={p:"P",ex:0,nex:0,plus:0,minus:0,...(d.marks[sid]||{}),...patch};
-  for(const k of["plus","minus","nr","nex","q"])m[k]=Math.max(0,m[k]||0);m.ex=m.ex||0;
+  for(const k of["plus","minus","nr","nex","q","qm"])m[k]=Math.max(0,m[k]||0);m.ex=m.ex||0;
   d.marks[sid]=m;queueDay(S.cid,key);
 }
 const defSem2=()=>{const t=new Date();const y=t.getMonth()>=7?t.getFullYear()+1:t.getFullYear();return y+"-02-01"};
@@ -557,12 +571,12 @@ function totals(c,per=S.period){
   const w={...DEF,...(c.settings||{})};
   const dates=sessKeys(c).filter(x=>inPeriod(c,x.date,per)).map(x=>x.k);
   return {dates,w,rows:sorted(c).map(s=>{
-    let A=0,R=0,ex=0,nex=0,exD=0,exN=0,plus=0,minus=0,nr=0,seen=0,cA=0,cI=0,q1=0,q2=0;const s2d=sem2(c);
-    for(const d of dates){const m=mark(s.id,d);if(!m.p&&!m.ex&&!m.nex&&!m.plus&&!m.minus&&!m.nr&&!m.cah&&!m.q)continue;seen++;if(m.q){const ki=keyInfo(c,d);if(ki&&ki.date>=s2d)q2+=m.q;else q1+=m.q}
+    let A=0,R=0,ex=0,nex=0,exD=0,exN=0,plus=0,minus=0,nr=0,seen=0,cA=0,cI=0,q1=0,q2=0,qm=0;const s2d=sem2(c);
+    for(const d of dates){const m=mark(s.id,d);if(!m.p&&!m.ex&&!m.nex&&!m.plus&&!m.minus&&!m.nr&&!m.cah&&!m.q&&!m.qm)continue;seen++;qm+=m.qm||0;if(m.q){const ki=keyInfo(c,d);if(ki&&ki.date>=s2d)q2+=m.q;else q1+=m.q}
       if(m.p==="A")A++;if(m.p==="R")R++;ex+=(m.ex||0)-(m.nex||0);exD+=Math.max(0,m.ex||0);exN+=(m.nex||0)+Math.max(0,-(m.ex||0));if(m.cah==="abs")cA++;if(m.cah==="inc")cI++;plus+=m.plus||0;minus+=m.minus||0;nr+=m.nr||0}
-    const score=ex*w.wEx+plus*w.wPlus-nr*(w.wNr??DEF.wNr)-minus*w.wMinus-R*w.latePen-cA*w.cahAbs-cI*w.cahInc;
-    const bon=(Math.min(QMAX,q1)+Math.min(QMAX,q2))*.25;const note=Math.max(0,Math.min(20,Math.round((w.base+score*w.step)*4)/4+bon));
-    return {...s,bon,A,R,ex,nex,exD,exN,plus,minus,nr,cA,cI,score,note,seen,rate:plus+nr?Math.round(plus/(plus+nr)*100):null};
+    const score=ex*w.wEx+plus*w.wPlus+nr*(w.wNr??DEF.wNr)-minus*w.wMinus-R*w.latePen-cA*w.cahAbs-cI*w.cahInc;
+    const bon=(Math.min(QMAX,q1)+Math.min(QMAX,q2))*.25,mal=qm*.25;const note=Math.max(0,Math.min(20,Math.round((w.base+score*w.step)*4)/4+bon-mal));
+    return {...s,bon,mal,qm,A,R,ex,nex,exD,exN,plus,minus,nr,cA,cI,score,note,seen,rate:plus+nr?Math.round(plus/(plus+nr)*100):null};
   })};
 }
 
@@ -879,7 +893,7 @@ function quickPanel(c,s,FL,st,bot){if(!s)return bot?"":`<div class="qp qp0"><spa
   const b=(k,lab,cl)=>`<button class="qb ${cl}${n(k)?"":" z"}" data-act="${k}" data-id="${s.id}" ${ab?"disabled":""}>${lab}<b>${n(k)}</b></button>`;
   return `<div class="qp${S.undo?" undo":""}"><div class="qph"><button class="qn" data-act="stuNav" data-d="-1" aria-label="Élève précédent">‹</button><b class="qpn">${S.pick===s.id?"🎲 ":""}${s.num}. ${esc(s.name)}</b><button class="qn" data-act="stuNav" data-d="1" aria-label="Élève suivant">›</button><button class="qn" data-act="qpNote" aria-pressed="${!!S.qpNote}" aria-label="Remarque">📝</button><button class="qn" data-act="fiche" data-id="${s.id}" aria-label="Fiche de l'élève" title="Fiche de l'élève">📄</button><button class="qn" data-act="closeSheet" aria-label="Fermer">✕</button></div>
   ${!bot&&FL&&FL[s.id]?`<div class="flag" style="margin:0">⚑ ${esc(flagTxt(FL[s.id]))}</div>`:""}
-  <div class="qpb"><button class="qb pres ${p}" data-act="pres" data-id="${s.id}">${p==="P"?"Présent":p==="A"?"Absent":"Retard"}</button>${b("ex","✓ Ex","ex")}${b("nex","✗ Ex","nex")}${b("plus","+ Rép","plus")}${b("nr","✗ Sans","nr")}${b("minus","− Comp","minus")}<button class="qb q${n("q")?"":" z"}" data-act="q" data-id="${s.id}" ${ab?"disabled":""} title="Bonus direct sur la note : +0,25 (3 points au plus par semestre)">+0,25<b>${(qSem(c,s.id)*.25).toFixed(2).replace(/\.?0+$/,"")||"0"}/3</b></button>
+  <div class="qpb"><button class="qb pres ${p}" data-act="pres" data-id="${s.id}">${p==="P"?"Présent":p==="A"?"Absent":"Retard"}</button>${b("ex","✓ Ex","ex")}${b("nex","✗ Ex","nex")}${b("plus","+ Rép","plus")}${b("nr","✗ Sans","nr")}${b("minus","− Comp","minus")}<button class="qb q${n("q")?"":" z"}" data-act="q" data-id="${s.id}" ${ab?"disabled":""} title="Bonus direct sur la note : +0,25 (3 points au plus par semestre)">+0,25<b>${(qSem(c,s.id)*.25).toFixed(2).replace(/\.?0+$/,"")||"0"}/3</b></button><button class="qb qm${n("qm")?"":" z"}" data-act="qm" data-id="${s.id}" ${ab?"disabled":""} title="Retrait direct sur la note : −0,25">−0,25<b>${n("qm")}</b></button>
   <button class="qb cah" data-act="cah" data-id="${s.id}" ${ab?"disabled":""}>Cah<b>${CS[m.cah||""]}</b></button><button class="qb diff" data-act="diff" data-id="${s.id}" aria-pressed="${!!m.diff}" ${ab?"disabled":""}>Diff${m.diff?"<b>✓</b>":""}</button>
   <button class="qb" data-act="undo" aria-pressed="${!!S.undo}" title="Les touches retirent 1">↶ −1</button></div>
   ${S.qpNote&&!bot?`<form class="notebox" id="noteForm" data-id="${s.id}" style="margin:0"><input id="noteIn" placeholder="Remarque…" aria-label="Remarque"><button class="btn" type="submit">Noter</button></form>`:""}</div>`}
@@ -887,7 +901,7 @@ function planSeance(c,st,numMode){
   const by=Object.fromEntries(st.map(s=>[s.id,s]));const placed=new Set(Object.values(c.seats||{}));
   const FL=S._flags||{};
   const cellFn=(key,sid)=>{const s=by[sid];if(!s)return `<div class="seat empty"></div>`;const m=mark(s.id),p=m.p||"P";
-    return `<button class="seat ${p} ${S.selStu===s.id?"on":""}" data-act="stu" data-id="${s.id}" aria-label="${esc(s.name)}">${FL[s.id]?`<span class="fl" title="${esc(flagTxt(FL[s.id]))}">⚑</span>`:""}<span class="sn">${s.num}${s.card?` <span style="opacity:.6">#${s.card}</span>`:""}</span><span class="nm">${esc(short(s.name))}</span><span class="dots">${m.diff?`<i style="color:var(--late)" title="Difficulté">D</i>`:""}${m.cah==="abs"?`<i class="r" title="Cahier غير متوفر">C✗</i>`:m.cah==="inc"?`<i class="y" title="دروس ناقصة">C½</i>`:""}${m.ex?`<i class="${m.ex<0?"r":"y"}">✓${m.ex}</i>`:""}${m.nex?`<i class="r">✗${m.nex}</i>`:""}${m.plus?`<i class="g">+${m.plus}</i>`:""}${m.nr?`<i class="y" title="Sans réponse">✗${m.nr}</i>`:""}${m.minus?`<i class="r">−${m.minus}</i>`:""}${m.q?`<i style="color:#1D5FD1" title="Bonus +0,25">★${m.q}</i>`:""}</span></button>`};
+    return `<button class="seat ${p} ${S.selStu===s.id?"on":""}" data-act="stu" data-id="${s.id}" aria-label="${esc(s.name)}">${FL[s.id]?`<span class="fl" title="${esc(flagTxt(FL[s.id]))}">⚑</span>`:""}<span class="sn">${s.num}${s.card?` <span style="opacity:.6">#${s.card}</span>`:""}</span><span class="nm">${esc(short(s.name))}</span><span class="dots">${m.diff?`<i style="color:var(--late)" title="Difficulté">D</i>`:""}${m.ex?`<i class="${m.ex<0?"r":"y"}">✓${m.ex}</i>`:""}${m.nex?`<i class="r">✗${m.nex}</i>`:""}${m.plus?`<i class="g">+${m.plus}</i>`:""}${m.nr?`<i class="y" title="Sans réponse">✗${m.nr}</i>`:""}${m.minus?`<i class="r">−${m.minus}</i>`:""}${m.q?`<i style="color:#1D5FD1" title="Bonus +0,25">★${m.q}</i>`:""}${m.qm?`<i class="r" title="Retrait −0,25">▼${m.qm}</i>`:""}</span>${m.cah&&p!=="A"?`<span class="cb ${m.cah}" title="Cahier vérifié : ${cahTxt(m)}">${m.cah==="ok"?"✓":m.cah==="inc"?"½":"✗"}</span>`:""}</button>`};
   let h;
   if(numMode==="team"){const T=teamsOf(c),inT=new Set(T.flatMap(t=>t.members));const free=st.filter(x=>!inT.has(x.id));
     const tot=ids=>ids.reduce((a,i)=>{const m=mark(i);return a+(m.ex||0)+(m.plus||0)-(m.minus||0)},0);
@@ -1265,7 +1279,7 @@ function viewSeance(c){
   ${S.mode==="plan"?planSeance(c,st):S.mode==="num"?planSeance(c,st,true):S.mode==="team"?planSeance(c,st):`<ul class="card roll ${S.undo?"undo":""}">${st.map(s=>{const m=mark(s.id);const p=m.p||"P";
     return `<li class="${p==="A"?"abs":""}" id="r-${s.id}"><span class="n">${s.num||""}</span><span class="name"><button class="namebtn" data-act="fiche" data-id="${s.id}">${esc(s.name)}</button>${(S._flags||{})[s.id]?` <span title="${esc(flagTxt(S._flags[s.id]))}" style="color:#c07a00">⚑</span>`:""}</span>
       <button class="pres ${p}" data-act="pres" data-id="${s.id}">${presLab(p)}</button>
-      <div class="ctr">${chipBtn(m,s,"ex","✓ Exercice","ex")}${chipBtn(m,s,"nex","✗ Ex","nex")}${chipBtn(m,s,"plus","+ Répond","plus")}${chipBtn(m,s,"nr","✗ Sans rép.","nr")}${chipBtn(m,s,"minus","− Bavardage","minus")}${chipBtn(m,s,"q","+0,25","q")}${cahBtn(m,s,p)}</div></li>`}).join("")}</ul>`}`;
+      <div class="ctr">${chipBtn(m,s,"ex","✓ Exercice","ex")}${chipBtn(m,s,"nex","✗ Ex","nex")}${chipBtn(m,s,"plus","+ Répond","plus")}${chipBtn(m,s,"nr","✗ Sans rép.","nr")}${chipBtn(m,s,"minus","− Bavardage","minus")}${chipBtn(m,s,"q","+0,25","q")}${chipBtn(m,s,"qm","−0,25","qm")}${cahBtn(m,s,p)}</div></li>`}).join("")}</ul>`}`;
   if(CAN)return out.split("<!--endbar-->")[0]+`<div class="canbox"><span class="hint">Séance annulée</span><b>${esc(CAN)}</b><span>${esc(lab)}${cx?" · "+XT[cx.type]+" "+hrs(cx):""}</span>${CN.hol?`<span class="hint">${HOLK[CN.hol.kind]}${CN.hol.kind==="rel"?" · date modifiable dans l'onglet Détails":""}</span>`:`<div class="tools"><button class="btn primary" data-act="uncancel">Rétablir la séance · إرجاع الحصة</button></div><span class="hint">Annulée par erreur ? Rétablissez-la : elle redevient une séance normale, notable comme les autres.</span>`}</div>`;
   return out.replace("<!--endbar-->",`<div><button class="linkbtn" data-act="cancelOpen" style="color:var(--muted)">⊘ Annuler cette séance (férié, absence…) · إلغاء الحصة</button></div>`);
 }
@@ -1297,15 +1311,15 @@ function viewBilan(c){
   ${cmpCard(c)}
   ${chartSvg(c)}
   <div class="card summary"><div><b>${T.dates.length}</b><span>Séances</span></div><div><b>${avg}</b><span>Moyenne /20</span></div><div><b>${T.rows.reduce((s,r)=>s+r.A,0)}</b><span>Absences</span></div><div><b>${T.rows.reduce((s,r)=>s+r.ex,0)}</b><span>Exercices</span></div></div>
-  <div class="card tablewrap"><table><thead><tr>${th("num","N° Massar")}${th("name","Élève","l")}${th("A","Abs")}${th("R","Ret")}${th("exD","Ex ✓")}${th("exN","Ex ✗")}${th("plus","+ Rép.")}${th("nr","✗ Sans")}${th("rate","% rép.")}${th("minus","− Cond.")}${th("cA","Cah ✗")}${th("cI","Cah ½")}${th("score","Points")}${th("bon","Bonus")}${th("note","/20")}</tr></thead>
-  <tbody>${rows.map(r=>`<tr><td>${r.num||""}</td><td class="l"><button class="namebtn" data-act="fiche" data-id="${r.id}">${esc(r.name)}</button></td><td class="${r.A?"r":""}">${r.A}</td><td>${r.R}</td><td class="y">${r.exD}</td><td class="${r.exN?"r":""}">${r.exN}</td><td class="g">${r.plus}</td><td class="${r.nr?"y":""}">${r.nr}</td><td>${r.rate==null?"–":r.rate+"%"}</td><td class="r">${r.minus}</td><td class="${r.cA?"r":""}">${r.cA}</td><td class="${r.cI?"y":""}">${r.cI}</td><td>${r.score>0?"+":""}${+r.score.toFixed(2)}</td><td class="${r.bon?"g":""}">${r.bon?"+"+r.bon:"–"}</td><td class="note">${r.note.toFixed(2)}<div class="bar20"><i style="width:${r.note*5}%"></i></div></td></tr>`).join("")}</tbody></table></div>
+  <div class="card tablewrap"><table class="bil"><thead><tr>${th("num","N° Massar")}${th("name","Élève","l")}${th("A","Abs")}${th("R","Ret")}${th("exD","Ex ✓")}${th("exN","Ex ✗")}${th("plus","+ Rép.")}${th("nr","✗ Sans")}${th("rate","% rép.")}${th("minus","− Cond.")}${th("cA","Cah ✗")}${th("cI","Cah ½")}${th("score","Points")}${th("bon","± 0,25")}${th("note","/20")}</tr></thead>
+  <tbody>${rows.map(r=>`<tr><td>${r.num||""}</td><td class="l"><button class="namebtn" data-act="fiche" data-id="${r.id}">${esc(r.name)}</button></td><td class="${r.A?"r":""}">${r.A}</td><td>${r.R}</td><td class="y">${r.exD}</td><td class="${r.exN?"r":""}">${r.exN}</td><td class="g">${r.plus}</td><td class="${r.nr?"y":""}">${r.nr}</td><td>${r.rate==null?"–":r.rate+"%"}</td><td class="r">${r.minus}</td><td class="${r.cA?"r":""}">${r.cA}</td><td class="${r.cI?"y":""}">${r.cI}</td><td>${r.score>0?"+":""}${+r.score.toFixed(2)}</td><td class="${r.bon-r.mal>0?"g":r.bon-r.mal<0?"r":""}" title="+${r.bon} / −${r.mal}">${r.bon||r.mal?(r.bon-r.mal>0?"+":"")+(+(r.bon-r.mal).toFixed(2)):"–"}</td><td class="note">${r.note.toFixed(2)}<div class="bar20"><i style="width:${r.note*5}%"></i></div></td></tr>`).join("")}</tbody></table></div>
   <div class="tools"><button class="btn primary" data-act="csv">Télécharger (CSV / Excel)</button><button class="btn" data-act="copy">Copier les notes</button></div>
   <form class="card form" id="wForm"><h2>Barème des activités</h2>
-    <p class="hint" style="margin:0">Points = exercices (positifs ou négatifs) × ${w.wEx} + bonne réponse × ${w.wPlus} − sans réponse × ${w.wNr??DEF.wNr} − comportement × ${w.wMinus} − cahier غير متوفر × ${w.cahAbs} − دروس ناقصة × ${w.cahInc}${w.latePen?` − retards × ${w.latePen}`:""}. Note = ${w.base} + points × ${w.step}, limitée entre 0 et 20, arrondie au quart.</p>
+    <p class="hint" style="margin:0">Points = exercices (positifs ou négatifs) × ${w.wEx} + bonne réponse × ${w.wPlus} + participation sans bonne réponse × ${w.wNr??DEF.wNr} − comportement × ${w.wMinus} − cahier غير متوفر × ${w.cahAbs} − دروس ناقصة × ${w.cahInc}${w.latePen?` − retards × ${w.latePen}`:""}. Note = ${w.base} + points × ${w.step}, limitée entre 0 et 20, arrondie au quart.</p>
     <div class="grid2">
       <label>Poids exercice<input type="number" step="0.25" min="0" id="wEx" value="${w.wEx}"></label>
       <label>Poids bonne réponse<input type="number" step="0.25" min="0" id="wPlus" value="${w.wPlus}"></label>
-      <label>Pénalité sans réponse<input type="number" step="0.25" min="0" id="wNr" value="${w.wNr??DEF.wNr}"></label>
+      <label>Participation sans bonne réponse (points, moins qu'une bonne réponse)<input type="number" step="0.25" min="0" id="wNr" value="${w.wNr??DEF.wNr}"></label>
       <label>Poids comportement<input type="number" step="0.25" min="0" id="wMinus" value="${w.wMinus}"></label>
       <label>Cahier غير متوفر (pénalité)<input type="number" step="0.25" min="0" id="cahAbs" value="${w.cahAbs}"></label>
       <label>دروس ناقصة (pénalité)<input type="number" step="0.25" min="0" id="cahInc" value="${w.cahInc}"></label>
@@ -1728,6 +1742,16 @@ function viewHome(){const L=classList(),c=cls(),t=today(),local=!(api&&api.cloud
   <div class="hmsh"><button data-act="homeDisp">📺 Affichage élèves</button><button data-act="homeJournal">📒 Journal des séances</button><button data-tab="details">💾 Sauvegarde</button></div>
   </div>`}
 
+/* ---------- Élèves en cartes ---------- */
+function stuCards(c){const st=sorted(c),T=totals(c).rows,by={};T.forEach(r=>by[r.id]=r);const op=S.eOpen?st.findIndex(x=>x.id===S.eOpen):-1,cols=3;const at=op>=0?Math.min(st.length-1,Math.floor(op/cols)*cols+cols-1):-1;
+  const det=s=>{const r=by[s.id]||{},k=(v,l,cl)=>`<div><b class="${cl||""}">${v}</b><span>${l}</span></div>`;
+    return `<div class="sdet" role="region" aria-label="Détails de ${esc(s.name)}"><div class="hd"><b>${s.num}. ${esc(s.name)}</b><span class="nt">${r.note!=null?r.note.toFixed(2):"–"}<small style="font-size:.6em;color:var(--muted)">/20</small></span></div>
+    ${s.massar||s.card||s.from?`<span class="hint">${[s.massar?"Massar "+esc(s.massar):"",s.card?"Carte Plickers "+s.card:"",s.from?"Vient de "+esc(s.from):""].filter(Boolean).join(" · ")}</span>`:""}
+    <div class="kv">${k(r.A||0,"Absences",r.A?"r":"")}${k(r.R||0,"Retards")}${k((r.exD||0)+" / ✗"+(r.exN||0),"Exercices faits / non faits",r.exN?"r":"y")}${k("+"+(r.plus||0),"Bonnes réponses","g")}${k(r.nr||0,"Participations sans bonne réponse")}${k(r.rate==null?"–":r.rate+" %","Taux de réponse")}${k("−"+(r.minus||0),"Comportement",r.minus?"r":"")}${k((r.cA||0)+" / ½"+(r.cI||0),"Cahier absent / incomplet",r.cA?"r":"")}${k((r.bon||r.mal)?(r.bon-r.mal>0?"+":"")+(+(r.bon-r.mal).toFixed(2)):"–","Bonus ± 0,25",r.bon-r.mal<0?"r":r.bon?"g":"")}</div>
+    <span class="hint">${PER[S.period]||""}</span>
+    <div class="tools"><button class="btn primary" data-act="fiche" data-id="${s.id}">📄 Fiche complète</button>${isDemo(c)?"":`<button class="btn" data-act="eViewEd" data-id="${s.id}">✏️ Modifier</button><button class="btn" data-act="rmAsk" data-id="${s.id}" style="color:var(--bad)">🗑</button>`}<button class="btn" data-act="eOpen" data-id="${s.id}" style="margin-inline-start:auto">Fermer</button></div></div>`};
+  return `<div class="scards">${st.map((s,i)=>`<button class="scard" data-act="eOpen" data-id="${s.id}" aria-expanded="${S.eOpen===s.id}"><span class="n">${s.num}</span><span class="m">${esc(s.name)}</span></button>${i===at?det(st[op]):""}`).join("")}</div>`}
+
 /* ---------- Blocs repliables ---------- */
 const fOpen=(k,d)=>((S.fold||{})[k]??d)?"open":"";
 document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.dataset&&d.dataset.fold){S.fold={...(S.fold||{}),[d.dataset.fold]:d.open};saveUI();if(d.dataset.fold==="cmp"&&d.open&&!S.cmpDays)cmpLoad()}},true);
@@ -1796,7 +1820,8 @@ function demoBlock(imp){S.tab="classe";S.stu=null;saveUI();render();const f=$("#
 function demoEleves(c){return `${stuImpCard()}<div class="card form"><h2>${esc(c.name)} · élèves fictifs</h2>
   <span class="hint">C'est une classe de démonstration : on ne peut pas y ajouter vos élèves. Importez vos listes ci-dessus (vos classes sont créées automatiquement), ou créez votre classe.</span>
   <div class="tools"><button class="btn primary" data-act="demoNew">➕ Créer ma classe</button><button class="btn" data-act="demoPdf">📄 Importer mes emplois du temps (PDF)</button></div>
-  <ol style="margin:0;padding-left:1.4em;columns:2;font-size:.9rem">${sorted(c).map(st=>`<li>${esc(st.name)} <span class="hint">· carte ${st.card}</span></li>`).join("")}</ol></div>`}
+  <div class="seg" role="group" aria-label="Affichage"><button data-act="eView" data-v="list" aria-pressed="${S.eView!=="cards"}">☰ Liste</button><button data-act="eView" data-v="cards" aria-pressed="${S.eView==="cards"}">▦ Cartes</button></div>
+  ${S.eView==="cards"?`<div style="margin:0 -14px">${stuCards(c)}</div>`:`<ol style="margin:0;padding-left:1.4em;columns:2;font-size:.9rem">${sorted(c).map(st=>`<li>${esc(st.name)} <span class="hint">· carte ${st.card}</span></li>`).join("")}</ol>`}</div>`}
 function demoDecor(){try{document.body.className=document.body.className.replace(/\bmod-off-\w+/g,"").trim();MODS.forEach(([k])=>{if(!modOn(k))document.body.classList.add("mod-off-"+k)})}catch(e){}
   if(!Object.keys(DEMO.classes).length||S.store!=="ok")return;const v=$("#view");if(!v)return;
   v.insertAdjacentHTML("afterbegin",`<div class="card form demobar"><b>🧪 Mode démonstration · وضع التجربة</b>
@@ -2435,7 +2460,8 @@ function viewEleves(){
     <div class="tools"><button class="btn primary" data-act="massarOrder">Appliquer l'ordre Massar</button><button class="btn" data-act="bulk">Ajouter à la fin de la liste</button></div>
     <span class="hint">« Appliquer l'ordre Massar » donne à chaque élève déjà présent son N° Massar (reconnu par le code ou le nom, même s'il vient de Plickers) et ajoute ceux qui manquent. Le N° de carte Plickers ne change pas.</span>
 </div><div class="card"><h2 style="margin:0;padding:12px 14px 8px;font-size:1.05rem">👥 Élèves de ${esc(c.name)} · ${(c.students||[]).length}</h2>
-    ${(()=>{const st=sorted(c),sel=st.filter(x=>(S.sSel||{})[x.id]);if(!st.length)return "";
+    ${(c.students||[]).length?`<div class="seg" role="group" aria-label="Affichage" style="margin:0 14px 10px"><button data-act="eView" data-v="list" aria-pressed="${S.eView!=="cards"}">☰ Liste</button><button data-act="eView" data-v="cards" aria-pressed="${S.eView==="cards"}">▦ Cartes</button></div>`:""}
+    ${S.eView==="cards"&&(c.students||[]).length?stuCards(c):`${(()=>{const st=sorted(c),sel=st.filter(x=>(S.sSel||{})[x.id]);if(!st.length)return "";
       const R=S.rmConfirm&&S.rmConfirm.ids.map(i=>st.find(x=>x.id===i)).filter(Boolean);
       return `<div class="tools" style="padding:0 14px 8px;align-items:center"><button class="btn" data-act="sSelAll">Tout sélectionner</button>${sel.length?`<button class="btn" data-act="sSelNone">Désélectionner</button><button class="btn danger" data-act="rmSelAsk">Supprimer la sélection (${sel.length})</button>`:""}</div>
       ${R&&R.length?`<div class="confirm" style="display:grid;gap:8px;margin:0 14px 10px"><span>Supprimer définitivement ${R.length>1?R.length+" élèves":"« "+esc(R[0].name)+" »"} de ${esc(c.name)} ?</span><span style="font-weight:400">${R.length>1?esc(R.slice(0,8).map(x=>x.num+". "+x.name).join(", "))+(R.length>8?"…":"")+". ":""}Leurs appels, points, notes et place dans le plan seront retirés. Les numéros des autres élèves seront recalculés. Une copie reste dans les sauvegardes automatiques.</span><div class="tools"><button class="btn danger" data-act="rmYes">Oui, supprimer</button><button class="btn" data-act="rmNo">Annuler</button></div></div>`:""}`})()}
@@ -2444,7 +2470,7 @@ function viewEleves(){
       <label>Classe<select id="sfClass"><option value="${c.id}" selected>${esc(c.name)} (actuelle)</option>${others.map(x=>`<option value="${x.id}">${esc(x.name)}${x.level?" · "+esc(x.level):""}</option>`).join("")}</select></label></div>
       <span class="hint">Changer de classe transfère le code Massar, l'appel et les absences, les exercices, les points, le cahier, les notes, les devoirs et les résultats Plickers. Seuls changent la classe, le N° dans la classe et le N° de carte Plickers (à attribuer dans la nouvelle classe).${s.from?` Arrivé(e) de ${esc(s.from)}.`:""}</span>
       <div class="tools"><button class="btn primary" type="submit">Enregistrer</button><button type="button" class="btn" data-act="edStu" data-id="${s.id}">Annuler</button><button type="button" class="btn danger" data-act="rmAsk" data-id="${s.id}">Supprimer l'élève</button></div></form></li>`
-     :`<li class="${(S.sSel||{})[s.id]?"selrow":""}"><input type="checkbox" data-ssel="${s.id}" ${(S.sSel||{})[s.id]?"checked":""} aria-label="Sélectionner ${esc(s.name)}" class="selbox"><span class="snm" title="${esc([s.name,s.from?"vient de "+s.from:"",s.massar||"",s.card?"carte "+s.card:""].filter(Boolean).join(" · "))}"><b class="hint" style="display:inline-block;min-width:1.8em;text-align:end;margin-inline-end:6px">${s.num}</b>${esc(s.name)}${s.from?` <span class="hint">↪</span>`:""}</span><span class="ract"><button class="btn" data-act="fiche" data-id="${s.id}" title="Fiche de l'élève" aria-label="Fiche de l'élève">📄</button><button class="btn" data-act="edStu" data-id="${s.id}" title="Modifier" aria-label="Modifier">✏️</button><button class="btn" data-act="rmAsk" data-id="${s.id}" aria-label="Supprimer ${esc(s.name)}" title="Supprimer" style="color:var(--bad)">🗑</button></span></li>`).join("")}</ul></div>`;
+     :`<li class="${(S.sSel||{})[s.id]?"selrow":""}"><input type="checkbox" data-ssel="${s.id}" ${(S.sSel||{})[s.id]?"checked":""} aria-label="Sélectionner ${esc(s.name)}" class="selbox"><span class="snm" title="${esc([s.name,s.from?"vient de "+s.from:"",s.massar||"",s.card?"carte "+s.card:""].filter(Boolean).join(" · "))}"><b class="hint" style="display:inline-block;min-width:1.8em;text-align:end;margin-inline-end:6px">${s.num}</b>${esc(s.name)}${s.from?` <span class="hint">↪</span>`:""}</span><span class="ract"><button class="btn" data-act="fiche" data-id="${s.id}" title="Fiche de l'élève" aria-label="Fiche de l'élève">📄</button><button class="btn" data-act="edStu" data-id="${s.id}" title="Modifier" aria-label="Modifier">✏️</button><button class="btn" data-act="rmAsk" data-id="${s.id}" aria-label="Supprimer ${esc(s.name)}" title="Supprimer" style="color:var(--bad)">🗑</button></span></li>`).join("")}</ul>`}</div>`;
 }
 async function moveStudent(sid,to,nm){const A=cls(),B=S.classes[to];const s=A&&A.students.find(x=>x.id===sid);if(!s||!B)return;
   setSync("Transfert…");
@@ -2489,6 +2515,9 @@ document.addEventListener("click",async e=>{
   if(a==="homeCours"){FRESH.on=false;S.date=t.dataset.date;S.xid=t.dataset.x||null;S.follow=!S.xid;S.tab="seance";S.cours=true;try{wakeOn()}catch(e){}saveUI();return selectClass(t.dataset.id)}
   if(a==="homeDisp"){FRESH.on=false;S.tab="seance";S.fold={...(S.fold||{}),disp:true};saveUI();render();const el=document.querySelector("[data-fold=disp]");if(el)el.scrollIntoView({block:"center"});return}
   if(a==="homeJournal"){FRESH.on=false;S.tab="details";saveUI();render();const el=$("#jFrom");if(el){const cd=el.closest(".card");if(cd&&cd.classList.contains("shut"))cd.classList.remove("shut");el.scrollIntoView({block:"center"})}return}
+  if(a==="eView"){S.eView=t.dataset.v;S.eOpen=null;saveUI();return render()}
+  if(a==="eOpen"){S.eOpen=S.eOpen===t.dataset.id?null:t.dataset.id;render();const d=document.querySelector(".sdet");if(d)d.scrollIntoView({block:"nearest",behavior:"smooth"});return}
+  if(a==="eViewEd"){S.eView="list";S.edStu=t.dataset.id;saveUI();render();const f=$("#stuForm");if(f)f.scrollIntoView({block:"center"});return}
   if(a==="histX"){S.hist=null;return render()}
   if(a==="histOpen"){S.hist=S.cid;return render()}
   if(a==="dayNav"){return dayNav(+t.dataset.d)}
@@ -2568,7 +2597,7 @@ document.addEventListener("click",async e=>{
     R.forEach((r,i)=>{const row=Math.floor(i/n),j=i%n;T[row%2?n-1-j:j].members.push(r.id)});c.teams=T;S.edTeam=null;await saveClass(c);toast(n+" équipes créées");return render()}
   if(a==="tPt"&&c){const g=sessState(c);if(!g.ok){toast(g.msg);return}const tm=teamsOf(c).find(x=>x.id===t.dataset.t);if(!tm)return;const k=t.dataset.k,d=S.undo?-1:1;let n=0;
     tm.members.forEach(i=>{const m=mark(i);if((m.p||"P")==="A")return;setMark(i,{[k]:(m[k]||0)+d});n++});toast(`${tm.name} : ${d>0?"+":"−"}1 ${k==="ex"?"exercice":k==="plus"?"participation":"comportement"} pour ${n} élève${n>1?"s":""}`);return render()}
-  if(["pres","cah","cahAll","exAll","q","dec","ex","nex","plus","nr","minus","valAppel","diff"].includes(a)&&c){const g=sessState(c);if(!g.ok){toast(g.msg);return}}
+  if(["pres","cah","cahAll","exAll","q","qm","dec","ex","nex","plus","nr","minus","valAppel","diff"].includes(a)&&c){const g=sessState(c);if(!g.ok){toast(g.msg);return}}
   if(a==="shareSess"||a==="shareDay")return exportSessions(a==="shareSess"?"sess":"day");
   if(a==="pgN"){const lv=S.pgLvl||(c&&LEVELS.includes(c.level)?c.level:"1AC");const items=[...(((S.prog||{})[lv]||{}).items||[])].map(x=>({...x}));const n=+t.dataset.n;items[n].n=Math.max(1,nOf(items[n])+(+t.dataset.d));S.prog[lv]={items};try{await api.saveProgramme(lv,{items})}catch(err){toast("Programme non enregistré.")}return render()}
   if(a==="pg1ac"){S.pgAsk=true;return render()}
@@ -2697,6 +2726,7 @@ document.addEventListener("click",async e=>{
   if(a==="cahAll"){let n=0;sorted(c).forEach(s=>{const m=mark(s.id);if((m.p||"P")!=="A"&&!m.cah){setMark(s.id,{cah:"ok"});n++}});toast(n+" cahier(s) marqué(s) complet(s)");return render()}
   if(a==="dec"){const k=t.dataset.k;setMark(id,{[k]:(mark(id)[k]||0)-1});return render()}
   if(a==="q"){const fromPick=t.closest(".pick,.sheet");const delta=(S.undo&&!fromPick)?-1:1;if(delta>0&&qSem(c,id)>=QMAX)return toast("Plafond atteint : 3 points de bonus pour ce semestre.");setMark(id,{q:(mark(id).q||0)+delta});if(delta>0)toast("+0,25 · bonus du semestre : "+(qSem(c,id)*.25).toFixed(2)+" / 3");return render()}
+  if(a==="qm"){const fromPick=t.closest(".pick,.sheet");const delta=(S.undo&&!fromPick)?-1:1;setMark(id,{qm:Math.max(0,(mark(id).qm||0)+delta)});if(delta>0)toast("−0,25 sur la note");return render()}
   if(a==="exAll"){let n=0;sorted(c).forEach(st=>{const m=mark(st.id);if((m.p||"P")!=="A"&&!(m.nex>0)&&!(m.ex>0)){setMark(st.id,{ex:1});n++}});toast(n?n+" élève(s) : exercice fait ✓":"Tous les élèves présents sont déjà notés");return render()}
   if(a==="ex"||a==="nex"||a==="plus"||a==="minus"||a==="nr"){const fromPick=t.closest(".pick,.sheet");const delta=(S.undo&&!fromPick)?-1:1;setMark(id,{[a]:(mark(id)[a]||0)+delta});if(a==="nr"&&delta>0&&(mark(id).nr||0)>=3&&!mark(id).diff){setMark(id,{diff:true});toast("3 questions sans réponse : élève signalé en difficulté")}if(a==="minus"&&delta>0)dispWarn(c,id);render();const r=document.getElementById("r-"+id);if(r&&delta>0){r.classList.add("flash")}if(fromPick)toast(a==="nr"?"Sans réponse noté":"Point ajouté");return}
   if(a==="pick"){const pres=sorted(c).filter(s=>(mark(s.id).p||"P")!=="A"&&s.id!==S.pick);if(!pres.length)return toast("Aucun élève présent.");
