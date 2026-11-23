@@ -418,10 +418,10 @@ const DEF={wEx:1,wPlus:1,wNr:0.5,wMinus:1,base:10,step:0.5,latePen:0.5,cahAbs:1,
 const S={classes:{},days:{},cid:null,date:today(),tab:"seance",undo:false,sort:{k:"n",d:1},confirmDel:false,pick:null,store:"…",mode:"plan",selStu:null,edSeat:null,edStu:null,follow:true,lastD:1,lastE:"",xid:null,addF:null,wk:null,stu:null,xScope:"all",period:"year",prog:{},pgLvl:null,cancelOpen:false,holEdit:{}};
 let PSUF="";const PR={list:[],cur:null};
 const FRESH={on:(()=>{try{if(sessionStorage.getItem("rc-home"))return false;sessionStorage.setItem("rc-home","1");return true}catch(e){return true}})()};
-function loadUI(){try{const p=JSON.parse(localStorage.getItem("rc-ui"+PSUF)||"{}");if(p.cid)S.cid=p.cid;if(p.tab)S.tab=p.tab;if(p.mode)S.mode=p.mode;if(p.period)S.period=p.period;if(p.pFrom)S.pFrom=p.pFrom;if(p.pTo)S.pTo=p.pTo;if(typeof p.hdMini==="boolean")S.hdMini=p.hdMini;if(p.theme)S.theme=p.theme;if(p.fold)S.fold=p.fold;if(p.dispWarn)S.dispWarn=p.dispWarn;if(p.fs)S.fs=p.fs;if(p.dZoom)S.dZoom=p.dZoom;if(p.dTheme)S.dTheme=p.dTheme;if(p.dTCust)S.dTCust=p.dTCust;if(p.eView)S.eView=p.eView;if(p.dAlpha)S.dAlpha=p.dAlpha}catch(e){}if(FRESH.on)S.tab="home"}
+function loadUI(){try{const p=JSON.parse(localStorage.getItem("rc-ui"+PSUF)||"{}");if(p.cid)S.cid=p.cid;if(p.tab)S.tab=p.tab;if(p.mode)S.mode=p.mode;if(p.period)S.period=p.period;if(p.pFrom)S.pFrom=p.pFrom;if(p.pTo)S.pTo=p.pTo;if(typeof p.hdMini==="boolean")S.hdMini=p.hdMini;if(p.theme)S.theme=p.theme;if(p.fold)S.fold=p.fold;if(p.dispWarn)S.dispWarn=p.dispWarn;if(p.fs)S.fs=p.fs;if(p.dZoom)S.dZoom=p.dZoom;if(p.dTheme)S.dTheme=p.dTheme;if(p.dTCust)S.dTCust=p.dTCust;if(p.eView)S.eView=p.eView;if(p.sf)S.sf=p.sf;if(p.dAlpha)S.dAlpha=p.dAlpha}catch(e){}if(FRESH.on)S.tab="home"}
 loadUI();
 if(typeof S.hdMini!=="boolean"){S.hdMini=null}
-const saveUI=()=>{try{localStorage.setItem("rc-ui"+PSUF,JSON.stringify({cid:S.cid,tab:S.tab,mode:S.mode,period:S.period,pFrom:S.pFrom||"",pTo:S.pTo||"",fold:S.fold||{},dispWarn:S.dispWarn||"name",fs:S.fs||1,dZoom:S.dZoom||1,dTheme:S.dTheme||"dark",dTCust:S.dTCust||"",eView:S.eView||"list",dAlpha:S.dAlpha||100,hdMini:S.hdMini,theme:S.theme||"auto"}))}catch(e){}};
+const saveUI=()=>{try{localStorage.setItem("rc-ui"+PSUF,JSON.stringify({cid:S.cid,tab:S.tab,mode:S.mode,period:S.period,pFrom:S.pFrom||"",pTo:S.pTo||"",fold:S.fold||{},dispWarn:S.dispWarn||"name",fs:S.fs||1,dZoom:S.dZoom||1,dTheme:S.dTheme||"dark",dTCust:S.dTCust||"",eView:S.eView||"list",sf:S.sf||null,dAlpha:S.dAlpha||100,hdMini:S.hdMini,theme:S.theme||"auto"}))}catch(e){}};
 
 function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2200)}
 function setSync(t){const b=$("#sync");if(!b)return;t=String(t||"");const k=/Échec|Erreur|refus|impossible/i.test(t)?"err":/Hors ligne/i.test(t)?"off":/…/.test(t)?"busy":"ok";b.className="hdbtn rl "+k;b.title=t+" · toucher pour actualiser la page"}
@@ -496,7 +496,7 @@ function dbApi(db){
   };
 }
 
-function dayDoc(dd){dd=dd||{};const o={marks:dd.marks||{}};if(dd.lesson)o.lesson=dd.lesson;if(dd.lid){o.lid=dd.lid;o.part=dd.part}if(dd.lid2){o.lid2=dd.lid2;o.part2=dd.part2}if((dd.timers||[]).length)o.timers=dd.timers;if(dd.phase)o.phase=dd.phase;if(dd.phase2)o.phase2=dd.phase2;if(typeof dd.step==="number")o.step=dd.step;if(typeof dd.step2==="number")o.step2=dd.step2;return o}
+function dayDoc(dd){dd=dd||{};const o={marks:dd.marks||{}};if(dd.lesson)o.lesson=dd.lesson;if(dd.lid){o.lid=dd.lid;o.part=dd.part}if(dd.lid2){o.lid2=dd.lid2;o.part2=dd.part2}if((dd.timers||[]).length)o.timers=dd.timers;if(dd.obj)o.obj=dd.obj;if(dd.proc)o.proc=dd.proc;if(dd.phase)o.phase=dd.phase;if(dd.phase2)o.phase2=dd.phase2;if(typeof dd.step==="number")o.step=dd.step;if(typeof dd.step2==="number")o.step2=dd.step2;return o}
 /* écriture différée d'une séance (une écriture à la fois) */
 const pending=new Map();let writing=false;
 function queueDay(cid,date){markRec(cid,date);pending.set(cid+"|"+date,[cid,date,cid===S.cid?S.days[date]:null]);setSync("Enregistrement…");clearTimeout(queueDay.t);queueDay.t=setTimeout(flush,600)}
@@ -1266,6 +1266,7 @@ function viewSeance(c){
     <label>Déroulement et observations<textarea id="xDev" style="min-height:90px" placeholder="Activités réalisées, difficultés rencontrées, suites à donner…">${esc(cx.dev||"")}</textarea></label>
     <div><button class="btn primary" type="submit">Enregistrer la fiche</button></div></form>`:isT?"":`<div class="past">Vous modifiez une séance passée : ${esc(lab)}.</div>`}
   ${SS.ok?lessonFormHtml(c):""}
+  ${SS.ok?soutForm(c):""}
   ${SS.ok?`<div data-mod="prog" style="display:contents">${planCard(c)}${planCard(c,2)}</div>`:""}
   <div data-mod="plk" style="display:contents">${SS.ok?plkPendCard(c):""}</div>
   ${flagBox}
@@ -1759,6 +1760,75 @@ function stuCards(c){const st=sorted(c),T=totals(c).rows,by={};T.forEach(r=>by[r
     <span class="hint">${PER[S.period]||""}</span>
     <div class="tools"><button class="btn primary" data-act="fiche" data-id="${s.id}">📄 Fiche complète</button>${isDemo(c)?"":`<button class="btn" data-act="eViewEd" data-id="${s.id}">✏️ Modifier</button><button class="btn" data-act="rmAsk" data-id="${s.id}" style="color:var(--bad)">🗑</button>`}<button class="btn" data-act="eOpen" data-id="${s.id}" style="margin-inline-start:auto">Fermer</button></div></div>`};
   return `<div class="scards">${st.map((s,i)=>`<button class="scard" data-act="eOpen" data-id="${s.id}" aria-expanded="${S.eOpen===s.id}"><span class="n">${s.num}</span><span class="m">${esc(s.name)}</span></button>${i===at?det(st[op]):""}`).join("")}</div>`}
+
+/* ---------- Fiche de soutien (بطاقة الدعم التربوي) ---------- */
+function soutForm(c){if(!S.xid)return "";const x=(c.extras||[]).find(y=>y.id===S.xid);if(!x||x.type!=="soutien")return "";const d=S.days[dk()]||{};
+  return `<div class="card form"><h2>🧩 Fiche de soutien · بطاقة الدعم</h2><span class="hint">Le sujet est la leçon de la séance ci-dessus. Les absents sont pris dans l'appel.</span>
+  <label>Objectifs · الأهداف<textarea id="soObj" rows="2" maxlength="600" placeholder="Ex. : reconnaître un circuit simple, schématiser…">${esc(d.obj||"")}</textarea></label>
+  <label>Déroulement de l'activité · سيرورة النشاط<textarea id="soProc" rows="3" maxlength="1200" placeholder="Ex. : rappel, exercice guidé, correction collective…">${esc(d.proc||"")}</textarea></label></div>`}
+let soT=null;document.addEventListener("input",e=>{const id=e.target&&e.target.id;if(id!=="soObj"&&id!=="soProc")return;const k=dk(),d=S.days[k]=S.days[k]||{marks:{}};d.marks=d.marks||{};d[id==="soObj"?"obj":"proc"]=e.target.value.trim();clearTimeout(soT);soT=setTimeout(()=>queueDay(S.cid,k),700)});
+const SFD={num:1,ens:"",mat:"الفيزياء والكيمياء",etab:"",acad:"",dir:"",logo:""};
+const sfG=()=>({...SFD,...(S.sf||{})});
+function sfYear(d){const t=new Date((d||today())+"T12:00"),y=t.getMonth()>=7?t.getFullYear():t.getFullYear()-1;return y+" / "+(y+1)}
+async function soutData(from,to,lv){const out=[];const L=classList().filter(c=>!lv||c.level===lv);
+  for(const c of L){const X=(c.extras||[]).filter(x=>x.type==="soutien"&&x.date>=from&&x.date<=to);if(!X.length)continue;const days=c.id===S.cid?S.days:await api.getDays(c.id);
+    for(const x of X){const d=days["X-"+x.id]||{},mk=d.marks||{};if(canOf(c,"X-"+x.id,x.date))continue;const abs=sorted(c).filter(s=>(mk[s.id]||{}).p==="A").map(s=>s.num+". "+s.name);
+      out.push({date:x.date,s:x.s,e:x.e||addH(x.s),cls:c.name,lv:c.level||"",topic:d.lesson||"",obj:d.obj||"",proc:d.proc||"",abs,done:Object.keys(mk).length>0||!!d.lesson})}}
+  return out.sort((a,b)=>(a.date+a.s).localeCompare(b.date+b.s)||a.cls.localeCompare(b.cls,"fr",{numeric:true}))}
+const SH=["التاريخ","القسم","موضوع حصة الدعم وأهدافها","سيرورة النشاط","الغياب","توقيع الأستاذ"];
+const soRow=r=>[r.date.split("-").reverse().join("/")+"\n"+r.s+" – "+r.e,r.cls,[r.topic,r.obj?"الأهداف :\n"+r.obj:""].filter(Boolean).join("\n"),r.proc,r.abs.length?r.abs.join("\n"):"—",""];
+function soMeta(from,to){const f=sfG(),c0=cls()||classList()[0],s2=c0?sem2(c0):defSem2();const sem=from>=s2?"الأسدوس الثاني":to<s2?"الأسدوس الأول":"الأسدوسان الأول والثاني";return {...f,year:sfYear(from),sem}}
+function soHtml(R,M){const td='style="border:1px solid #333;padding:5px 6px;vertical-align:top;font-size:10.5pt"',th='style="border:1px solid #333;padding:6px;background:#e8efe9;font-size:11pt"';const br=v=>esc(v).replace(/\n/g,"<br>");
+  return `<div dir="rtl" style="font-family:Arial,'Segoe UI',sans-serif;color:#111">
+  <table style="width:100%;border-collapse:collapse"><tr>
+   <td style="width:38%;vertical-align:top;font-size:10pt;line-height:1.5">المملكة المغربية<br>وزارة التربية الوطنية والتعليم الأولي والرياضة${M.acad?"<br>"+esc(M.acad):""}${M.dir?"<br>"+esc(M.dir):""}${M.etab?"<br><b>"+esc(M.etab)+"</b>":""}</td>
+   <td style="width:24%;text-align:center;vertical-align:middle">${M.logo?`<img src="${M.logo}" style="max-height:80px;max-width:150px">`:""}</td>
+   <td style="width:38%;vertical-align:top;text-align:left;font-size:10.5pt;line-height:1.7" dir="rtl"><div style="text-align:left">الموسم الدراسي : <b>${esc(M.year)}</b><br>رقم البطاقة : <b>${esc(String(M.num))}</b></div></td></tr></table>
+  <h1 style="text-align:center;font-size:20pt;margin:10px 0 2px">بطاقة الدعم التربوي</h1><div style="text-align:center;font-size:12pt;margin-bottom:8px">${esc(M.sem)}</div>
+  <table style="width:100%;margin-bottom:8px;font-size:11.5pt"><tr><td>الأستاذ(ة) : <b>${esc(M.ens||"……………………")}</b></td><td style="text-align:left">المادة : <b>${esc(M.mat||"")}</b></td></tr></table>
+  <table style="width:100%;border-collapse:collapse"><thead><tr>${SH.map((h,i)=>`<th ${th}${i===5?' width="12%"':i===2||i===3?' width="22%"':""}>${h}</th>`).join("")}</tr></thead>
+  <tbody>${R.map(r=>`<tr style="page-break-inside:avoid">${soRow(r).map((v,i)=>`<td ${td}${/[؀-ۿ]/.test(v)||!v?"":' dir="ltr" align="left"'}>${br(v)}</td>`).join("")}</tr>`).join("")}</tbody></table>
+  <table style="width:100%;margin-top:22px;font-size:11.5pt"><tr><td style="width:50%;vertical-align:top;height:90px"><b>توقيع الأستاذ(ة)</b></td><td style="width:50%;vertical-align:top;text-align:left"><b>توقيع وختم الإدارة</b></td></tr></table></div>`}
+function loadDocx(){if(window.docx)return Promise.resolve(window.docx);return new Promise((ok,ko)=>{const sc=document.createElement("script");sc.src="https://cdn.jsdelivr.net/npm/docx@9.0.2/build/index.umd.js";sc.onload=()=>window.docx?ok(window.docx):ko(new Error("docx"));sc.onerror=()=>ko(new Error("Chargement impossible (connexion)"));document.head.appendChild(sc)})}
+async function soDocx(R,M){const D=await loadDocx();const {Document,Packer,Paragraph,TextRun,Table,TableRow,TableCell,WidthType,AlignmentType,BorderStyle,ImageRun,PageOrientation,VerticalAlign,ShadingType,TableLayoutType}=D;
+  const ar=t=>/[؀-ۿ]/.test(t);const TW=15238,dx=p=>Math.round(TW*p/100);
+  const P=(t,o={})=>new Paragraph({bidirectional:o.ltr?false:true,alignment:o.al||AlignmentType.START,spacing:{after:o.after??40},children:String(t??"").split("\n").flatMap((ln,i)=>{const r=new TextRun({text:ln,bold:!!o.b,size:o.sz||21,font:"Arial",rightToLeft:!o.ltr&&ar(ln),break:i?1:undefined});return [r]})});
+  const NB={top:{style:BorderStyle.NONE,size:0,color:"FFFFFF"},bottom:{style:BorderStyle.NONE,size:0,color:"FFFFFF"},left:{style:BorderStyle.NONE,size:0,color:"FFFFFF"},right:{style:BorderStyle.NONE,size:0,color:"FFFFFF"}};
+  let logo=[];if(M.logo){try{const b64=M.logo.split(",")[1],bin=atob(b64),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);const im=new Image();await new Promise(r=>{im.onload=r;im.onerror=r;im.src=M.logo});const h=80,w=Math.round(h*(im.naturalWidth||1)/(im.naturalHeight||1));logo=[new Paragraph({alignment:AlignmentType.CENTER,children:[new ImageRun({data:u,type:"png",transformation:{width:Math.min(w,170),height:h}})]})]}catch(e){console.warn(e)}}
+  const head=new Table({visuallyRightToLeft:true,layout:TableLayoutType.FIXED,width:{size:TW,type:WidthType.DXA},columnWidths:[dx(38),dx(24),dx(38)],borders:{...NB,insideHorizontal:NB.top,insideVertical:NB.top},rows:[new TableRow({children:[
+    new TableCell({width:{size:dx(38),type:WidthType.DXA},borders:NB,children:["المملكة المغربية","وزارة التربية الوطنية والتعليم الأولي والرياضة",M.acad,M.dir].filter(Boolean).map(t=>P(t,{sz:21,after:0})).concat(M.etab?[P(M.etab,{sz:20,b:true,after:0})]:[])}),
+    new TableCell({width:{size:dx(24),type:WidthType.DXA},borders:NB,verticalAlign:VerticalAlign.CENTER,children:logo.length?logo:[P("")]}),
+    new TableCell({width:{size:dx(38),type:WidthType.DXA},borders:NB,children:[P("الموسم الدراسي : "+M.year,{sz:20,al:AlignmentType.END}),P("رقم البطاقة : "+M.num,{sz:20,b:true,al:AlignmentType.END})]})]})]});
+  const W=[11,9,24,24,20,12],bd={style:BorderStyle.SINGLE,size:6,color:"333333"},B={top:bd,bottom:bd,left:bd,right:bd};
+  const cell=(t,i,h)=>new TableCell({width:{size:dx(W[i]),type:WidthType.DXA},borders:B,shading:h?{type:ShadingType.CLEAR,fill:"E8EFE9",color:"auto"}:undefined,margins:{top:60,bottom:60,left:80,right:80},children:[P(t,{b:h,sz:h?21:19,al:h?AlignmentType.CENTER:undefined,ltr:!h&&t&&!ar(t),after:0})]});
+  const tbl=new Table({visuallyRightToLeft:true,layout:TableLayoutType.FIXED,width:{size:TW,type:WidthType.DXA},columnWidths:W.map(dx),rows:[new TableRow({tableHeader:true,children:SH.map((h,i)=>cell(h,i,true))}),...R.map(r=>new TableRow({cantSplit:true,children:soRow(r).map((v,i)=>cell(v,i,false))}))]});
+  const sig=new Table({visuallyRightToLeft:true,layout:TableLayoutType.FIXED,width:{size:TW,type:WidthType.DXA},columnWidths:[dx(50),dx(50)],borders:{...NB,insideHorizontal:NB.top,insideVertical:NB.top},rows:[new TableRow({height:{value:1400,rule:"atLeast"},children:[new TableCell({width:{size:dx(50),type:WidthType.DXA},borders:NB,children:[P("توقيع الأستاذ(ة)",{b:true,sz:22})]}),new TableCell({borders:NB,children:[P("توقيع وختم الإدارة",{b:true,sz:22,al:AlignmentType.END})],width:{size:dx(50),type:WidthType.DXA}})]})]});
+  const doc=new Document({styles:{default:{document:{run:{font:"Arial"}}}},sections:[{properties:{page:{size:{orientation:PageOrientation.LANDSCAPE},margin:{top:700,bottom:700,left:800,right:800}}},children:[head,
+    P("بطاقة الدعم التربوي",{b:true,sz:36,al:AlignmentType.CENTER,after:20}),P(M.sem,{sz:23,al:AlignmentType.CENTER,after:120}),
+    new Table({visuallyRightToLeft:true,layout:TableLayoutType.FIXED,width:{size:TW,type:WidthType.DXA},columnWidths:[dx(50),dx(50)],borders:{...NB,insideHorizontal:NB.top,insideVertical:NB.top},rows:[new TableRow({children:[new TableCell({width:{size:dx(50),type:WidthType.DXA},borders:NB,children:[P("الأستاذ(ة) : "+(M.ens||"……………………"),{sz:23})]}),new TableCell({width:{size:dx(50),type:WidthType.DXA},borders:NB,children:[P("المادة : "+(M.mat||""),{sz:23,al:AlignmentType.END})]})]})]}),
+    P("",{after:60}),tbl,P("",{after:200}),sig]}]});
+  return Packer.toBlob(doc)}
+function soRange(){const t=today(),c0=cls()||classList()[0],s2=c0?sem2(c0):defSem2(),y0=sfYear(t).slice(0,4)+"-09-01";const f=($("#soFrom")||{}).value||S.soFrom||(t>=s2?s2:y0),to=($("#soTo")||{}).value||S.soTo||t,lv=($("#soLv")||{}).value??(S.soLv||"");S.soFrom=f;S.soTo=to;S.soLv=lv;return {f,to,lv}}
+function sfRead(){const g=id=>($("#"+id)||{}).value;const f=sfG();S.sf={...f,num:+(g("sfNum")||f.num)||1,ens:(g("sfEns")??f.ens).trim(),mat:(g("sfMat")??f.mat).trim(),etab:(g("sfEtab")??f.etab).trim(),acad:(g("sfAcad")??f.acad).trim(),dir:(g("sfDir")??f.dir).trim()};saveUI()}
+async function soRun(kind){sfRead();const {f,to,lv}=soRange();if(f>to)return toast("La date de début est après la date de fin.");setSync("Lecture des séances…");let R;try{R=await soutData(f,to,lv)}catch(e){setSync(api.label);return toast("Lecture impossible. Vérifiez la connexion.")}setSync(api.label);
+  if(!R.length){S.soPrev=null;render();return toast("Aucune séance de soutien sur cette période.")}const M=soMeta(f,to),nm=`fiche-soutien-${M.num}-${f}_${to}`;
+  if(kind==="view"){S.soPrev={R,M};return render()}
+  if(kind==="docx"){try{toast("Préparation du fichier Word…");const blob=await soDocx(R,M);await saveFile(nm+".docx",blob)}catch(e){console.warn(e);return toast("Fichier Word impossible : "+(e.message||"erreur"))}}
+  if(kind==="pdf"){const fr=document.createElement("iframe");fr.style.cssText="position:fixed;right:0;bottom:0;width:0;height:0;border:0";document.body.appendChild(fr);const dd=fr.contentDocument;dd.open();dd.write(`<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>${esc(nm)}</title><style>@page{size:A4 landscape;margin:10mm}body{margin:0}thead{display:table-header-group}</style></head><body>${soHtml(R,M)}</body></html>`);dd.close();
+    await new Promise(r=>setTimeout(r,400));try{fr.contentWindow.focus();fr.contentWindow.print()}catch(e){toast("Impression impossible")}setTimeout(()=>fr.remove(),60000);toast("Choisissez « Enregistrer en PDF » dans la fenêtre d'impression")}
+  S.sf={...sfG(),num:(sfG().num||1)+1};saveUI();render()}
+async function sfLogo(file){if(!file)return;const url=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(file)});const im=new Image();await new Promise((ok,ko)=>{im.onload=ok;im.onerror=ko;im.src=url}).catch(()=>null);if(!im.naturalWidth)return toast("Image illisible.");
+  const k=Math.min(1,260/Math.max(im.naturalWidth,im.naturalHeight)),cv=document.createElement("canvas");cv.width=Math.round(im.naturalWidth*k);cv.height=Math.round(im.naturalHeight*k);cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height);sfRead();S.sf={...sfG(),logo:cv.toDataURL("image/png")};saveUI();toast("Logo enregistré");render()}
+function soutCard(){if(!classList().length)return "";const f=sfG(),lvs=[...new Set(classList().map(c=>c.level).filter(Boolean))].sort(),{f:fr,to,lv}=(()=>{const t=today(),c0=cls()||classList()[0],s2=c0?sem2(c0):defSem2(),y0=sfYear(t).slice(0,4)+"-09-01";return {f:S.soFrom||(t>=s2?s2:y0),to:S.soTo||t,lv:S.soLv||""}})();
+  return `<div class="card form"><h2>🧩 Fiche de soutien · بطاقة الدعم التربوي</h2><span class="hint">Les séances « Soutien » de la période : date, classe, sujet et objectifs, déroulement, absents, signature. Word (.docx) ou PDF.</span>
+  <div class="grid2"><label>N° de la fiche · رقم البطاقة<input id="sfNum" type="number" min="1" value="${f.num}"></label><label>Enseignant(e) · الأستاذ(ة)<input id="sfEns" value="${esc(f.ens||(PR.cur&&PR.cur.id!=="cloud"?PR.cur.name:""))}" maxlength="60"></label></div>
+  <div class="grid2"><label>Matière · المادة<input id="sfMat" value="${esc(f.mat)}" maxlength="60"></label><label>Établissement · المؤسسة<input id="sfEtab" value="${esc(f.etab)}" placeholder="الثانوية الإعدادية …" maxlength="80"></label></div>
+  <div class="grid2"><label>Académie · الأكاديمية الجهوية<input id="sfAcad" value="${esc(f.acad)}" placeholder="الأكاديمية الجهوية للتربية والتكوين …" maxlength="90"></label><label>Direction · المديرية الإقليمية<input id="sfDir" value="${esc(f.dir)}" placeholder="المديرية الإقليمية …" maxlength="90"></label></div>
+  <div class="tools">${f.logo?`<img src="${f.logo}" alt="Logo" style="height:44px;border:1px solid var(--line);border-radius:6px;background:#fff;padding:2px">`:`<span class="hint" style="flex:1">Logo du ministère (en-tête) : ajoutez l'image une fois.</span>`}<label class="btn" style="cursor:pointer">🖼️ ${f.logo?"Changer le logo":"Ajouter le logo"}<input type="file" id="sfLogo" accept="image/*" hidden></label>${f.logo?`<button class="btn" data-act="sfLogoX" style="color:var(--bad)">Retirer</button>`:""}</div>
+  <div class="grid2"><label>Du<input type="date" id="soFrom" value="${fr}"></label><label>Au<input type="date" id="soTo" value="${to}"></label></div>
+  <label>Niveau<select id="soLv"><option value="">Tous les niveaux</option>${lvs.map(l=>`<option ${lv===l?"selected":""}>${esc(l)}</option>`).join("")}</select></label>
+  <div class="tools"><button class="btn" data-act="soView">Aperçu</button><button class="btn primary" data-act="soDocx">⬇ Word (.docx)</button><button class="btn" data-act="soPdf">🖨️ PDF</button>${S.soPrev?`<button class="btn" data-act="soClose">Masquer</button>`:""}</div>
+  ${S.soPrev?`<div style="overflow-x:auto;background:#fff;color:#111;border:1px solid var(--line);border-radius:8px;padding:10px"><div style="min-width:720px">${soHtml(S.soPrev.R,S.soPrev.M)}</div></div>`:""}</div>`}
 
 /* ---------- Blocs repliables ---------- */
 const fOpen=(k,d)=>((S.fold||{})[k]??d)?"open":"";
@@ -2446,7 +2516,7 @@ function teamEditor(c){const T=teamsOf(c),st=sorted(c),by=Object.fromEntries(st.
     <span class="hint">« Répartir » remplace les équipes actuelles par des équipes équilibrées (notes mélangées). Vous pouvez ensuite déplacer des élèves.</span>
     ${T.length?(S.tmClear?`<div class="confirm">Supprimer toutes les équipes ? <button class="btn danger" data-act="tmClearYes">Oui</button><button class="btn" data-act="tmClearNo">Non</button></div>`:`<div><button class="linkbtn" data-act="tmClear" style="color:var(--bad)">Supprimer toutes les équipes</button></div>`):""}</div>`}
 function viewDetails(){const c=cls();
-  return `${restoreCard()}${dupCard()}${modCard()}${adminCard()}${journalCard()}
+  return `${restoreCard()}${dupCard()}${modCard()}${adminCard()}${journalCard()}${soutCard()}
   <div class="card form"><h2>Sauvegarde · نسخة احتياطية</h2><p class="hint" style="margin:0">Enregistrez toutes vos classes, plans, horaires et notes dans un fichier. La restauration ajoute ou remplace les classes du fichier sans effacer les autres. Ce bouton accepte aussi les fichiers « séance » et « journée ».</p>
   ${S.bk?`<div class="flag" style="background:var(--ok-bg,#e6f4ea);color:var(--ok);border-color:var(--ok);display:grid;gap:6px"><span>Sauvegarde prête : ${S.bk.n} classe(s), ${S.bk.ns} élève(s)${S.bk.ok?" · fichier « "+esc(S.bk.name)+" » téléchargé":""}</span><span style="font-weight:400">Si aucun fichier n'apparaît dans vos Téléchargements, utilisez « Partager » (WhatsApp, e-mail, Drive…) ou « Copier » puis collez le texte sur l'autre appareil (Détails → Coller une sauvegarde).</span>
     <div class="tools"><button class="btn primary" data-act="bkShare">Partager le fichier</button><button class="btn" data-act="bkCopy">Copier la sauvegarde</button><button class="btn" data-act="bkDl">Télécharger à nouveau</button><button class="btn" data-act="bkClose">Fermer</button></div><textarea id="bkText" hidden readonly style="min-height:60px;font-size:.7rem">${esc(S.bk.json)}</textarea></div>`:""}
@@ -2513,6 +2583,11 @@ document.addEventListener("click",async e=>{
   if(a==="selClass"){S.xid=null;selectClass(id);if(S.tab==="classe")setTimeout(()=>{const d=document.getElementById("clsDetail");if(d)d.scrollIntoView({behavior:"smooth",block:"start"})},80);return}
   if(a==="goImport"){S.imp={kind:t.dataset.k,ref:t.dataset.ref||null};S.tab="eval";saveUI();render();const inp=document.getElementById(t.dataset.k==="plk"?"plkIn":"exIn");if(inp){inp.scrollIntoView({block:"center"});try{inp.click()}catch(err){}}toast(t.dataset.k==="plk"?"Choisissez le fichier CSV Plickers":"Choisissez le fichier Excel des notes");return}
   if(a==="goEvalPlk"){S.tab="eval";S.plkOpen=t.dataset.t;saveUI();render();const d=document.querySelector(`details[data-plo="${t.dataset.t}"]`);if(d)d.scrollIntoView({block:"start"});return}
+  if(a==="soView")return soRun("view");
+  if(a==="soDocx")return soRun("docx");
+  if(a==="soPdf")return soRun("pdf");
+  if(a==="soClose"){S.soPrev=null;return render()}
+  if(a==="sfLogoX"){sfRead();S.sf={...sfG(),logo:""};saveUI();return render()}
   if(a==="jView")return journalRun("view");
   if(a==="jDoc")return journalRun("doc");
   if(a==="jCsv")return journalRun("csv");
@@ -2855,6 +2930,8 @@ document.addEventListener("change",async e=>{
   if(e.target.id==="dWarn"){S.dispWarn=e.target.value;saveUI();return}
   if(e.target.id==="ctEdSub"){const o=$("#ctEdOther");if(o){o.hidden=e.target.value!=="__o";if(!o.hidden)o.focus()}return}
   if(e.target.id==="dTLab"){S.dTLab=e.target.value;return}
+  if(e.target.id==="sfLogo"){return sfLogo(e.target.files[0])}
+  if(["sfNum","sfEns","sfMat","sfEtab","sfAcad","sfDir"].includes(e.target.id)){sfRead();return}
   if(e.target.id==="cmpMet"){S.cmpMet=e.target.value;return render()}
   if(e.target.id==="dTheme"){S.dTheme=e.target.value;saveUI();return dispPush({theme:S.dTheme})}
   if(e.target.id==="dAlpha"){S.dAlpha=+e.target.value;saveUI();return dispPush({alpha:S.dAlpha})}
