@@ -366,7 +366,9 @@ table.bil thead th:nth-child(2){z-index:3;background:var(--paper)}table.bil td:n
 .sdet .hd{display:flex;align-items:center;gap:8px}.sdet .hd b{flex:1;font-size:1.05rem}.sdet .nt{font-family:var(--f-display);font-weight:800;font-size:1.4rem;color:var(--board)}
 .sdet .kv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.sdet .kv div{background:var(--sheet);border:1px solid var(--line);border-radius:9px;padding:6px 4px;text-align:center;display:grid}
 .sdet .kv b{font-size:1rem}.sdet .kv span{font-size:.68rem;color:var(--muted);line-height:1.15}
-.plan>.qprow{grid-column:1/-1;min-width:0}.plan>.qprow .qp{margin:0}
+.plan>.qprow{grid-column:1/-1;min-width:0;max-width:100%}.plan>.qprow .qp{margin:0}.qp{min-width:0;grid-template-columns:minmax(0,1fr)}.qp>*{min-width:0}.qph{min-width:0}.qph .qn{min-width:0;width:30px;flex:none;padding:0}.qph .qpn{flex:1 1 0;font-size:.92rem}
+@media (max-width:420px){.qph{flex-wrap:wrap;row-gap:4px;justify-content:center}.qph .qpn{flex:1 1 100%;order:-1}.qp .qpb .qb{font-size:.64rem;letter-spacing:-.04em;padding:3px 0}.qp .qpb{gap:2px}.plan>.qprow .qp{padding:5px}}
+@media (max-width:360px){.qp .qpb .qb{font-size:.58rem}.qp .qpb .qb b{font-size:.72rem}}
 .qp .qpb{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:3px;flex-wrap:nowrap}
 .qp .qpb .qb{flex-direction:column;justify-content:center;gap:0;padding:4px 1px;min-width:0;min-height:46px;font-size:.72rem;line-height:1.1;white-space:nowrap;overflow:hidden}
 .qp .qpb .qb b{font-size:.8rem;min-width:0}.qp .qpb .qb.pres{font-size:.85rem;font-weight:900;letter-spacing:.02em}
