@@ -366,6 +366,11 @@ table.bil thead th:nth-child(2){z-index:3;background:var(--paper)}table.bil td:n
 .sdet .hd{display:flex;align-items:center;gap:8px}.sdet .hd b{flex:1;font-size:1.05rem}.sdet .nt{font-family:var(--f-display);font-weight:800;font-size:1.4rem;color:var(--board)}
 .sdet .kv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.sdet .kv div{background:var(--sheet);border:1px solid var(--line);border-radius:9px;padding:6px 4px;text-align:center;display:grid}
 .sdet .kv b{font-size:1rem}.sdet .kv span{font-size:.68rem;color:var(--muted);line-height:1.15}
+.plan>.qprow{grid-column:1/-1;min-width:0}.plan>.qprow .qp{margin:0}
+.qp .qpb{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:3px;flex-wrap:nowrap}
+.qp .qpb .qb{flex-direction:column;justify-content:center;gap:0;padding:4px 1px;min-width:0;min-height:46px;font-size:.72rem;line-height:1.1;white-space:nowrap;overflow:hidden}
+.qp .qpb .qb b{font-size:.8rem;min-width:0}.qp .qpb .qb.pres{font-size:.85rem;font-weight:900;letter-spacing:.02em}
+.qph .qn.dif[aria-pressed=true]{background:var(--late);border-color:var(--late)}.qph .qpn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 </style>
 
 </head><body>
@@ -879,9 +884,9 @@ function cardSeats(c){const L=sorted(c).filter(s=>s.card>0).sort((a,b)=>a.card-b
   const ids=new Set(L.map(s=>s.id));let kept=0;for(const k in (c.seats||{})){const sid=c.seats[k];if(!ids.has(sid)&&!seats[k]&&(c.students||[]).some(x=>x.id===sid)){seats[k]=sid;kept++}}
   return {seats,n,over,without:sorted(c).filter(s=>!(s.card>0)).length,kept}}
 const seatKeys=c=>{const L=lay(c),k=[];for(let r=1;r<=L.rows;r++)for(let t=1;t<=L.cols;t++)for(let s=1;s<=L.per;s++)k.push(r+"-"+t+"-"+s);return k};
-function seatGrid(c,cell,top){const L=lay(c),seats=c.seats||{};
+function seatGrid(c,cell,top,ins){const L=lay(c),seats=c.seats||{};
   let h=`<div class="card planwrap">${top||`<div class="boardbar">TABLEAU · السبورة</div>`}<div class="plan" style="--cols:${L.cols}">`;
-  for(let r=1;r<=L.rows;r++)for(let t=1;t<=L.cols;t++){h+=`<div class="desk" style="--per:${L.per}">`;for(let s=1;s<=L.per;s++){const key=r+"-"+t+"-"+s;h+=cell(key,seats[key])}h+=`</div>`}
+  for(let r=1;r<=L.rows;r++)for(let t=1;t<=L.cols;t++){if(ins&&t===1&&r===ins.row)h+=`<div class="qprow">${ins.html}</div>`;h+=`<div class="desk" style="--per:${L.per}">`;for(let s=1;s<=L.per;s++){const key=r+"-"+t+"-"+s;h+=cell(key,seats[key])}h+=`</div>`}
   return h+`</div><div class="hint" style="text-align:center">Fond de la salle</div></div>`}
 const chipBtn=(m,s,k,lab,cl)=>`<button class="chip ${cl} ${(m[k]||0)?"":"zero"}" data-act="${k}" data-id="${s.id}" aria-label="${lab} pour ${esc(s.name)}">${lab} <span class="v">${m[k]||0}</span></button>`;
 const presLab=p=>p==="P"?"Présent":p==="A"?"Absent":"Retard";
@@ -890,12 +895,10 @@ const cahBtn=(m,s,p)=>`<button class="cah ${m.cah||"none"}" data-act="cah" data-
 
 function quickPanel(c,s,FL,st,bot){if(!s)return bot?"":`<div class="qp qp0"><span class="hint">Touchez un élève · ou le tableau pour un tirage au sort</span></div>`;
   const m=mark(s.id),p=m.p||"P",ab=p==="A";const n=k=>m[k]||0;const CS={"":"–",ok:"✓",abs:"✗",inc:"½"};
-  const b=(k,lab,cl)=>`<button class="qb ${cl}${n(k)?"":" z"}" data-act="${k}" data-id="${s.id}" ${ab?"disabled":""}>${lab}<b>${n(k)}</b></button>`;
-  return `<div class="qp${S.undo?" undo":""}"><div class="qph"><button class="qn" data-act="stuNav" data-d="-1" aria-label="Élève précédent">‹</button><b class="qpn">${S.pick===s.id?"🎲 ":""}${s.num}. ${esc(s.name)}</b><button class="qn" data-act="stuNav" data-d="1" aria-label="Élève suivant">›</button><button class="qn" data-act="qpNote" aria-pressed="${!!S.qpNote}" aria-label="Remarque">📝</button><button class="qn" data-act="fiche" data-id="${s.id}" aria-label="Fiche de l'élève" title="Fiche de l'élève">📄</button><button class="qn" data-act="closeSheet" aria-label="Fermer">✕</button></div>
+  const TT={ex:"Exercice fait",nex:"Exercice non fait",plus:"Bonne réponse",nr:"Participation sans bonne réponse",minus:"Comportement −1"};const b=(k,lab,cl)=>`<button class="qb ${cl}${n(k)?"":" z"}" data-act="${k}" data-id="${s.id}" ${ab?"disabled":""} title="${TT[k]}" aria-label="${TT[k]}">${lab}<b>${n(k)}</b></button>`;
+  return `<div class="qp${S.undo?" undo":""}"><div class="qph"><button class="qn" data-act="stuNav" data-d="-1" aria-label="Élève précédent">‹</button><b class="qpn">${S.pick===s.id?"🎲 ":""}${s.num}. ${esc(s.name)}</b><button class="qn" data-act="stuNav" data-d="1" aria-label="Élève suivant">›</button><button class="qn dif" data-act="diff" data-id="${s.id}" aria-pressed="${!!m.diff}" ${ab?"disabled":""} title="Élève en difficulté · متعثر" aria-label="Difficulté">D</button><button class="qn" data-act="undo" aria-pressed="${!!S.undo}" title="Correction : les touches retirent 1" aria-label="Correction moins 1">↶</button><button class="qn" data-act="qpNote" aria-pressed="${!!S.qpNote}" aria-label="Remarque">📝</button><button class="qn" data-act="fiche" data-id="${s.id}" aria-label="Fiche de l'élève" title="Fiche de l'élève">📄</button><button class="qn" data-act="closeSheet" aria-label="Fermer">✕</button></div>
   ${!bot&&FL&&FL[s.id]?`<div class="flag" style="margin:0">⚑ ${esc(flagTxt(FL[s.id]))}</div>`:""}
-  <div class="qpb"><button class="qb pres ${p}" data-act="pres" data-id="${s.id}">${p==="P"?"Présent":p==="A"?"Absent":"Retard"}</button>${b("ex","✓ Ex","ex")}${b("nex","✗ Ex","nex")}${b("plus","+ Rép","plus")}${b("nr","✗ Sans","nr")}${b("minus","− Comp","minus")}<button class="qb q${n("q")?"":" z"}" data-act="q" data-id="${s.id}" ${ab?"disabled":""} title="Bonus direct sur la note : +0,25 (3 points au plus par semestre)">+0,25<b>${(qSem(c,s.id)*.25).toFixed(2).replace(/\.?0+$/,"")||"0"}/3</b></button><button class="qb qm${n("qm")?"":" z"}" data-act="qm" data-id="${s.id}" ${ab?"disabled":""} title="Retrait direct sur la note : −0,25">−0,25<b>${n("qm")}</b></button>
-  <button class="qb cah" data-act="cah" data-id="${s.id}" ${ab?"disabled":""}>Cah<b>${CS[m.cah||""]}</b></button><button class="qb diff" data-act="diff" data-id="${s.id}" aria-pressed="${!!m.diff}" ${ab?"disabled":""}>Diff${m.diff?"<b>✓</b>":""}</button>
-  <button class="qb" data-act="undo" aria-pressed="${!!S.undo}" title="Les touches retirent 1">↶ −1</button></div>
+  <div class="qpb"><button class="qb pres ${p}" data-act="pres" data-id="${s.id}" title="${presLab(p)} · toucher pour changer" aria-label="${presLab(p)}">${p==="P"?"PR":p==="A"?"AB":"RT"}</button>${b("ex","✓Ex","ex")}${b("nex","✗Ex","nex")}${b("plus","+Rép","plus")}${b("nr","✗Rép","nr")}${b("minus","−Cpt","minus")}<button class="qb q${n("q")?"":" z"}" data-act="q" data-id="${s.id}" ${ab?"disabled":""} title="Bonus direct sur la note : +0,25 (3 points au plus par semestre)" aria-label="Plus 0,25">+.25<b>${(qSem(c,s.id)*.25).toFixed(2).replace(/\.?0+$/,"")||"0"}</b></button><button class="qb qm${n("qm")?"":" z"}" data-act="qm" data-id="${s.id}" ${ab?"disabled":""} title="Retrait direct sur la note : −0,25" aria-label="Moins 0,25">−.25<b>${n("qm")}</b></button><button class="qb cah" data-act="cah" data-id="${s.id}" ${ab?"disabled":""} title="Cahier" aria-label="Cahier">Cah<b>${CS[m.cah||""]}</b></button></div>
   ${S.qpNote&&!bot?`<form class="notebox" id="noteForm" data-id="${s.id}" style="margin:0"><input id="noteIn" placeholder="Remarque…" aria-label="Remarque"><button class="btn" type="submit">Noter</button></form>`:""}</div>`}
 function planSeance(c,st,numMode){
   const by=Object.fromEntries(st.map(s=>[s.id,s]));const placed=new Set(Object.values(c.seats||{}));
@@ -911,9 +914,12 @@ function planSeance(c,st,numMode){
       +(free.length?`<div class="card form"><b>Sans équipe · ${free.length}</b><div class="numgrid">${free.map(x=>cellFn("",x.id)).join("")}</div></div>`:"")
       +`<span class="hint">Les boutons d'équipe ajoutent 1 point à chaque membre présent (absents exclus). ${S.undo?"Mode correction actif : ils retirent 1 point.":""} Pour modifier les équipes : onglet « Classe ».</span>`
      :`<div class="card empty"><h2>Aucune équipe</h2><p class="hint">Créez les équipes et ajoutez leurs élèves dans l'onglet « Classe ».</p><button class="btn primary" data-act="go" data-to="classe">Créer les équipes</button></div>`}
-  else{const top=`<button class="boardbar boardpick" data-act="pick" aria-label="Tirer au sort un élève">🎲 TABLEAU · السبورة <small>toucher = tirage au sort</small></button>${quickPanel(c,by[S.selStu],FL,st)}`;
-    h=numMode?`<div class="card planwrap">${top}<div class="numgrid">${st.map(x=>cellFn("",x.id)).join("")}</div></div>`:seatGrid(c,cellFn,top);
-    {const qb=quickPanel(c,by[S.selStu],FL,st,true);if(qb)h+=`<div class="qpbot">${qb}</div>`}
+  else{const board=`<button class="boardbar boardpick" data-act="pick" aria-label="Tirer au sort un élève">🎲 TABLEAU · السبورة <small>toucher = tirage au sort</small></button>`;
+    const sk=!numMode&&S.selStu&&by[S.selStu]?Object.keys(c.seats||{}).find(k=>c.seats[k]===S.selStu):null,row=sk?+sk.split("-")[0]:0,L0=lay(c);
+    if(!numMode&&row>=1&&row<=L0.rows){h=seatGrid(c,cellFn,board,{row,html:quickPanel(c,by[S.selStu],FL,st)})}
+    else{const top=board+quickPanel(c,by[S.selStu],FL,st);
+      h=numMode?`<div class="card planwrap">${top}<div class="numgrid">${st.map(x=>cellFn("",x.id)).join("")}</div></div>`:seatGrid(c,cellFn,top);
+      {const qb=quickPanel(c,by[S.selStu],FL,st,true);if(qb)h+=`<div class="qpbot">${qb}</div>`}}
     h+=`<div class="allbar"><button class="btn" data-act="exAll" title="Tous les présents sans « ✗ Ex » reçoivent « ✓ Ex »">✓ Exercices : valider les autres<br><small style="font-weight:400">التمارين للباقي</small></button><button class="btn" data-act="cahAll" title="Tous les présents sans remarque sur le cahier : cahier complet">📓 Cahiers : valider les autres<br><small style="font-weight:400">الدفاتر للباقي</small></button></div>`}
   const loose=st.filter(s=>!placed.has(s.id));
   if(loose.length&&!numMode&&S.mode!=="team")h+=`<div class="card form"><span class="hint">${loose.length} élève(s) sans place. Placez-les dans l'onglet « Classe ».</span><div class="tools">${loose.map(s=>`<button class="btn" data-act="stu" data-id="${s.id}">${s.num}. ${esc(s.name)}</button>`).join("")}</div></div>`;
@@ -1203,7 +1209,7 @@ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest
  document.addEventListener("pointerup",e=>{if(e.pointerType==="mouse")end(e.clientX,e.clientY)},{passive:true})}
 function render(){if(S.cours&&S.tab!=="seance"){S.cours=false;wakeOff()}document.body.classList.toggle("cours",!!S.cours);document.body.classList.toggle("home",S.tab==="home");navHist();render0();demoDecor();
   try{const v=$("#view");if(S.tab==="bilan"&&!S.stu&&cls()&&!(cls().students||[]).length&&!v.querySelector(".evalsep"))v.insertAdjacentHTML("beforeend",evalPart());
-    foldCards();document.querySelectorAll(".numstrip .on").forEach(o=>{const p=o.parentElement;p.scrollLeft=o.offsetLeft-p.offsetLeft-p.clientWidth/2+o.clientWidth/2});
+    {const so=S.tab==="seance"&&S.selStu&&document.querySelector(".plan .seat.on");if(so){const r=so.getBoundingClientRect();if(r.bottom>innerHeight-84||r.top<0)so.scrollIntoView({block:"center"})}}foldCards();document.querySelectorAll(".numstrip .on").forEach(o=>{const p=o.parentElement;p.scrollLeft=o.offsetLeft-p.offsetLeft-p.clientWidth/2+o.clientWidth/2});
     {const hb=$("#histBox");if(hb)hb.innerHTML=S.hist?histHtml():""}if(S.tab==="bilan"&&(S.fold||{}).cmp&&!S.cmpDays&&!S.cmpLoading)cmpLoad()}catch(e){console.warn(e)}}
 function foldCards(){const v=$("#view");if(!v)return;const tab=S.tab==="eval"?"bilan":S.tab;
   v.querySelectorAll(".card").forEach(cd=>{if(cd.tagName==="DETAILS"||cd.classList.contains("fcard")||cd.closest("details")||cd.parentElement.closest(".card"))return;
@@ -1315,7 +1321,7 @@ function viewBilan(c){
   <tbody>${rows.map(r=>`<tr><td>${r.num||""}</td><td class="l"><button class="namebtn" data-act="fiche" data-id="${r.id}">${esc(r.name)}</button></td><td class="${r.A?"r":""}">${r.A}</td><td>${r.R}</td><td class="y">${r.exD}</td><td class="${r.exN?"r":""}">${r.exN}</td><td class="g">${r.plus}</td><td class="${r.nr?"y":""}">${r.nr}</td><td>${r.rate==null?"–":r.rate+"%"}</td><td class="r">${r.minus}</td><td class="${r.cA?"r":""}">${r.cA}</td><td class="${r.cI?"y":""}">${r.cI}</td><td>${r.score>0?"+":""}${+r.score.toFixed(2)}</td><td class="${r.bon-r.mal>0?"g":r.bon-r.mal<0?"r":""}" title="+${r.bon} / −${r.mal}">${r.bon||r.mal?(r.bon-r.mal>0?"+":"")+(+(r.bon-r.mal).toFixed(2)):"–"}</td><td class="note">${r.note.toFixed(2)}<div class="bar20"><i style="width:${r.note*5}%"></i></div></td></tr>`).join("")}</tbody></table></div>
   <div class="tools"><button class="btn primary" data-act="csv">Télécharger (CSV / Excel)</button><button class="btn" data-act="copy">Copier les notes</button></div>
   <form class="card form" id="wForm"><h2>Barème des activités</h2>
-    <p class="hint" style="margin:0">Points = exercices (positifs ou négatifs) × ${w.wEx} + bonne réponse × ${w.wPlus} + participation sans bonne réponse × ${w.wNr??DEF.wNr} − comportement × ${w.wMinus} − cahier غير متوفر × ${w.cahAbs} − دروس ناقصة × ${w.cahInc}${w.latePen?` − retards × ${w.latePen}`:""}. Note = ${w.base} + points × ${w.step}, limitée entre 0 et 20, arrondie au quart.</p>
+    <p class="hint" style="margin:0">Points = exercice fait × ${w.wEx} − exercice non fait (✗ Ex) × ${w.wEx} + bonne réponse × ${w.wPlus} + participation sans bonne réponse × ${w.wNr??DEF.wNr} − comportement × ${w.wMinus} − cahier غير متوفر × ${w.cahAbs} − دروس ناقصة × ${w.cahInc}${w.latePen?` − retards × ${w.latePen}`:""}. Note = ${w.base} + points × ${w.step}, limitée entre 0 et 20, arrondie au quart.</p>
     <div class="grid2">
       <label>Poids exercice<input type="number" step="0.25" min="0" id="wEx" value="${w.wEx}"></label>
       <label>Poids bonne réponse<input type="number" step="0.25" min="0" id="wPlus" value="${w.wPlus}"></label>
