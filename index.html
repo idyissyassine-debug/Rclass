@@ -304,7 +304,7 @@ body.cours header.top,body.cours .bnav,body.cours .demobar,body.cours .strip,bod
 .studlist li .ract{display:flex;gap:4px;flex:none}.studlist li .selbox{flex:none}.ract button{width:38px;height:36px;padding:0;display:grid;place-items:center;font-size:1rem;border-radius:9px}
 .cmpbar{display:grid;grid-template-columns:minmax(70px,auto) 1fr 52px;gap:6px;align-items:center;font-size:.85rem}.cmpbar .b{height:12px;border-radius:6px;background:var(--line);overflow:hidden}.cmpbar .b i{display:block;height:100%;background:var(--board)}.cmpbar.me{font-weight:800}.cmpbar.me .b i{background:var(--ok)}.cmpbar small{color:var(--muted)}
 .les2{border-top:1px dashed var(--line);padding-top:6px}
-html,body{max-width:100%;overflow-x:hidden}
+html,body{max-width:100%;overflow-x:clip}
 .hdright{flex-wrap:wrap;justify-content:flex-end;row-gap:4px;min-width:0}
 @media (max-width:700px){header.top.mini .brand{flex-wrap:wrap!important}header.top.mini .hdinfo{flex:0 0 auto!important}}
 @media (max-width:480px){.hdright{gap:3px}.hdright .hdbtn{min-width:28px;height:30px;padding:0 5px;font-size:.9rem}#perTop{max-width:66px;height:30px}.syncst{min-height:30px;padding:3px 6px;gap:4px}}
@@ -373,6 +373,17 @@ table.bil thead th:nth-child(2){z-index:3;background:var(--paper)}table.bil td:n
 .qp .qpb .qb{flex-direction:column;justify-content:center;gap:0;padding:4px 1px;min-width:0;min-height:46px;font-size:.72rem;line-height:1.1;white-space:nowrap;overflow:hidden}
 .qp .qpb .qb b{font-size:.8rem;min-width:0}.qp .qpb .qb.pres{font-size:.85rem;font-weight:900;letter-spacing:.02em}
 .qph .qn.dif[aria-pressed=true]{background:var(--late);border-color:var(--late)}.qph .qpn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+header.top:not(.mini){position:relative}
+.toolbar{position:sticky;top:0;z-index:7;display:flex;gap:3px;overflow-x:auto;scrollbar-width:none;background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:4px;box-shadow:0 4px 10px rgba(0,0,0,.06)}
+.toolbar::-webkit-scrollbar{display:none}
+.toolbar button{flex:1 0 42px;min-height:44px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:9px;font:inherit;font-weight:800;font-size:.74rem;line-height:1.05;padding:3px 2px;display:grid;place-items:center;cursor:pointer;white-space:nowrap}
+.toolbar button small{font-weight:600;font-size:.6rem;color:var(--muted)}
+.toolbar button[aria-pressed=true]{background:var(--board);color:var(--board-ink);border-color:var(--board)}.toolbar button[aria-pressed=true] small{color:inherit;opacity:.85}
+.toolbar .g{color:var(--ok)}.toolbar .r{color:var(--bad)}.toolbar .y{color:var(--late)}.toolbar .bl{color:#1D5FD1}
+.toolbar button[aria-pressed=true] .g,.toolbar button[aria-pressed=true] .r,.toolbar button[aria-pressed=true] .y,.toolbar button[aria-pressed=true] .bl{color:inherit}
+.toolhint{font-size:.78rem;color:var(--muted);text-align:center;margin:-2px 0 2px}.toolhint b{color:var(--board)}
+.seat.tflash{animation:tfl .6s ease-out}@keyframes tfl{0%{transform:scale(1.12);box-shadow:0 0 0 4px #F29F05}100%{transform:none;box-shadow:none}}
+@media (prefers-reduced-motion:reduce){.seat.tflash{animation:none;outline:3px solid #F29F05}}
 </style>
 
 </head><body>
@@ -418,10 +429,10 @@ const DEF={wEx:1,wPlus:1,wNr:0.5,wMinus:1,base:10,step:0.5,latePen:0.5,cahAbs:1,
 const S={classes:{},days:{},cid:null,date:today(),tab:"seance",undo:false,sort:{k:"n",d:1},confirmDel:false,pick:null,store:"…",mode:"plan",selStu:null,edSeat:null,edStu:null,follow:true,lastD:1,lastE:"",xid:null,addF:null,wk:null,stu:null,xScope:"all",period:"year",prog:{},pgLvl:null,cancelOpen:false,holEdit:{}};
 let PSUF="";const PR={list:[],cur:null};
 const FRESH={on:(()=>{try{if(sessionStorage.getItem("rc-home"))return false;sessionStorage.setItem("rc-home","1");return true}catch(e){return true}})()};
-function loadUI(){try{const p=JSON.parse(localStorage.getItem("rc-ui"+PSUF)||"{}");if(p.cid)S.cid=p.cid;if(p.tab)S.tab=p.tab;if(p.mode)S.mode=p.mode;if(p.period)S.period=p.period;if(p.pFrom)S.pFrom=p.pFrom;if(p.pTo)S.pTo=p.pTo;if(typeof p.hdMini==="boolean")S.hdMini=p.hdMini;if(p.theme)S.theme=p.theme;if(p.fold)S.fold=p.fold;if(p.dispWarn)S.dispWarn=p.dispWarn;if(p.fs)S.fs=p.fs;if(p.dZoom)S.dZoom=p.dZoom;if(p.dTheme)S.dTheme=p.dTheme;if(p.dTCust)S.dTCust=p.dTCust;if(p.eView)S.eView=p.eView;if(p.sf)S.sf=p.sf;if(p.dAlpha)S.dAlpha=p.dAlpha}catch(e){}if(FRESH.on)S.tab="home"}
+function loadUI(){try{const p=JSON.parse(localStorage.getItem("rc-ui"+PSUF)||"{}");if(p.cid)S.cid=p.cid;if(p.tab)S.tab=p.tab;if(p.mode)S.mode=p.mode;if(p.period)S.period=p.period;if(p.pFrom)S.pFrom=p.pFrom;if(p.pTo)S.pTo=p.pTo;if(typeof p.hdMini==="boolean")S.hdMini=p.hdMini;if(p.theme)S.theme=p.theme;if(p.fold)S.fold=p.fold;if(p.dispWarn)S.dispWarn=p.dispWarn;if(p.fs)S.fs=p.fs;if(p.dZoom)S.dZoom=p.dZoom;if(p.dTheme)S.dTheme=p.dTheme;if(p.dTCust)S.dTCust=p.dTCust;if(p.eView)S.eView=p.eView;if(p.sf)S.sf=p.sf;if(p.tool)S.tool=p.tool;if(p.dAlpha)S.dAlpha=p.dAlpha}catch(e){}if(FRESH.on)S.tab="home"}
 loadUI();
 if(typeof S.hdMini!=="boolean"){S.hdMini=null}
-const saveUI=()=>{try{localStorage.setItem("rc-ui"+PSUF,JSON.stringify({cid:S.cid,tab:S.tab,mode:S.mode,period:S.period,pFrom:S.pFrom||"",pTo:S.pTo||"",fold:S.fold||{},dispWarn:S.dispWarn||"name",fs:S.fs||1,dZoom:S.dZoom||1,dTheme:S.dTheme||"dark",dTCust:S.dTCust||"",eView:S.eView||"list",sf:S.sf||null,dAlpha:S.dAlpha||100,hdMini:S.hdMini,theme:S.theme||"auto"}))}catch(e){}};
+const saveUI=()=>{try{localStorage.setItem("rc-ui"+PSUF,JSON.stringify({cid:S.cid,tab:S.tab,mode:S.mode,period:S.period,pFrom:S.pFrom||"",pTo:S.pTo||"",fold:S.fold||{},dispWarn:S.dispWarn||"name",fs:S.fs||1,dZoom:S.dZoom||1,dTheme:S.dTheme||"dark",dTCust:S.dTCust||"",eView:S.eView||"list",sf:S.sf||null,tool:S.tool||"sel",dAlpha:S.dAlpha||100,hdMini:S.hdMini,theme:S.theme||"auto"}))}catch(e){}};
 
 function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2200)}
 function setSync(t){const b=$("#sync");if(!b)return;t=String(t||"");const k=/Échec|Erreur|refus|impossible/i.test(t)?"err":/Hors ligne/i.test(t)?"off":/…/.test(t)?"busy":"ok";b.className="hdbtn rl "+k;b.title=t+" · toucher pour actualiser la page"}
@@ -895,7 +906,7 @@ const presLab=p=>p==="P"?"Présent":p==="A"?"Absent":"Retard";
 const CAH={"":"Cahier : non vérifié",ok:"Cahier ✓ complet",abs:"Cahier : غير متوفر",inc:"Cahier : دروس ناقصة"};
 const cahBtn=(m,s,p)=>`<button class="cah ${m.cah||"none"}" data-act="cah" data-id="${s.id}" ${p==="A"?"disabled":""}>${CAH[m.cah||""]}</button>`;
 
-function quickPanel(c,s,FL,st,bot){if(!s)return bot?"":`<div class="qp qp0"><span class="hint">Touchez un élève · ou le tableau pour un tirage au sort</span></div>`;
+function quickPanel(c,s,FL,st,bot){if(!s)return bot||(S.tool&&S.tool!=="sel")?"":`<div class="qp qp0"><span class="hint">Touchez un élève · ou le tableau pour un tirage au sort</span></div>`;
   const m=mark(s.id),p=m.p||"P",ab=p==="A";const n=k=>m[k]||0;const CS={"":"–",ok:"✓",abs:"✗",inc:"½"};
   const TT={ex:"Exercice fait",nex:"Exercice non fait",plus:"Bonne réponse",nr:"Participation sans bonne réponse",minus:"Comportement −1"};const b=(k,lab,cl)=>`<button class="qb ${cl}${n(k)?"":" z"}" data-act="${k}" data-id="${s.id}" ${ab?"disabled":""} title="${TT[k]}" aria-label="${TT[k]}">${lab}<b>${n(k)}</b></button>`;
   return `<div class="qp${S.undo?" undo":""}"><div class="qph"><button class="qn" data-act="stuNav" data-d="-1" aria-label="Élève précédent">‹</button><b class="qpn">${S.pick===s.id?"🎲 ":""}${s.num}. ${esc(s.name)}</b><button class="qn" data-act="stuNav" data-d="1" aria-label="Élève suivant">›</button><button class="qn dif" data-act="diff" data-id="${s.id}" aria-pressed="${!!m.diff}" ${ab?"disabled":""} title="Élève en difficulté · متعثر" aria-label="Difficulté">D</button><button class="qn" data-act="undo" aria-pressed="${!!S.undo}" title="Correction : les touches retirent 1" aria-label="Correction moins 1">↶</button><button class="qn" data-act="qpNote" aria-pressed="${!!S.qpNote}" aria-label="Remarque">📝</button><button class="qn" data-act="fiche" data-id="${s.id}" aria-label="Fiche de l'élève" title="Fiche de l'élève">📄</button><button class="qn" data-act="closeSheet" aria-label="Fermer">✕</button></div>
@@ -922,6 +933,7 @@ function planSeance(c,st,numMode){
     else{const top=board+quickPanel(c,by[S.selStu],FL,st);
       h=numMode?`<div class="card planwrap">${top}<div class="numgrid">${st.map(x=>cellFn("",x.id)).join("")}</div></div>`:seatGrid(c,cellFn,top);
       {const qb=quickPanel(c,by[S.selStu],FL,st,true);if(qb)h+=`<div class="qpbot">${qb}</div>`}}
+    h=toolBar()+h;
     h+=`<div class="allbar"><button class="btn" data-act="exAll" title="Tous les présents sans « ✗ Ex » reçoivent « ✓ Ex »">✓ Exercices : valider les autres<br><small style="font-weight:400">التمارين للباقي</small></button><button class="btn" data-act="cahAll" title="Tous les présents sans remarque sur le cahier : cahier complet">📓 Cahiers : valider les autres<br><small style="font-weight:400">الدفاتر للباقي</small></button></div>`}
   const loose=st.filter(s=>!placed.has(s.id));
   if(loose.length&&!numMode&&S.mode!=="team")h+=`<div class="card form"><span class="hint">${loose.length} élève(s) sans place. Placez-les dans l'onglet « Classe ».</span><div class="tools">${loose.map(s=>`<button class="btn" data-act="stu" data-id="${s.id}">${s.num}. ${esc(s.name)}</button>`).join("")}</div></div>`;
@@ -1211,7 +1223,7 @@ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest
  document.addEventListener("pointerup",e=>{if(e.pointerType==="mouse")end(e.clientX,e.clientY)},{passive:true})}
 function render(){if(S.cours&&S.tab!=="seance"){S.cours=false;wakeOff()}document.body.classList.toggle("cours",!!S.cours);document.body.classList.toggle("home",S.tab==="home");navHist();render0();demoDecor();
   try{const v=$("#view");if(S.tab==="bilan"&&!S.stu&&cls()&&!(cls().students||[]).length&&!v.querySelector(".evalsep"))v.insertAdjacentHTML("beforeend",evalPart());
-    {const so=S.tab==="seance"&&S.selStu&&document.querySelector(".plan .seat.on");if(so){const r=so.getBoundingClientRect();if(r.bottom>innerHeight-84||r.top<0)so.scrollIntoView({block:"center"})}}foldCards();document.querySelectorAll(".numstrip .on").forEach(o=>{const p=o.parentElement;p.scrollLeft=o.offsetLeft-p.offsetLeft-p.clientWidth/2+o.clientWidth/2});
+    {const so=S.tab==="seance"&&S.selStu&&document.querySelector(".plan .seat.on");if(so){const r=so.getBoundingClientRect();if(r.bottom>innerHeight-84||r.top<0)so.scrollIntoView({block:"center"})}}toolTop();if(S.tflash){const sx=document.querySelector(`.seat[data-id="${S.tflash}"]`);S.tflash=null;if(sx){sx.classList.remove("tflash");void sx.offsetWidth;sx.classList.add("tflash")}}foldCards();document.querySelectorAll(".numstrip .on").forEach(o=>{const p=o.parentElement;p.scrollLeft=o.offsetLeft-p.offsetLeft-p.clientWidth/2+o.clientWidth/2});
     {const hb=$("#histBox");if(hb)hb.innerHTML=S.hist?histHtml():""}if(S.tab==="bilan"&&(S.fold||{}).cmp&&!S.cmpDays&&!S.cmpLoading)cmpLoad()}catch(e){console.warn(e)}}
 function foldCards(){const v=$("#view");if(!v)return;const tab=S.tab==="eval"?"bilan":S.tab;
   v.querySelectorAll(".card").forEach(cd=>{if(cd.tagName==="DETAILS"||cd.classList.contains("fcard")||cd.closest("details")||cd.parentElement.closest(".card"))return;
@@ -1829,6 +1841,14 @@ function soutCard(){if(!classList().length)return "";const f=sfG(),lvs=[...new S
   <label>Niveau<select id="soLv"><option value="">Tous les niveaux</option>${lvs.map(l=>`<option ${lv===l?"selected":""}>${esc(l)}</option>`).join("")}</select></label>
   <div class="tools"><button class="btn" data-act="soView">Aperçu</button><button class="btn primary" data-act="soDocx">⬇ Word (.docx)</button><button class="btn" data-act="soPdf">🖨️ PDF</button>${S.soPrev?`<button class="btn" data-act="soClose">Masquer</button>`:""}</div>
   ${S.soPrev?`<div style="overflow-x:auto;background:#fff;color:#111;border:1px solid var(--line);border-radius:8px;padding:10px"><div style="min-width:720px">${soHtml(S.soPrev.R,S.soPrev.M)}</div></div>`:""}</div>`}
+
+/* ---------- Outils de notation (un outil, puis toucher les élèves) ---------- */
+const TOOLS=[["sel","👆","Fiche",""],["pres","PR","Appel",""],["ex","✓Ex","Exo","g"],["nex","✗Ex","Exo","r"],["plus","+Rép","Rép.","g"],["nr","✗Rép","Rép.","y"],["minus","−Cpt","Cond.","r"],["q","+.25","Note","bl"],["qm","−.25","Note","r"],["cah","Cah","Cahier",""],["diff","D","Diff.","y"]];
+const TOOLN={pres:"appel (Présent → Absent → Retard)",ex:"exercice fait",nex:"exercice non fait",plus:"bonne réponse",nr:"participation sans bonne réponse",minus:"comportement −1",q:"bonus +0,25",qm:"retrait −0,25",cah:"cahier (✓ → ✗ → ½)",diff:"difficulté (oui / non)"};
+function toolBar(){const tl=S.tool||"sel";return `<div class="toolbar" id="toolBar" role="toolbar" aria-label="Outil de notation">${TOOLS.map(([k,l,sub,cl])=>`<button data-act="tool" data-v="${k}" aria-pressed="${tl===k}" title="${k==="sel"?"Toucher un élève ouvre sa fiche de notation":"Chaque toucher sur un élève : "+TOOLN[k]}"><span class="${cl}">${l}</span><small>${sub}</small></button>`).join("")}<button data-act="undo" aria-pressed="${!!S.undo}" title="Correction : chaque toucher retire 1"><span>↶</span><small>−1</small></button></div>
+  ${tl==="sel"?"":`<div class="toolhint">Outil actif : <b>${TOOLN[tl]}</b>${S.undo&&["ex","nex","plus","nr","minus","q","qm"].includes(tl)?" · <b style=\"color:var(--bad)\">correction −1</b>":""} — touchez chaque élève concerné</div>`}`}
+function toolTop(){const b=$("#toolBar");if(!b)return;let t=0;const h=document.querySelector("header.top");if(h&&getComputedStyle(h).display!=="none")t+=Math.max(0,h.getBoundingClientRect().bottom);const cb=document.querySelector(".cbar");if(cb)t=Math.max(t,cb.getBoundingClientRect().bottom);b.style.top=Math.round(t)+"px"}
+window.addEventListener("resize",()=>toolTop());{let tq=0;window.addEventListener("scroll",()=>{if(tq)return;tq=requestAnimationFrame(()=>{tq=0;toolTop()})},{passive:true})}
 
 /* ---------- Blocs repliables ---------- */
 const fOpen=(k,d)=>((S.fold||{})[k]??d)?"open":"";
@@ -2578,7 +2598,8 @@ document.addEventListener("click",async e=>{
   const t=e.target.closest("[data-act],[data-tab],[data-sort]");if(!t)return;
   if(t.dataset.tab){FRESH.on=false;if(t.dataset.tab==="home"&&NAVH.pushed){try{window.history.back();return}catch(e){}}S.stu=null;S.tab=t.dataset.tab;S.confirmDel=false;if(S.tab==="home")S.cours=false;saveUI();window.scrollTo(0,0);return render()}
   if(t.dataset.sort){const k=t.dataset.sort;S.sort=S.sort.k===k?{k,d:-S.sort.d}:{k,d:k==="name"||k==="num"?1:-1};return render()}
-  const a=t.dataset.act,id=t.dataset.id,c=cls();
+  let a=t.dataset.act;const id=t.dataset.id,c=cls();
+  if(a==="stu"&&S.tool&&S.tool!=="sel"&&S.tab==="seance"&&t.classList.contains("seat")){const ab=(mark(id).p||"P")==="A";if(ab&&!["pres","diff"].includes(S.tool)){toast("Élève absent : changez d'abord l'appel (outil PR)");return}a=S.tool;S.selStu=null;S.tflash=id}
   if(a==="goEleves"||a==="go"){S.tab=t.dataset.to||"eleves";saveUI();return render()}
   if(a==="selClass"){S.xid=null;selectClass(id);if(S.tab==="classe")setTimeout(()=>{const d=document.getElementById("clsDetail");if(d)d.scrollIntoView({behavior:"smooth",block:"start"})},80);return}
   if(a==="goImport"){S.imp={kind:t.dataset.k,ref:t.dataset.ref||null};S.tab="eval";saveUI();render();const inp=document.getElementById(t.dataset.k==="plk"?"plkIn":"exIn");if(inp){inp.scrollIntoView({block:"center"});try{inp.click()}catch(err){}}toast(t.dataset.k==="plk"?"Choisissez le fichier CSV Plickers":"Choisissez le fichier Excel des notes");return}
@@ -2722,6 +2743,7 @@ document.addEventListener("click",async e=>{
   if(a==="valAppel"){let n=0;sorted(c).forEach(s=>{const m=mark(s.id);if(!m.p){setMark(s.id,{});n++}});toast("Appel enregistré");return render()}
   if(a==="edStu"){S.edStu=S.edStu===id?null:id;render();const f=$("#sfName");if(f)f.focus();return}
   if(a==="goToday"){S.date=today();S.xid=null;S.follow=true;S.pick=null;S.selStu=null;return render()}
+  if(a==="tool"){S.tool=t.dataset.v;S.selStu=null;saveUI();return render()}
   if(a==="undo"){S.undo=!S.undo;return render()}
   if(a==="dispOpen")return dispOpen();
   if(a==="dispBlank"){dispPush({blank:!dispState().blank});return}
