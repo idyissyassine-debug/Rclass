@@ -981,7 +981,7 @@ function mergeInto(keep,kd,dup,dd){const byName={};(keep.students=keep.students|
   (dup.students||[]).forEach(x=>{const ex=(x.massar&&keep.students.find(y=>y.massar===x.massar))||keep.students.find(y=>y.id===x.id&&!(x.massar&&y.massar&&y.massar!==x.massar))||(!x.massar||!(byName[norm(x.name)]||{}).massar?byName[norm(x.name)]:null);if(ex){map[x.id]=ex.id;const ids=new Set((ex.notes||[]).map(n=>n.id));(x.notes||[]).forEach(n=>{if(!ids.has(n.id))ex.notes=[...(ex.notes||[]),n]});if(!ex.from&&x.from)ex.from=x.from;if(!ex.card&&x.card)ex.card=x.card;if(!ex.massar&&x.massar)ex.massar=x.massar}
     else{const ns={...x,num:x.num&&!keep.students.some(y=>y.num===x.num)?x.num:++max};keep.students.push(ns);byName[norm(x.name)]=ns;map[x.id]=x.id}});
   const sk=new Set((keep.slots||[]).map(x=>x.d+"|"+x.s));(dup.slots||[]).forEach(x=>{if(!sk.has(x.d+"|"+x.s)){keep.slots=[...(keep.slots||[]),x];sk.add(x.d+"|"+x.s)}});
-  const xmap={};(dup.extras||[]).forEach(x=>{const ex=(keep.extras||[]).find(y=>y.id===x.id||(y.date===x.date&&y.s===x.s&&y.type===x.type));if(ex){xmap["X-"+x.id]="X-"+ex.id;if(!ex.obj&&x.obj)ex.obj=x.obj;if(!ex.dev&&x.dev)ex.dev=x.dev}else{keep.extras=[...(keep.extras||[]),x];xmap["X-"+x.id]="X-"+x.id}});
+  const xmap={};(dup.extras||[]).forEach(x=>{const ex=(keep.extras||[]).find(y=>y.id===x.id||(y.date===x.date&&y.s===x.s&&y.type===x.type));if(ex){xmap["X-"+x.id]="X-"+ex.id;if(!ex.obj&&x.obj)ex.obj=x.obj;if(!ex.subj&&x.subj)ex.subj=x.subj;if(!ex.dev&&x.dev)ex.dev=x.dev}else{keep.extras=[...(keep.extras||[]),x];xmap["X-"+x.id]="X-"+x.id}});
   keep.cancel={...(dup.cancel||{}),...(keep.cancel||{})};
   if(!keep.layout&&dup.layout)keep.layout=dup.layout;if(!keep.level&&dup.level)keep.level=dup.level;if(!keep.sem2&&dup.sem2)keep.sem2=dup.sem2;
   if(!Object.keys(keep.seats||{}).length&&dup.seats){keep.seats={};for(const k in dup.seats)keep.seats[k]=map[dup.seats[k]]||dup.seats[k]}
@@ -1262,11 +1262,11 @@ function viewSeance(c){
   ${S.cancelOpen?`<form class="card form" id="cancelForm"><h2>Annuler cette séance</h2><label>Motif<select id="canR">${CANR.map(r=>`<option>${esc(r)}</option>`).join("")}</select></label><span class="hint">La séance apparaîtra barrée dans l'emploi du temps et ne pourra plus être notée. Vous pourrez la rétablir.</span><div class="tools"><button class="btn danger" data-keep type="submit">Confirmer l'annulation</button><button type="button" class="btn" data-keep data-act="cancelOpen">Fermer</button></div></form>`:""}
   ${cx?`<div class="past xbanner">${XT[cx.type]} · ${esc(lab)} · ${hrs(cx)}<br><span style="font-weight:400">Faites l'appel puis validez. Les exercices, la participation, le comportement et le cahier notés ici comptent dans la note des activités.</span></div><div class="tools"><button class="btn primary" data-act="valAppel">Valider l'appel</button></div>
   <form class="card form" id="xForm"><h2>Fiche de la séance</h2>
+    <label>Sujet de la séance · موضوع الحصة<input id="xSubj" maxlength="160" value="${esc(cx.subj||(S.days[dk()]||{}).lesson||"")}" placeholder="Ex. : Circuit électrique simple"></label>
     <label>Objectifs de la séance<textarea id="xObj" style="min-height:70px" placeholder="Ex. : remédier aux difficultés sur la masse volumique…">${esc(cx.obj||"")}</textarea></label>
     <label>Déroulement et observations<textarea id="xDev" style="min-height:90px" placeholder="Activités réalisées, difficultés rencontrées, suites à donner…">${esc(cx.dev||"")}</textarea></label>
     <div><button class="btn primary" type="submit">Enregistrer la fiche</button></div></form>`:isT?"":`<div class="past">Vous modifiez une séance passée : ${esc(lab)}.</div>`}
   ${SS.ok?lessonFormHtml(c):""}
-  ${SS.ok?soutForm(c):""}
   ${SS.ok?`<div data-mod="prog" style="display:contents">${planCard(c)}${planCard(c,2)}</div>`:""}
   <div data-mod="plk" style="display:contents">${SS.ok?plkPendCard(c):""}</div>
   ${flagBox}
@@ -1773,7 +1773,7 @@ function sfYear(d){const t=new Date((d||today())+"T12:00"),y=t.getMonth()>=7?t.g
 async function soutData(from,to,lv){const out=[];const L=classList().filter(c=>!lv||c.level===lv);
   for(const c of L){const X=(c.extras||[]).filter(x=>x.type==="soutien"&&x.date>=from&&x.date<=to);if(!X.length)continue;const days=c.id===S.cid?S.days:await api.getDays(c.id);
     for(const x of X){const d=days["X-"+x.id]||{},mk=d.marks||{};if(canOf(c,"X-"+x.id,x.date))continue;const abs=sorted(c).filter(s=>(mk[s.id]||{}).p==="A").map(s=>s.num+". "+s.name);
-      out.push({date:x.date,s:x.s,e:x.e||addH(x.s),cls:c.name,lv:c.level||"",topic:d.lesson||"",obj:d.obj||"",proc:d.proc||"",abs,done:Object.keys(mk).length>0||!!d.lesson})}}
+      out.push({date:x.date,s:x.s,e:x.e||addH(x.s),cls:c.name,lv:c.level||"",topic:x.subj||d.lesson||"",obj:x.obj||d.obj||"",proc:x.dev||d.proc||"",abs,done:Object.keys(mk).length>0||!!d.lesson})}}
   return out.sort((a,b)=>(a.date+a.s).localeCompare(b.date+b.s)||a.cls.localeCompare(b.cls,"fr",{numeric:true}))}
 const SH=["التاريخ","القسم","موضوع حصة الدعم","أهداف النشاط وسيرورته","الغياب","توقيع الأستاذ"];
 const soRow=r=>[r.date.split("-").reverse().join("/")+"\n"+r.s+" – "+r.e,r.cls,r.topic,[r.obj?"الأهداف :\n"+r.obj:"",r.proc?"السيرورة :\n"+r.proc:""].filter(Boolean).join("\n"),r.abs.length?r.abs.join("\n"):"—",""];
@@ -2866,7 +2866,7 @@ document.addEventListener("submit",async e=>{e.preventDefault();
     const items=[...(((S.prog||{})[lv]||{}).items||[]),...L.map(x=>({id:uid(),t:x.t,ty,n:Math.max(1,x.n)}))];S.prog[lv]={items};S.pgLvl=lv;S.pgBulk="";try{await api.saveProgramme(lv,{items})}catch(err){toast("Programme non enregistré.");return}render();toast(L.length+" élément(s) ajouté(s) au programme "+lv);return}
   if(e.target.id==="cancelForm"){const c=cls(),k=dk();const d=S.days[k]||{};if(Object.keys(d.marks||{}).length)return toast("Cette séance contient déjà des notes : impossible de l'annuler.");
     c.cancel={...(c.cancel||{}),[k]:$("#canR").value};S.cancelOpen=false;await saveClass(c);toast("Séance annulée");return render()}
-  if(e.target.id==="xForm"){const c=cls(),x=c&&(c.extras||[]).find(y=>y.id===S.xid);if(!x)return;x.obj=$("#xObj").value.trim();x.dev=$("#xDev").value.trim();await saveClass(c);render();toast("Fiche de la séance enregistrée");return}
+  if(e.target.id==="xForm"){const c=cls(),x=c&&(c.extras||[]).find(y=>y.id===S.xid);if(!x)return;x.subj=$("#xSubj").value.trim();x.obj=$("#xObj").value.trim();x.dev=$("#xDev").value.trim();await saveClass(c);render();toast("Fiche de la séance enregistrée");return}
   if(e.target.id==="noteForm"){const c=cls(),sid=e.target.dataset.id,st=c&&c.students.find(x=>x.id===sid);const v=$("#noteIn").value.trim();if(!st||!v)return;
     const gen=e.target.dataset.general;if(!gen){const g=sessState(c);if(!g.ok)return toast(g.msg)}const k=gen?today():dk();const d=gen?today():(keyInfo(c,k)||{date:S.date}).date;
     st.notes=[...(st.notes||[]),{id:uid(),k,d,t:v}];await saveClass(c);render();toast("Note enregistrée");return}
