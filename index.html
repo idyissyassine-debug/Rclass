@@ -2465,8 +2465,23 @@ function secLevel(lv){const CL=classList().filter(c=>c.level===lv);if(!CL.length
   if(T.some(x=>x.cd.T.t))h+=`<h4>Maîtrise des compétences (toutes compétences)</h4>${stackBars(T.filter(x=>x.cd.T.t).map(x=>({label:x.c.name,...x.cd.T})))}${lvLegend()}`;
   if(showN()&&titles.length)h+=`<h4>Évolution des moyennes de devoirs</h4>${lineChart(CL.map((c,i)=>({name:c.name,color:EVC[i%8],pts:exOfC(c).map(e=>{const a=stat(Object.values(e.res||{}).map(r=>r.note));return a.n?{x:e.date,y:a.mean,lab:e.title}:null}).filter(Boolean)})),20,"",10)}
     <div class="tablewrap"><table><thead><tr><th class="l">Devoir</th>${CL.map(c=>`<th>${esc(c.name)}</th>`).join("")}</tr></thead><tbody>${titles.map(tt=>`<tr><td class="l">${esc(tt)}</td>${CL.map(c=>{const e=exOfC(c).find(x=>x.title===tt);const a=e&&stat(Object.values(e.res||{}).map(r=>r.note));return `<td>${a&&a.n?f1(a.mean):"–"}</td>`}).join("")}</tr>`).join("")}</tbody></table></div>`;
-  if(showP()&&T.some(x=>x.P.n))h+=`<h4>Évolution Plickers (%)</h4>${lineChart(CL.map((c,i)=>({name:c.name,color:EVC[i%8],pts:tsOfC(c).map(t=>{const a=stat(Object.values(t.res||{}).map(r=>r.pc));return a.n?{x:t.date,y:a.mean,lab:t.title}:null}).filter(Boolean)})),100," %",50)}`;
+  if(showP()&&T.some(x=>x.P.n))h+=plkByLesson(CL);
   return h}
+/* Plickers : comparaison des classes par leçon (et non par date) */
+function plkByLesson(CL){const G=new Map(),norm=t=>String(t||"").toLowerCase().replace(/\s+/g," ").trim();
+  CL.forEach(c=>{const items=progItems(c);tsOfC(c).forEach(t=>{const it=t.lid&&items.find(i=>i.id===t.lid);const key=it?"L:"+it.id:"T:"+norm(t.title);const ix=it?items.indexOf(it):9999;
+    const g=G.get(key)||{key,lab:it?it.t:t.title,ix,first:t.date,quiz:new Set(),by:{}};g.first=t.date<g.first?t.date:g.first;g.quiz.add(norm(t.title));
+    const v=Object.values(t.res||{}).map(r=>r&&r.pc).filter(x=>x!=null);if(v.length){const b=g.by[c.id]=g.by[c.id]||{sum:0,n:0,k:0};b.sum+=v.reduce((p,q)=>p+q,0);b.n+=v.length;b.k++}G.set(key,g)})});
+  const L=[...G.values()].filter(g=>Object.keys(g.by).length).sort((a,b)=>a.ix-b.ix||a.first.localeCompare(b.first));if(!L.length)return "";
+  const cell=b=>{if(!b)return `<td class="hint">–</td>`;const m=b.sum/b.n;return `<td style="background:${m<50?"var(--late-bg)":"var(--ok-bg)"};font-weight:700" title="${b.k} évaluation(s), ${b.n} réponses d'élèves">${Math.round(m)} %</td>`};
+  return `<h4>Plickers par leçon · مقارنة الأقسام حسب الدروس</h4><span class="hint">Chaque ligne regroupe les évaluations Plickers d'une même leçon, quelle que soit leur date dans chaque classe. Vert : moyenne ≥ 50 %.</span>
+  <div class="tablewrap"><table><thead><tr><th class="l">Leçon</th>${CL.map(c=>`<th>${esc(c.name)}</th>`).join("")}<th>Niveau</th></tr></thead><tbody>${L.map(g=>{const all=Object.values(g.by).reduce((p,b)=>({s:p.s+b.sum,n:p.n+b.n}),{s:0,n:0});
+    return `<tr><td class="l"><b>${esc(g.lab)}</b>${Object.values(g.by).some(b=>b.k>1)?`<br><span class="hint">plusieurs évaluations dans une classe : moyenne</span>`:""}</td>${CL.map(c=>cell(g.by[c.id])).join("")}<td><b>${Math.round(all.s/all.n)} %</b></td></tr>`}).join("")}</tbody></table></div>
+  ${lessonBars(L,CL)}`}
+function lessonBars(L,CL){const W=360,bh=9,gap=10,lw=120,rows=L.map(g=>CL.filter(c=>g.by[c.id]));const H=rows.reduce((p,r)=>p+Math.max(1,r.length)*bh+gap,8);let y=4;const sx=v=>lw+(W-lw-34)*v/100;
+  const body=L.map((g,i)=>{const r=rows[i],y0=y;y+=Math.max(1,r.length)*bh+gap;return `<text x="${lw-6}" y="${y0+Math.max(1,r.length)*bh/2+3}" text-anchor="end" font-size="9" fill="currentColor">${esc(g.lab.length>22?g.lab.slice(0,21)+"…":g.lab)}</text>`+r.map((c,j)=>{const b=g.by[c.id],m=b.sum/b.n,ci=CL.indexOf(c);return `<rect x="${lw}" y="${y0+j*bh}" width="${Math.max(1,sx(m)-lw)}" height="${bh-2}" rx="2" fill="${EVC[ci%8]}"><title>${esc(c.name)} : ${Math.round(m)} %</title></rect><text x="${sx(m)+3}" y="${y0+j*bh+bh-3}" font-size="8" fill="currentColor">${Math.round(m)}</text>`}).join("")}).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:560px;height:auto" role="img" aria-label="Réussite Plickers par leçon et par classe"><line x1="${sx(50)}" x2="${sx(50)}" y1="0" y2="${H}" stroke="currentColor" stroke-dasharray="3 3" opacity=".35"/>${body}</svg>
+  <div class="legend">${CL.map((c,i)=>`<span><i style="background:${EVC[i%8]}"></i>${esc(c.name)}</span>`).join("")}</div>`}
 const lvLegend=()=>`<div class="legend">${["A","B","C","D"].map(k=>`<span><i style="background:${LVC[k]}"></i>${k}${k==="A"?" (maîtrise forte)":k==="D"?" (maîtrise faible)":""}</span>`).join("")}</div>`;
 function secClass(c){const X=clsStats(c);const st=sorted(c);
   const rows=st.map((s,i)=>{const e=stat(stuEx(c,s.id).map(x=>x.v)),p=stat(stuTs(c,s.id).map(x=>x.v)),cd=compDist(c,s.id).T;return {s,e:e.n?e.mean:null,p:p.n?p.mean:null,cd}});
