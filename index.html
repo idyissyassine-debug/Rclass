@@ -264,6 +264,13 @@ details.fold>summary{list-style:none;cursor:pointer;display:flex;align-items:cen
 .numstrip{display:flex;gap:4px;overflow-x:auto;padding:2px 0 4px;scrollbar-width:thin}.numstrip button{flex:none;min-width:34px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--sheet);color:inherit;font-weight:700;font-size:.85rem;cursor:pointer}.numstrip button.on{background:var(--board);color:#fff;border-color:var(--board)}
 .navb{min-width:38px;padding:4px 10px;font-size:1.2rem;line-height:1}
 @media (min-width:1100px){.wrap{max-width:1040px}}
+/* Grand écran : plus large, et deux colonnes de cartes dans Détails, Classe et Élèves (Bilan reste sur une colonne : ses graphiques s’y allongent).
+   Les tableaux, le plan de classe et les bandeaux gardent toute la largeur. */
+@media (min-width:1400px){.wrap{max-width:1320px}}
+@media (min-width:1200px){
+  #view:not([data-stu]):is([data-tab=details],[data-tab=classe],[data-tab=eleves]){grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+  #view:not([data-stu]):is([data-tab=details],[data-tab=classe],[data-tab=eleves])>:is(.demobar,.empty,.tablewrap,.planwrap,.evalsep,:has(table),:has(.planwrap),:has(#pgForm),:not(.card)){grid-column:1/-1}
+}
 .ro input,.ro textarea,.ro .seg button,.ro button.btn:not([data-keep]),.ro button.x,.ro .tag button{pointer-events:none;opacity:.5}.ro form,.ro label[for=pgFile]{display:none!important}.ro select#pgLvl{pointer-events:auto;opacity:1}
 .chip.nr{background:var(--ex-bg);color:var(--late)}.step.nr{background:var(--ex-bg);color:var(--late)}
 .boardpick{display:block;width:100%;border:0;cursor:pointer;font:inherit}.boardpick small{font-weight:400;opacity:.75;margin-left:6px;font-size:.72rem}
@@ -680,7 +687,7 @@ function actPlanEditor(i){const D=S.planEd.D;
   const SS=planSessions(D);
   return `<div class="form" style="padding:8px;border:1px solid var(--line);border-radius:10px;margin:4px 0;gap:6px"><b>Activités du cours « ${esc(i.t)} »</b>
   ${SS.map((ses,si)=>`<div style="display:grid;gap:4px"><b style="font-size:.85rem;color:var(--muted)">Séance ${si+1}</b>${ses.map(x=>`<div style="display:flex;gap:4px;align-items:center"><span class="tag" style="padding:1px 6px;font-size:.68rem;color:#fff;background:${PK[x.kind][1]};border:0;flex:none">${PK[x.kind][0]}</span><input data-plt="${x.ix}" value="${esc(x.t||"")}" style="flex:1;min-width:0;padding:4px 6px">${x.kind==="plk"?`<input data-plq="${x.ix}" type="number" min="1" max="30" value="${x.q||5}" style="width:52px;padding:4px" title="Nombre de questions"><span class="hint">Q</span>`:""}<button class="x" data-act="planMv" data-ix="${x.ix}" data-d="-1" aria-label="Monter" style="color:var(--muted)">↑</button><button class="x" data-act="planMv" data-ix="${x.ix}" data-d="1" aria-label="Descendre" style="color:var(--muted)">↓</button><button class="x" data-act="planDel" data-ix="${x.ix}" aria-label="Supprimer">✕</button></div>`).join("")}
-    <div class="tools" style="gap:4px"><button class="btn" data-act="planAdd" data-k="act" data-s="${si}" style="padding:3px 8px;font-size:.78rem">+ Activité</button><button class="btn" data-act="planAdd" data-k="plk" data-s="${si}" style="padding:3px 8px;font-size:.78rem">+ Plickers</button>${ses.some(x=>x.kind==="bilan")?"":`<button class="btn" data-act="planAdd" data-k="bilan" data-s="${si}" style="padding:3px 8px;font-size:.78rem">+ Bilan</button>`}</div></div>`).join("")}
+    <div class="tools" style="gap:4px"><button class="btn" data-act="planAdd" data-k="act" data-s="${si}" style="padding:3px 8px;font-size:.78rem">+ Activité</button><button class="btn" data-act="planAdd" data-k="concl" data-s="${si}" style="padding:3px 8px;font-size:.78rem">+ Conclusion</button><button class="btn" data-act="planAdd" data-k="plk" data-s="${si}" style="padding:3px 8px;font-size:.78rem">+ Plickers</button>${ses.some(x=>x.kind==="bilan")?"":`<button class="btn" data-act="planAdd" data-k="bilan" data-s="${si}" style="padding:3px 8px;font-size:.78rem">+ Bilan</button>`}</div></div>`).join("")}
   <span class="hint">↑ ↓ déplacent un élément, y compris d'une séance à l'autre (le bilan sépare les séances).</span>
   <div class="tools"><button class="btn primary" data-act="planSave">Enregistrer</button><button class="btn" data-act="planClose">Fermer</button><button class="btn" data-act="planReset" style="color:var(--bad)">Recommencer</button></div></div>`}
 function readPlan(){const D=S.planEd&&S.planEd.D;if(!D)return;document.querySelectorAll("[data-plt]").forEach(e=>{const x=D[+e.dataset.plt];if(x)x.t=e.value});document.querySelectorAll("[data-plq]").forEach(e=>{const x=D[+e.dataset.plq];if(x)x.q=Math.max(1,parseInt(e.value)||1)})}
@@ -1190,6 +1197,7 @@ function renderTop(){
     h.innerHTML=(P?`<div class="hl1"><span>Programme</span><b style="white-space:nowrap">${P.pc} % · ${P.n}/${P.t} séances</b></div><div class="hbar" role="progressbar" aria-valuenow="${P.pc}" aria-valuemin="0" aria-valuemax="100"><i style="width:${P.pc}%"></i></div>`:"")+
      `<div class="hl2">${L?`Dernière leçon : ${esc(L.t)} · ${fmtD(L.date)}`:"Aucune leçon enregistrée pour cette classe"}</div>`}}
   try{$("#view").classList.toggle("ro",S.tab==="seance"&&!S.stu&&!!cls()&&!sessState(cls()).ok)}catch(e){}
+  try{const v=$("#view");v.dataset.tab=S.tab==="eval"?"bilan":S.tab;v.toggleAttribute("data-stu",!!S.stu)}catch(e){}
   document.querySelectorAll(".tabs button,.bnav button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===S.tab||(S.tab==="eval"&&b.dataset.tab==="bilan")));
   hdApply();
 }
@@ -2730,7 +2738,7 @@ document.addEventListener("click",async e=>{
   if(a==="planMv"&&S.planEd){readPlan();const D=S.planEd.D,i=+t.dataset.ix,j=i+(+t.dataset.d);if(j<0||j>=D.length)return;[D[i],D[j]]=[D[j],D[i]];return render()}
   if(a==="planDel"&&S.planEd){readPlan();S.planEd.D.splice(+t.dataset.ix,1);return render()}
   if(a==="planAdd"&&S.planEd){readPlan();const D=S.planEd.D,SS=planSessions(D),si=+t.dataset.s,ses=SS[si]||[];const kind=t.dataset.k;const nA=D.filter(x=>x.kind==="act").length;
-    const add=kind==="act"?[{id:uid(),kind:"act",t:"Activité "+(nA+1)},{id:uid(),kind:"concl",t:"Conclusion de l'activité "+(nA+1)}]:kind==="plk"?[{id:uid(),kind:"plk",t:"Plickers",q:5}]:[{id:uid(),kind:"bilan",t:"Bilan de la séance "+(si+1)}];
+    const add=kind==="act"?[{id:uid(),kind:"act",t:"Activité "+(nA+1)},{id:uid(),kind:"concl",t:"Conclusion de l'activité "+(nA+1)}]:kind==="concl"?[{id:uid(),kind:"concl",t:"Conclusion"}]:kind==="plk"?[{id:uid(),kind:"plk",t:"Plickers",q:5}]:[{id:uid(),kind:"bilan",t:"Bilan de la séance "+(si+1)}];
     const last=ses[ses.length-1];let at=last?last.ix+1:D.length;if(kind!=="bilan"&&last&&last.kind==="bilan")at=last.ix;D.splice(at,0,...add);return render()}
   if(a==="planSave"&&S.planEd){readPlan();const lv=S.planEd.lv;const items=[...(((S.prog||{})[lv]||{}).items||[])].map(x=>x.id===S.planEd.id?{...x,plan:S.planEd.D}:x);S.prog[lv]={items};try{await api.saveProgramme(lv,{items})}catch(err){return toast("Programme non enregistré.")}S.planEd=null;toast("Activités enregistrées");return render()}
   if(a==="planStep"&&c){const g=sessState(c);if(!g.ok)return toast(g.msg);const key=dk();const d=S.days[key]=S.days[key]||{marks:{}};d.marks=d.marks||{};const v=+t.dataset.ix,f=t.dataset.slot==="2"?"step2":"step";if(t.dataset.prop&&!d.lid){const [li,pp]=t.dataset.prop.split("|");const it=progItems(c).find(i=>i.id===li);if(it){d.lid=li;d.part=pp==="s"?"s":+pp;d.lesson=partLab(it,d.part)}}if(d[f]===v)delete d[f];else d[f]=v;queueDay(S.cid,key);recomputeDone(c);return render()}
