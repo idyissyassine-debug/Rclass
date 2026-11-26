@@ -563,11 +563,13 @@ let unsubDays=null;
 function selectClass(cid){S.cancelOpen=false;S.eraseAsk=false;S.sSel={};S.rmConfirm=null;S.edTeam=null;S.tmClear=false;
   if(cid===S.cid&&unsubDays&&S.classes[cid]){S.pick=null;S.confirmDel=false;S.stu=null;saveUI();return render()}
   S.cid=cid;S.days={};S.pick=null;S.confirmDel=false;S.stu=null;saveUI();
+  // v83 : garder la hauteur de la vue jusqu'à l'arrivée des séances de la nouvelle classe (sinon la page remonte en haut)
+  {const v0=$("#view");if(v0){v0.style.minHeight=v0.offsetHeight+"px";clearTimeout(selectClass.t);selectClass.t=setTimeout(()=>{v0.style.minHeight=""},5000)}}
   if(unsubDays){unsubDays();unsubDays=null}
   if(cid&&S.classes[cid]){unsubDays=api.subDays(cid,o=>{
     // ne pas écraser une séance en cours d'enregistrement
     for(const [k,[c,d,ref]] of pending){if(c===cid&&(S.days[d]||ref))o[d]=S.days[d]||ref}
-    S.days=o;syncRec(S.classes[cid]);render()})}
+    S.days=o;syncRec(S.classes[cid]);render();{const v0=$("#view");if(v0)v0.style.minHeight=""}})}
   render();
 }
 
@@ -1236,10 +1238,10 @@ const ANC={el:null,t:0,tab:null};
 function ancSig(el){if(el.id)return {q:"#"+CSS.escape(el.id),i:0};const q="#view "+el.tagName.toLowerCase()+["data-act","data-n","data-k","data-s","data-id","data-plt","data-plq","data-ix","name"].filter(x=>el.hasAttribute(x)).map(x=>`[${x}="${CSS.escape(el.getAttribute(x))}"]`).join("");return {q,i:Math.max(0,[...document.querySelectorAll(q)].indexOf(el))}}
 function ancTake(){try{if(!ANC.el||Date.now()-ANC.t>4000||ANC.tab!==S.tab||S.tab==="seance"||!ANC.el.isConnected)return null;return {...ancSig(ANC.el),top:ANC.el.getBoundingClientRect().top,tab:S.tab}}catch(e){return null}}
 function ancKeep(A){try{if(!A||A.tab!==S.tab)return;const el=document.querySelectorAll(A.q)[A.i];if(!el)return;const d=el.getBoundingClientRect().top-A.top;if(Math.abs(d)>2)window.scrollBy(0,d);ANC.el=el}catch(e){}}
-function render(){const A0=ancTake();if(S.cours&&S.tab!=="seance"){S.cours=false;wakeOff()}document.body.classList.toggle("cours",!!S.cours);document.body.classList.toggle("home",S.tab==="home");navHist();render0();demoDecor();
+function render(){const A0=ancTake();const FC=document.activeElement&&["classSel","classSelMini"].includes(document.activeElement.id)?document.activeElement.id:null;if(S.cours&&S.tab!=="seance"){S.cours=false;wakeOff()}document.body.classList.toggle("cours",!!S.cours);document.body.classList.toggle("home",S.tab==="home");navHist();render0();demoDecor();
   try{const v=$("#view");if(S.tab==="bilan"&&!S.stu&&cls()&&!(cls().students||[]).length&&!v.querySelector(".evalsep"))v.insertAdjacentHTML("beforeend",evalPart());
     {const so=S.tab==="seance"&&S.selStu&&document.querySelector(".plan .seat.on");if(so){const r=so.getBoundingClientRect();if(r.bottom>innerHeight-84||r.top<0)so.scrollIntoView({block:"center"})}}toolTop();if(S.tflash){const sx=document.querySelector(`.seat[data-id="${S.tflash}"]`);S.tflash=null;if(sx){sx.classList.remove("tflash");void sx.offsetWidth;sx.classList.add("tflash")}}foldCards();document.querySelectorAll(".numstrip .on").forEach(o=>{const p=o.parentElement;p.scrollLeft=o.offsetLeft-p.offsetLeft-p.clientWidth/2+o.clientWidth/2});
-    {const hb=$("#histBox");if(hb)hb.innerHTML=S.hist?histHtml():""}if(S.tab==="bilan"&&(S.fold||{}).cmp&&!S.cmpDays&&!S.cmpLoading)cmpLoad()}catch(e){console.warn(e)}ancKeep(A0)}
+    {const hb=$("#histBox");if(hb)hb.innerHTML=S.hist?histHtml():""}if(S.tab==="bilan"&&(S.fold||{}).cmp&&!S.cmpDays&&!S.cmpLoading)cmpLoad()}catch(e){console.warn(e)}ancKeep(A0);if(FC){const f=document.getElementById(FC);if(f&&document.activeElement!==f)try{f.focus({preventScroll:true})}catch(e){}}}
 function foldCards(){const v=$("#view");if(!v)return;const tab=S.tab==="eval"?"bilan":S.tab;
   v.querySelectorAll(".card").forEach(cd=>{if(cd.tagName==="DETAILS"||cd.classList.contains("fcard")||cd.closest("details")||cd.parentElement.closest(".card"))return;
     if(/\b(summary|demobar|empty|qp|confirm)\b/.test(cd.className))return;let h=cd.firstElementChild;if(!h)return;let hd=null,ht=null;
@@ -2565,7 +2567,7 @@ function teamEditor(c){const T=teamsOf(c),st=sorted(c),by=Object.fromEntries(st.
     <div class="tools" style="align-items:center"><label style="flex-direction:row;align-items:center;gap:8px">Répartir au hasard en <input type="number" id="tmN" min="2" max="12" value="${T.length||4}" style="width:64px"> équipes</label><button class="btn" data-act="tmAuto">Répartir</button></div>
     <span class="hint">« Répartir » remplace les équipes actuelles par des équipes équilibrées (notes mélangées). Vous pouvez ensuite déplacer des élèves.</span>
     ${T.length?(S.tmClear?`<div class="confirm">Supprimer toutes les équipes ? <button class="btn danger" data-act="tmClearYes">Oui</button><button class="btn" data-act="tmClearNo">Non</button></div>`:`<div><button class="linkbtn" data-act="tmClear" style="color:var(--bad)">Supprimer toutes les équipes</button></div>`):""}</div>`}
-const APPV="v82"; // à garder égal à VERSION dans sw.js
+const APPV="v83"; // à garder égal à VERSION dans sw.js
 function viewDetails(){const c=cls();
   return `${restoreCard()}${dupCard()}${modCard()}${adminCard()}${journalCard()}${soutCard()}
   <div class="card form"><h2>Sauvegarde · نسخة احتياطية</h2><p class="hint" style="margin:0">Enregistrez toutes vos classes, plans, horaires et notes dans un fichier. La restauration ajoute ou remplace les classes du fichier sans effacer les autres. Ce bouton accepte aussi les fichiers « séance » et « journée ».</p>
