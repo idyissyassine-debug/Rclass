@@ -2235,7 +2235,8 @@ function plkCard(c){const TT=(c.tests||[]).filter(t=>perOK(c,t.date)).slice().so
   return `${S.plk?plkPreview(c):""}<div class="card form"><h2>Évaluations Plickers · نتائج بليكرز</h2>
   ${(S.plkLog||[]).length&&!S.plk?`<div class="flag" id="plkLog" style="background:var(--ok-bg,#e6f4ea);color:var(--ok);border-color:var(--ok)">Import terminé<ul class="remind">${S.plkLog.map(x=>`<li><span>${esc(x)}</span></li>`).join("")}</ul><div><button class="btn" data-act="plkLogClose">Fermer</button></div></div>`:""}
   <p class="hint" style="margin:0">Dans Plickers, ouvrez le Scoresheet de la classe et touchez « Export Data to CSV », puis importez le fichier ici. Vous pouvez choisir plusieurs fichiers à la fois (un par classe) : chacun est envoyé automatiquement vers sa classe. Chaque élève est relié à son pourcentage et aux questions ratées ; les élèves sous le seuil sont proposés pour les séances de soutien.</p>
-  <div class="tools"><label class="btn primary" for="plkIn" style="cursor:pointer">Importer des fichiers CSV Plickers</label><input type="file" id="plkIn" accept=".csv,text/csv,text/plain" multiple hidden></div>
+  <div class="tools"><label class="btn primary" for="plkIn" style="cursor:pointer">Importer des fichiers CSV Plickers</label><input type="file" id="plkIn" accept=".csv,text/csv,text/plain" multiple hidden><button class="btn" data-act="plkTxtOpen">📋 Coller des résultats</button></div>
+  ${S.plkPaste?plkPasteHtml():""}
   ${TT.length?TT.map(t=>{const K=plkStats(c,t);const li=t.lid&&progItems(c).find(i=>i.id===t.lid);const weak=K.qp.map((p,i)=>({p,i})).filter(x=>x.p!==null&&x.p<K.thr);
     return `<details class="pl" ${S.plkOpen===t.id?"open":""} data-plo="${t.id}"><summary><b>${esc(t.title)}</b><span class="hint">${fmtD(t.date)}${li?" · "+esc(li.t):""}</span><span style="margin-inline-start:auto" class="${K.avg!==null&&K.avg<K.thr?"r":"g"}"><b>${K.avg??"–"} %</b></span><span class="hint">${K.low.length} sous ${K.thr} %</span></summary><div>
     ${t.qs&&t.qs.length?`<div class="plq">${t.qs.map((q,i)=>`<b>Q${i+1}</b><span>${esc(q.t)}</span><span class="hint">${q.key?"Rép. "+esc(q.key):""}</span><span class="${K.qp[i]!==null&&K.qp[i]<K.thr?"bad":"g"}">${K.qp[i]===null?"–":K.qp[i]+" %"}</span>`).join("")}</div>`:""}
@@ -2254,7 +2255,29 @@ async function plkCommit(c,P){const T=[];
   let seatMsg="";if(P.seat){const R=cardSeats(c);c.seats=R.seats;seatMsg=` · ${R.n} placés selon leur carte`}
   const ids=new Set(T.map(t=>t.id));c.tests=[...(c.tests||[]).filter(t=>!ids.has(t.id)),...T];S.plkOpen=T[0].id;await saveClass(c);
   return c.name+" : "+(T.length>1?T.length+" évaluations":T[0].title)+` (${Object.keys(T[0].res).length} élèves)`+seatMsg}
+/* v86 : saisie « Coller des résultats (format Rclass) ». Le texte (JSON) décrit une ou plusieurs évaluations :
+   {"evaluations":[{"classe":"2APIC-1","titre":"…","date":"AAAA-MM-JJ","lecon":"Réaction","seance":1,
+     "questions":[{"t":"…","cle":"B"}],"eleves":[{"carte":3,"nom":"…","rep":["B","A",…]}]}]}
+   Chaque évaluation suit ensuite le même chemin qu'un fichier CSV : aperçu, association des élèves, enregistrement. */
+const PLK_EX='{"evaluations":[{"classe":"2APIC-1","titre":"2APIC R1 — Réaction chimique","date":"2026-11-30","lecon":"Réaction","seance":1,"questions":[{"t":"Question 1","cle":"B"},{"t":"Question 2","cle":"C"}],"eleves":[{"carte":1,"nom":"Nom Prénom","rep":["B","A"]},{"carte":2,"nom":"Autre élève","rep":["B","C"]}]}]}';
+function plkPasteHtml(){return `<div class="notebox" style="display:grid;gap:6px"><b>📋 Coller des résultats · لصق النتائج</b><span class="hint">Collez le bloc de résultats préparé (format Rclass : une ou plusieurs évaluations, toutes classes). Chaque évaluation s'ouvre ensuite dans l'aperçu habituel, à vérifier avant d'enregistrer. L'import des fichiers CSV reste disponible.</span><textarea id="plkTxt" rows="6" style="width:100%;font-family:monospace;font-size:.78rem" placeholder='${esc(PLK_EX)}'>${esc(S.plkTxt||"")}</textarea><div class="tools"><button class="btn primary" data-act="plkTxtGo">Prévisualiser</button><button class="btn" data-act="plkTxtX">Annuler</button></div></div>`}
+function plkTxtItems(txt){let o;try{o=JSON.parse(String(txt||"").trim().replace(/^\`\`\`(json)?|\`\`\`$/g,""))}catch(e){return null}
+  const L=Array.isArray(o)?o:Array.isArray(o&&o.evaluations)?o.evaluations:o&&typeof o==="object"?[o]:[];
+  return L.filter(ev=>ev&&Array.isArray(ev.questions)&&Array.isArray(ev.eleves)).map((ev,i)=>({name:(ev.classe?ev.classe+" · ":"")+(ev.titre||"évaluation "+(i+1)),ev}))}
+function plkFromEv(c,ev,fname){
+  const qs=ev.questions.map((q,i)=>({t:String((q&&typeof q==="object"?q.t||q.texte:q)||"Question "+(i+1)).trim(),key:String((q&&typeof q==="object"?q.cle||q.key:"")||"").trim().toUpperCase(),set:""}));
+  const lines=ev.eleves.map(e=>{const r=e.rep||e.reponses||[];return {nm:String(e.nom||e.name||"").trim(),card:e.carte!=null&&e.carte!==""&&!isNaN(+e.carte)?+e.carte:null,ans:qs.map((q,i)=>String(r[i]??"").trim()),pc:typeof e.pc==="number"?e.pc:null}}).filter(l=>(l.nm||l.card!=null)&&l.ans.some(isAns));
+  const its=progItems(c),lq=String(ev.lecon||"").trim();const it=lq?its.find(i=>i.id===lq)||its.find(i=>normN(i.t)===normN(lq))||its.find(i=>normN(i.full||"").includes(normN(lq))):null;
+  const part=it?Math.min(nOf(it),Math.max(1,parseInt(ev.seance)||1)):null;
+  const date=/^\d{4}-\d{2}-\d{2}$/.test(ev.date||"")?ev.date:today();
+  const title=(it?partLab(it,part)+" · ":"")+(String(ev.titre||"").trim()||"Évaluation Plickers");
+  const P={fname,fcls:c.name,range:[date],sets:[{name:"",title,date,lid:it?it.id:"",part,on:true}],thr:50,qs,lines,
+    roster:lines.filter(l=>l.card!=null&&l.nm).map(l=>({nm:l.nm,card:l.card})),hasCard:lines.some(l=>l.card!=null),byCard:false,hasPc:lines.some(l=>l.pc!=null),seat:false};
+  plkMatch(c,P);if(P.hasCard&&sorted(c).some(x=>x.card>0)){P.byCard=true;plkMatch(c,P)}else if(P.hasCard&&P.lines.filter(l=>l.sid).length<P.lines.length*0.4){P.byCard=true;plkMatch(c,P)}
+  return P}
 async function plkLoad(fl){const c0=cls();if(!c0)return false;S.plk0=fl.name;
+  if(fl.ev){const ev=fl.ev;let cc=c0;if(ev.classe){const k=normN(ev.classe).replace(/\s/g,"");const hit=classList().find(x=>normN(x.name).replace(/\s/g,"")===k);if(!hit){S.plkLog=(S.plkLog||[]).concat([fl.name+" : classe introuvable"]);return false}if(hit.id!==c0.id){selectClass(hit.id);cc=hit}}if(isDemo(cc)){S.plkLog=(S.plkLog||[]).concat([fl.name+" : classe de démonstration"]);return false}
+    const P=plkFromEv(cc,ev,fl.name);if(!P.lines.length){S.plkLog=(S.plkLog||[]).concat([fl.name+" : aucun résultat d'élève trouvé"]);return false}S.plk=P;return true}
   try{let buf=await fl.arrayBuffer();let txt=new TextDecoder("utf-8").decode(buf);if(txt.includes("\uFFFD"))txt=new TextDecoder("windows-1252").decode(buf);const rows=parseCsv(txt);let cc=c0;
     {const t0=(rows[0]||[]).join(" ");const m=(t0.match(/^\s*([0-9]\s*a\s*p?i?c?\s*[-_ ]?\s*\d+)/i)||[])[1]||(fl.name.match(/([0-9]\s*a\s*p?i?c?\s*[-_ ]?\s*\d+)/i)||[])[1];if(m){const k=normN(m).replace(/\s/g,"");const hit=classList().find(x=>normN(x.name).replace(/\s/g,"")===k);if(hit&&hit.id!==c0.id){selectClass(hit.id);cc=hit}}}
     const P=plkParse(cc,rows,fl.name);if(!P.lines.length){S.plkLog=(S.plkLog||[]).concat([fl.name+" : aucun résultat d'élève trouvé"]);return false}S.plk=P;return true}
@@ -2696,6 +2719,10 @@ document.addEventListener("click",async e=>{
     const lines=sorted(c).map(s=>{const r=(E.res||{})[s.id]||{};return [s.num,s.massar||"",s.card||"",s.name,r.note!=null?String(r.note).replace(".",","):"",...K.map((k,i)=>(r.comp||[])[i]||"")]});
     const csv="\uFEFF"+[head,...lines].map(l=>l.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(";")).join("\r\n");await saveFile(`${(E.title||"devoir").replace(/[^\w\u0600-\u06FF]+/g,"-")}-${fileName(c)}.csv`,new Blob([csv],{type:"text/csv"}));return}
   if(a==="plkCancel"){S.plk=null;S.plkLog=(S.plkLog||[]).concat([`${S.plk0||""} : ignoré`]);return plkNext()}
+  if(a==="plkTxtOpen"){S.plkPaste=!S.plkPaste;render();const ta=$("#plkTxt");if(ta)ta.focus();return}
+  if(a==="plkTxtX"){S.plkPaste=false;S.plkTxt="";return render()}
+  if(a==="plkTxtGo"){const txt=($("#plkTxt")||{}).value||"";S.plkTxt=txt;const L=plkTxtItems(txt);if(!L)return toast("Texte non reconnu : collez le bloc de résultats complet (format Rclass).");if(!L.length)return toast("Aucune évaluation trouvée dans le texte collé.");if(!cls())return toast("Choisissez d'abord une classe.");if(isDemo(cls()))return demoBlock(true);
+    S.plkPaste=false;S.plkTxt="";S.plkQ=L;S.plkLog=[];S.plkAutoOn=false;S.plk=null;S.plkN=L.length;return plkNext()}
   if(a==="plkSave"&&c&&S.plk){readPlk();const m=await plkCommit(c,S.plk);if(!m)return toast("Aucun élève associé : choisissez les élèves dans la liste.");toast(m);S.plkLog=(S.plkLog||[]).concat([m]);S.plk=null;return plkNext()}
   if(a==="plkAuto"&&c&&S.plk){readPlk();S.plkAutoOn=true;if(!(c.students||[]).length&&S.plk.roster.length)await plkAddRoster(c,S.plk);const m=await plkCommit(c,S.plk);S.plkLog=(S.plkLog||[]).concat([m||`${c.name} : aucun élève associé`]);S.plk=null;return plkNext()}
   if(a==="plkLogClose"){S.plkLog=null;return render()}

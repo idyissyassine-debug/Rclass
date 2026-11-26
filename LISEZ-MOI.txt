@@ -51,3 +51,21 @@ Ensuite, chaque utilisateur :
 - ne voit que ses propres données (règles Firestore) ;
 - peut copier un compte local existant vers son compte en ligne (« Copier un compte local… »).
 Hors connexion, l'application continue de fonctionner et envoie les modifications au retour d'Internet.
+
+Résultats Plickers : deux façons de les saisir (Bilan > Évaluations Plickers)
+==========================================================================
+1. « Importer des fichiers CSV Plickers » : le fichier exporté du Scoresheet (inchangé).
+2. « 📋 Coller des résultats » : coller un bloc de texte au format Rclass (préparé par exemple par Claude),
+   pour une ou plusieurs évaluations et plusieurs classes à la fois :
+
+   {"evaluations":[{
+     "classe":"2APIC-1", "titre":"2APIC R1 — Réaction chimique", "date":"2026-11-30",
+     "lecon":"Réaction", "seance":1,
+     "questions":[{"t":"Texte de la question","cle":"B"}, …],
+     "eleves":[{"carte":3,"nom":"Nom Prénom","rep":["B","A",…]}, …]
+   }]}
+
+   - classe : nom de la classe dans Rclass (l'évaluation y est envoyée automatiquement) ;
+   - lecon / seance : élément du programme (nom court ou id) et numéro de séance (facultatifs) ;
+   - rep : une réponse par question, dans l'ordre ("" si pas de réponse) ; seuls les élèves présents.
+   Chaque évaluation s'ouvre dans le même aperçu que le CSV : vérifier, puis « Enregistrer ».
