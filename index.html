@@ -425,6 +425,26 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const uid=()=>Math.random().toString(36).slice(2,9);
 const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
 const DEF={wEx:1,wPlus:1,wNr:0.5,wMinus:1,base:10,step:0.5,latePen:0.5,cahAbs:1,cahInc:0.5};
+/* Notation par composantes (gm:"comp") : comportement + exercices + participation + cahier = 20.
+   Comportement : départ bStart, −b0 au 1er écart d'une séance, +bStep pour chaque écart de plus dans la même séance,
+   +bRep si la séance précédente avait déjà un écart ; retards : −late3 par groupe de 3 (−late3c si consécutifs).
+   Exercices : +eDone par exercice fait, −eMiss par exercice non fait. Participation : chaque séance comptée vaut
+   min(pMax, bonnes réponses × pPlus + sans réponse × pNr), moyenne sur les séances comptées où l'élève est présent.
+   Cahier : départ cStart ; غير متوفر −cAbs, دروس ناقصة −cInc, alourdis de cStepC à chaque répétition ; cahier ✓ +cOk. */
+const CDEF={gm:"pts",bStart:6,bMin:-4,bMax:6,b0:0.5,bStep:0.25,bRep:0.25,late3:0.5,late3c:0.75,eMin:0,eMax:4,eDone:1,eMiss:1.5,pMax:5,pPlus:1,pNr:1,cStart:4,cMin:-1,cMax:5,cAbs:0.5,cInc:0.25,cStepC:0.25,cOk:0.25};
+const clampN=(v,a,b)=>Math.max(a,Math.min(b,v));
+// Séances comptées pour la participation : par défaut celles où au moins un élève a participé ; le professeur peut cocher/décocher.
+// Bouton de la séance : compte (ou retire) la séance courante dans les séances de participation
+function partBtn(c){const k=dk(),on=partOn(c,k);return `<button class="btn" data-act="partTog" aria-pressed="${on}" title="Compter cette séance dans la note de participation (méthode par composantes)" style="${on?"border-color:var(--ok);color:var(--ok)":""}">🙋 Participation : ${on?"séance comptée ✓":"compter cette séance"}<br><small style="font-weight:400">${on?"الحصة محتسبة في المشاركة":"احتساب الحصة في المشاركة"}</small></button>`}
+function partOn(c,k){const sel=(c.partSel||{})[k];if(typeof sel==="boolean")return sel;return sorted(c).some(st=>{const m=mark(st.id,k);return m&&((m.plus||0)+(m.nr||0))>0})}
+function compRow(c,s,dates,W,PS){let beh=W.bStart,cah=W.cStart,prev=false,nA=0,nI=0,ps=0,pn=0,exD=0,exN=0;const lates=[];
+  dates.forEach((d,i)=>{const m=mark(s.id,d)||{};const k=Math.max(0,m.minus||0);for(let j=0;j<k;j++)beh-=W.b0+j*W.bStep+(prev?W.bRep:0);prev=k>0;
+    if(m.p==="R")lates.push(i);exD+=Math.max(0,m.ex||0);exN+=(m.nex||0)+Math.max(0,-(m.ex||0));
+    if(m.cah==="abs"){cah-=W.cAbs+nA*W.cStepC;nA++}else if(m.cah==="inc"){cah-=W.cInc+nI*W.cStepC;nI++}else if(m.cah==="ok")cah+=W.cOk;cah=clampN(cah,W.cMin,W.cMax);
+    if(PS.has(d)&&m.p!=="A"){ps+=Math.min(W.pMax,(m.plus||0)*W.pPlus+(m.nr||0)*W.pNr);pn++}});
+  for(let g=0;g+2<lates.length;g+=3){const a=lates.slice(g,g+3);beh-=(a[1]===a[0]+1&&a[2]===a[1]+1)?W.late3c:W.late3}
+  const r2=v=>Math.round(v*100)/100;
+  return {cBeh:r2(clampN(beh,W.bMin,W.bMax)),cEx:r2(clampN(exD*W.eDone-exN*W.eMiss,W.eMin,W.eMax)),cPart:r2(pn?ps/pn:0),pn,cCah:r2(cah)}}
 
 const S={classes:{},days:{},cid:null,date:today(),tab:"seance",undo:false,sort:{k:"n",d:1},confirmDel:false,pick:null,store:"…",mode:"plan",selStu:null,edSeat:null,edStu:null,follow:true,lastD:1,lastE:"",xid:null,addF:null,wk:null,stu:null,xScope:"all",period:"year",prog:{},pgLvl:null,cancelOpen:false,holEdit:{}};
 let PSUF="";const PR={list:[],cur:null};
@@ -586,15 +606,16 @@ const PER={year:"Année entière",s1:"1er semestre",s2:"2e semestre",custom:"Pé
 const QMAX=12; /* 12 × 0,25 = 3 points au plus par semestre */
 function qSem(c,sid){const s2d=sem2(c),cur=S.date>=s2d;let n=0;for(const k in S.days){const m=((S.days[k]||{}).marks||{})[sid];if(!m||!m.q)continue;const ki=keyInfo(c,k);if(!ki)continue;if((ki.date>=s2d)===cur)n+=m.q}return n}
 function totals(c,per=S.period){
-  const w={...DEF,...(c.settings||{})};
-  const dates=sessKeys(c).filter(x=>inPeriod(c,x.date,per)).map(x=>x.k);
-  return {dates,w,rows:sorted(c).map(s=>{
-    let A=0,R=0,ex=0,nex=0,exD=0,exN=0,plus=0,minus=0,nr=0,seen=0,cA=0,cI=0,q1=0,q2=0,qm=0;const s2d=sem2(c);
+  const w={...DEF,...CDEF,...(c.settings||{})};
+  const dates=sessKeys(c).filter(x=>inPeriod(c,x.date,per)).map(x=>x.k);const comp=w.gm==="comp";const PS=comp?new Set(dates.filter(k=>partOn(c,k))):null;
+  return {dates,w,comp,PS,rows:sorted(c).map(s=>{
+    let A=0,R=0,ex=0,nex=0,exD=0,exN=0,plus=0,minus=0,nr=0,seen=0,cA=0,cI=0,cO=0,q1=0,q2=0,qm=0;const s2d=sem2(c);
     for(const d of dates){const m=mark(s.id,d);if(!m.p&&!m.ex&&!m.nex&&!m.plus&&!m.minus&&!m.nr&&!m.cah&&!m.q&&!m.qm)continue;seen++;qm+=m.qm||0;if(m.q){const ki=keyInfo(c,d);if(ki&&ki.date>=s2d)q2+=m.q;else q1+=m.q}
-      if(m.p==="A")A++;if(m.p==="R")R++;ex+=(m.ex||0)-(m.nex||0);exD+=Math.max(0,m.ex||0);exN+=(m.nex||0)+Math.max(0,-(m.ex||0));if(m.cah==="abs")cA++;if(m.cah==="inc")cI++;plus+=m.plus||0;minus+=m.minus||0;nr+=m.nr||0}
+      if(m.p==="A")A++;if(m.p==="R")R++;ex+=(m.ex||0)-(m.nex||0);exD+=Math.max(0,m.ex||0);exN+=(m.nex||0)+Math.max(0,-(m.ex||0));if(m.cah==="abs")cA++;if(m.cah==="inc")cI++;if(m.cah==="ok")cO++;plus+=m.plus||0;minus+=m.minus||0;nr+=m.nr||0}
     const score=ex*w.wEx+plus*w.wPlus+nr*(w.wNr??DEF.wNr)-minus*w.wMinus-R*w.latePen-cA*w.cahAbs-cI*w.cahInc;
-    const bon=(Math.min(QMAX,q1)+Math.min(QMAX,q2))*.25,mal=qm*.25;const note=Math.max(0,Math.min(20,Math.round((w.base+score*w.step)*4)/4+bon-mal));
-    return {...s,bon,mal,qm,A,R,ex,nex,exD,exN,plus,minus,nr,cA,cI,score,note,seen,rate:plus+nr?Math.round(plus/(plus+nr)*100):null};
+    const bon=(Math.min(QMAX,q1)+Math.min(QMAX,q2))*.25,mal=qm*.25;const C=comp?compRow(c,s,dates,w,PS):null;
+    const note=Math.max(0,Math.min(20,Math.round((comp?C.cBeh+C.cEx+C.cPart+C.cCah:w.base+score*w.step)*4)/4+bon-mal));
+    return {...s,...(C||{}),bon,mal,qm,A,R,ex,nex,exD,exN,plus,minus,nr,cA,cI,cO,score,note,seen,rate:plus+nr?Math.round(plus/(plus+nr)*100):null};
   })};
 }
 
@@ -934,7 +955,7 @@ function planSeance(c,st,numMode){
       h=numMode?`<div class="card planwrap">${top}<div class="numgrid">${st.map(x=>cellFn("",x.id)).join("")}</div></div>`:seatGrid(c,cellFn,top);
       {const qb=quickPanel(c,by[S.selStu],FL,st,true);if(qb)h+=`<div class="qpbot">${qb}</div>`}}
     h=toolBar()+h;
-    h+=`<div class="allbar"><button class="btn" data-act="exAll" title="Tous les présents sans « ✗ Ex » reçoivent « ✓ Ex »">✓ Exercices : valider les autres<br><small style="font-weight:400">التمارين للباقي</small></button><button class="btn" data-act="cahAll" title="Tous les présents sans remarque sur le cahier : cahier complet">📓 Cahiers : valider les autres<br><small style="font-weight:400">الدفاتر للباقي</small></button></div>`}
+    h+=`<div class="allbar"><button class="btn" data-act="exAll" title="Tous les présents sans « ✗ Ex » reçoivent « ✓ Ex »">✓ Exercices : valider les autres<br><small style="font-weight:400">التمارين للباقي</small></button><button class="btn" data-act="cahAll" title="Tous les présents sans remarque sur le cahier : cahier complet">📓 Cahiers : valider les autres<br><small style="font-weight:400">الدفاتر للباقي</small></button>${partBtn(c)}</div>`}
   const loose=st.filter(s=>!placed.has(s.id));
   if(loose.length&&!numMode&&S.mode!=="team")h+=`<div class="card form"><span class="hint">${loose.length} élève(s) sans place. Placez-les dans l'onglet « Classe ».</span><div class="tools">${loose.map(s=>`<button class="btn" data-act="stu" data-id="${s.id}">${s.num}. ${esc(s.name)}</button>`).join("")}</div></div>`;
   const s=numMode==="team"?by[S.selStu]:null;
@@ -1084,7 +1105,7 @@ function viewFiche(c,sid){const s=c.students.find(x=>x.id===sid);const T=totals(
   return `<div style="display:flex;gap:6px;align-items:center"><button class="back" data-act="ficheClose">← Retour</button><span style="flex:1"></span><button class="btn navb" data-act="ficheNav" data-d="-1" aria-label="Élève précédent">‹</button><button class="btn navb" data-act="ficheNav" data-d="1" aria-label="Élève suivant">›</button></div>
   <div class="numstrip">${SL.map(x=>`<button data-act="fiche" data-id="${x.id}" class="${x.id===s.id?"on":""}">${x.num}</button>`).join("")}</div>
   <div class="card form"><h2>${s.num}. ${esc(s.name)}</h2><span class="hint">${esc(c.name)}${c.level?" · "+esc(c.level):""}${s.massar?" · code Massar "+esc(s.massar):""}${s.card?" · carte Plickers "+s.card:""}${pl?` · rangée ${pl.r}, table ${pl.t}, place ${pl.p}`:""}${s.from?` · vient de ${esc(s.from)}`:""}</span></div>
-  <div class="card summary"><div><b class="${T.note>=10?"g":"r"}">${(T.note??0).toFixed(2)}</b><span>Note /20</span></div><div><b class="${T.A?"r":""}">${T.A||0}</b><span>Absences</span></div><div><b class="y">${T.ex||0}</b><span>Exercices</span></div><div><b style="font-size:1.1rem"><span class="g" style="font-size:inherit;text-transform:none;letter-spacing:0">+${T.plus||0}</span> <span class="y" style="font-size:inherit;text-transform:none;letter-spacing:0">✗${T.nr||0}</span></b><span>Réponses${T.rate!=null?" · "+T.rate+"%":""}</span></div><div><b class="r">−${T.minus||0}</b><span>Conduite</span></div></div>
+  <div class="card summary"><div><b class="${T.note>=10?"g":"r"}">${(T.note??0).toFixed(2)}</b><span>Note /20</span></div><div><b class="${T.A?"r":""}">${T.A||0}</b><span>Absences</span></div><div><b style="font-size:1.1rem"><span class="g" style="font-size:inherit;text-transform:none;letter-spacing:0">✓${T.exD||0}</span> <span class="r" style="font-size:inherit;text-transform:none;letter-spacing:0">✗${T.exN||0}</span></b><span>Exercices</span></div><div><b style="font-size:1.1rem"><span class="g" style="font-size:inherit;text-transform:none;letter-spacing:0">✓${T.cO||0}</span> <span class="r" style="font-size:inherit;text-transform:none;letter-spacing:0">✗${T.cA||0}</span> <span class="y" style="font-size:inherit;text-transform:none;letter-spacing:0">½${T.cI||0}</span></b><span>Cahier</span></div><div><b style="font-size:1.1rem"><span class="g" style="font-size:inherit;text-transform:none;letter-spacing:0">+${T.plus||0}</span> <span class="y" style="font-size:inherit;text-transform:none;letter-spacing:0">✗${T.nr||0}</span></b><span>Réponses${T.rate!=null?" · "+T.rate+"%":""}</span></div><div><b class="r">−${T.minus||0}</b><span>Conduite</span></div></div>
   ${(()=>{const EX=(c.exams||[]).filter(E=>(E.res||{})[sid]&&exPerOK(c,E)).sort((a,b)=>b.date.localeCompare(a.date));if(!EX.length)return "";return `<div class="card form"><h2>Devoirs · الفروض</h2><ul class="remind">${EX.map(E=>{const r=E.res[sid];return `<li style="display:grid;gap:4px"><span style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap"><b style="font-size:.9rem">${esc(E.title)}</b><span class="hint">${fmtD(E.date)}</span><b class="${r.note!=null&&r.note<10?"r":"g"}" style="margin-inline-start:auto">${r.note!=null?String(r.note).replace(".",",")+" / 20":"–"}</b></span>${isPion(c)&&(E.comps||[]).length?`<span style="display:flex;flex-wrap:wrap;gap:4px 10px">${E.comps.map((k,i)=>`<span title="${esc(k.name)}">${esc(k.code)} ${lvB((r.comp||[])[i])} <span class="hint">${esc(k.name.slice(0,40))}</span></span>`).join("")}</span>`:""}</li>`}).join("")}</ul></div>`})()}
   ${(()=>{const TT=(c.tests||[]).filter(t=>(t.res||{})[sid]&&perOK(c,t.date)).sort((a,b)=>b.date.localeCompare(a.date));if(!TT.length)return "";return `<div class="card form"><h2>Évaluations Plickers</h2><ul class="remind">${TT.map(t=>{const r=t.res[sid],wr=(r.ok||[]).map((v,i)=>v===0?"Q"+(i+1)+(t.qs[i]?" ("+t.qs[i].t.slice(0,40)+")":""):"").filter(Boolean);return `<li><b style="font-size:.88rem">${fmtD(t.date)} · ${esc(t.title)}</b><span class="${r.pc!=null&&r.pc<(t.thr??50)?"r":"g"}" style="font-weight:700">${r.pc==null?"–":Math.round(r.pc)+" %"}</span>${wr.length?`<span>Ratées : ${esc(wr.join(" ; "))}</span>`:""}</li>`}).join("")}</ul></div>`})()}
   <div class="tools"><button class="btn primary" data-act="ficheDoc" data-id="${sid}">Exporter en Word</button><button class="btn" data-act="fichePdf" data-id="${sid}">Exporter en PDF</button></div>
@@ -1290,7 +1311,7 @@ function viewSeance(c){
   <div class="tools">
     <div class="seg" role="group" aria-label="Affichage"><button data-mod="plan" data-act="mode" data-m="plan" aria-pressed="${S.mode==="plan"}">Plan</button><button data-act="mode" data-m="num" aria-pressed="${S.mode==="num"}">N° d'ordre</button><button data-act="mode" data-m="liste" aria-pressed="${S.mode==="liste"}">Liste</button></div>
     ${S.mode==="liste"?`<button class="btn" data-act="pick">Tirer au sort (équitable)</button>`:""}
-    ${S.mode==="liste"||S.mode==="team"?`<button class="btn" data-act="exAll">✓ Exercices : valider les autres</button><button class="btn" data-act="cahAll">📓 Cahiers : valider les autres</button>`:""}
+    ${S.mode==="liste"||S.mode==="team"?`<button class="btn" data-act="exAll">✓ Exercices : valider les autres</button><button class="btn" data-act="cahAll">📓 Cahiers : valider les autres</button>${partBtn(c)}`:""}
     <button class="btn" data-act="undo" aria-pressed="${S.undo}">${S.undo?"Mode correction : actif":"Corriger (−1)"}</button>
     <span class="hint" style="flex-basis:100%">Séance du ${esc(lab)}. ${S.mode==="plan"||S.mode==="team"?"Touchez un élève à sa place pour noter l'appel, un exercice ou un point.":"Touchez le statut pour passer Présent → Absent → Retard."} ${S.undo?"Chaque touche retire 1 point.":"Chaque touche ajoute 1."}</span>
   </div>
@@ -1334,25 +1355,37 @@ function viewBilan(c){
   ${cmpCard(c)}
   ${chartSvg(c)}
   <div class="card summary"><div><b>${T.dates.length}</b><span>Séances</span></div><div><b>${avg}</b><span>Moyenne /20</span></div><div><b>${T.rows.reduce((s,r)=>s+r.A,0)}</b><span>Absences</span></div><div><b>${T.rows.reduce((s,r)=>s+r.ex,0)}</b><span>Exercices</span></div></div>
-  <div class="card tablewrap"><table class="bil"><thead><tr>${th("num","N° Massar")}${th("name","Élève","l")}${th("A","Abs")}${th("R","Ret")}${th("exD","Ex ✓")}${th("exN","Ex ✗")}${th("plus","+ Rép.")}${th("nr","✗ Sans")}${th("rate","% rép.")}${th("minus","− Cond.")}${th("cA","Cah ✗")}${th("cI","Cah ½")}${th("score","Points")}${th("bon","± 0,25")}${th("note","/20")}</tr></thead>
-  <tbody>${rows.map(r=>`<tr><td>${r.num||""}</td><td class="l"><button class="namebtn" data-act="fiche" data-id="${r.id}">${esc(r.name)}</button></td><td class="${r.A?"r":""}">${r.A}</td><td>${r.R}</td><td class="y">${r.exD}</td><td class="${r.exN?"r":""}">${r.exN}</td><td class="g">${r.plus}</td><td class="${r.nr?"y":""}">${r.nr}</td><td>${r.rate==null?"–":r.rate+"%"}</td><td class="r">${r.minus}</td><td class="${r.cA?"r":""}">${r.cA}</td><td class="${r.cI?"y":""}">${r.cI}</td><td>${r.score>0?"+":""}${+r.score.toFixed(2)}</td><td class="${r.bon-r.mal>0?"g":r.bon-r.mal<0?"r":""}" title="+${r.bon} / −${r.mal}">${r.bon||r.mal?(r.bon-r.mal>0?"+":"")+(+(r.bon-r.mal).toFixed(2)):"–"}</td><td class="note">${r.note.toFixed(2)}<div class="bar20"><i style="width:${r.note*5}%"></i></div></td></tr>`).join("")}</tbody></table></div>
+  ${T.comp?partSelCard(c,T):""}
+  <div class="card tablewrap"><table class="bil">${T.comp?`<thead><tr>${th("num","N°")}${th("name","Élève","l")}${th("A","Abs")}${th("R","Ret")}${th("cBeh","Comport. /"+w.bMax)}${th("cEx","Exercices /"+w.eMax)}${th("cPart","Particip. /"+w.pMax)}${th("cCah","Cahier /"+w.cMax)}${th("bon","± 0,25")}${th("note","/20")}</tr></thead>
+  <tbody>${rows.map(r=>`<tr><td>${r.num||""}</td><td class="l"><button class="namebtn" data-act="fiche" data-id="${r.id}">${esc(r.name)}</button></td><td class="${r.A?"r":""}">${r.A}</td><td>${r.R}</td><td class="${r.cBeh<w.bStart?"r":""}">${r.cBeh}</td><td>${r.cEx}</td><td title="${r.pn} séance(s) comptée(s)">${r.cPart}</td><td class="${r.cCah<w.cStart?"r":""}">${r.cCah}</td><td class="${r.bon-r.mal>0?"g":r.bon-r.mal<0?"r":""}">${r.bon||r.mal?(r.bon-r.mal>0?"+":"")+(+(r.bon-r.mal).toFixed(2)):"–"}</td><td class="note">${r.note.toFixed(2)}<div class="bar20"><i style="width:${r.note*5}%"></i></div></td></tr>`).join("")}</tbody></table></div>`:`<thead><tr>${th("num","N° Massar")}${th("name","Élève","l")}${th("A","Abs")}${th("R","Ret")}${th("exD","Ex ✓")}${th("exN","Ex ✗")}${th("plus","+ Rép.")}${th("nr","✗ Sans")}${th("rate","% rép.")}${th("minus","− Cond.")}${th("cA","Cah ✗")}${th("cI","Cah ½")}${th("score","Points")}${th("bon","± 0,25")}${th("note","/20")}</tr></thead>
+  <tbody>${rows.map(r=>`<tr><td>${r.num||""}</td><td class="l"><button class="namebtn" data-act="fiche" data-id="${r.id}">${esc(r.name)}</button></td><td class="${r.A?"r":""}">${r.A}</td><td>${r.R}</td><td class="y">${r.exD}</td><td class="${r.exN?"r":""}">${r.exN}</td><td class="g">${r.plus}</td><td class="${r.nr?"y":""}">${r.nr}</td><td>${r.rate==null?"–":r.rate+"%"}</td><td class="r">${r.minus}</td><td class="${r.cA?"r":""}">${r.cA}</td><td class="${r.cI?"y":""}">${r.cI}</td><td>${r.score>0?"+":""}${+r.score.toFixed(2)}</td><td class="${r.bon-r.mal>0?"g":r.bon-r.mal<0?"r":""}" title="+${r.bon} / −${r.mal}">${r.bon||r.mal?(r.bon-r.mal>0?"+":"")+(+(r.bon-r.mal).toFixed(2)):"–"}</td><td class="note">${r.note.toFixed(2)}<div class="bar20"><i style="width:${r.note*5}%"></i></div></td></tr>`).join("")}</tbody></table></div>`}
   <div class="tools"><button class="btn primary" data-act="csv">Télécharger (CSV / Excel)</button><button class="btn" data-act="copy">Copier les notes</button></div>
   <form class="card form" id="wForm"><h2>Barème des activités</h2>
+    <label>Méthode de notation<select id="gm"><option value="pts" ${w.gm!=="comp"?"selected":""}>Barème actuel (points × valeur)</option><option value="comp" ${w.gm==="comp"?"selected":""}>Par composantes : comportement /${w.bMax} · exercices /${w.eMax} · participation /${w.pMax} · cahier /${w.cMax}</option></select></label>
+    <details ${w.gm==="comp"?"open":""}><summary style="cursor:pointer;font-weight:700">Réglages « par composantes »</summary>
+    <p class="hint" style="margin:6px 0">Note = comportement + exercices + participation + cahier (+ bonus ± 0,25), limitée entre 0 et 20, arrondie au quart.
+    Comportement : départ ${w.bStart}, chaque écart −${w.b0}, +${w.bStep} par écart de plus dans la même séance, +${w.bRep} si la séance précédente avait déjà un écart ; 3 retards −${w.late3} (−${w.late3c} s'ils sont consécutifs).
+    Exercices : +${w.eDone} par exercice fait, −${w.eMiss} par exercice non fait. Participation : chaque séance comptée vaut de 0 à ${w.pMax} (bonne réponse +${w.pPlus}, sans réponse +${w.pNr}), moyenne des séances comptées où l'élève est présent.
+    Cahier : départ ${w.cStart} ; غير متوفر −${w.cAbs}, دروس ناقصة −${w.cInc}, +${w.cStepC} à chaque répétition ; cahier ✓ +${w.cOk}.</p>
+    <div class="grid2">${[["bStart","Comportement : départ"],["bMin","Comportement : minimum"],["bMax","Comportement : maximum"],["b0","Écart : retrait"],["bStep","Écart répété dans la séance : + par écart"],["bRep","Écart la séance suivante : +"],["late3","3 retards : retrait"],["late3c","3 retards consécutifs : retrait"],["eMin","Exercices : minimum"],["eMax","Exercices : maximum"],["eDone","Exercice fait : +"],["eMiss","Exercice non fait : −"],["pMax","Participation : maximum par séance"],["pPlus","Bonne réponse : +"],["pNr","Participation sans réponse : +"],["cStart","Cahier : départ"],["cMin","Cahier : minimum"],["cMax","Cahier : maximum"],["cAbs","Cahier غير متوفر : retrait"],["cInc","دروس ناقصة : retrait"],["cStepC","Cahier : + à chaque répétition"],["cOk","Cahier ✓ (corrigé) : +"]].map(([k,l])=>`<label>${l}<input type="number" step="0.01" id="${k}" value="${w[k]}"></label>`).join("")}</div></details>
     <p class="hint" style="margin:0">Points = exercice fait × ${w.wEx} − exercice non fait (✗ Ex) × ${w.wEx} + bonne réponse × ${w.wPlus} + participation sans bonne réponse × ${w.wNr??DEF.wNr} − comportement × ${w.wMinus} − cahier غير متوفر × ${w.cahAbs} − دروس ناقصة × ${w.cahInc}${w.latePen?` − retards × ${w.latePen}`:""}. Note = ${w.base} + points × ${w.step}, limitée entre 0 et 20, arrondie au quart.</p>
     <div class="grid2">
-      <label>Poids exercice<input type="number" step="0.25" min="0" id="wEx" value="${w.wEx}"></label>
-      <label>Poids bonne réponse<input type="number" step="0.25" min="0" id="wPlus" value="${w.wPlus}"></label>
-      <label>Participation sans bonne réponse (points, moins qu'une bonne réponse)<input type="number" step="0.25" min="0" id="wNr" value="${w.wNr??DEF.wNr}"></label>
-      <label>Poids comportement<input type="number" step="0.25" min="0" id="wMinus" value="${w.wMinus}"></label>
-      <label>Cahier غير متوفر (pénalité)<input type="number" step="0.25" min="0" id="cahAbs" value="${w.cahAbs}"></label>
-      <label>دروس ناقصة (pénalité)<input type="number" step="0.25" min="0" id="cahInc" value="${w.cahInc}"></label>
-      <label>Pénalité par retard<input type="number" step="0.25" min="0" id="latePen" value="${w.latePen}"></label>
-      <label>Note de départ /20<input type="number" step="0.5" min="0" max="20" id="base" value="${w.base}"></label>
-      <label>Valeur d'un point<input type="number" step="0.05" min="0" id="step" value="${w.step}"></label>
+      <label>Poids exercice<input type="number" step="0.01" min="0" id="wEx" value="${w.wEx}"></label>
+      <label>Poids bonne réponse<input type="number" step="0.01" min="0" id="wPlus" value="${w.wPlus}"></label>
+      <label>Participation sans bonne réponse (points, moins qu'une bonne réponse)<input type="number" step="0.01" min="0" id="wNr" value="${w.wNr??DEF.wNr}"></label>
+      <label>Poids comportement<input type="number" step="0.01" min="0" id="wMinus" value="${w.wMinus}"></label>
+      <label>Cahier غير متوفر (pénalité)<input type="number" step="0.01" min="0" id="cahAbs" value="${w.cahAbs}"></label>
+      <label>دروس ناقصة (pénalité)<input type="number" step="0.01" min="0" id="cahInc" value="${w.cahInc}"></label>
+      <label>Pénalité par retard<input type="number" step="0.01" min="0" id="latePen" value="${w.latePen}"></label>
+      <label>Note de départ /20<input type="number" step="0.01" min="0" max="20" id="base" value="${w.base}"></label>
+      <label>Valeur d'un point<input type="number" step="0.01" min="0" id="step" value="${w.step}"></label>
     </div>
     <div><button class="btn primary" type="submit">Appliquer le barème à toutes les classes</button></div><span class="hint">Le même barème est utilisé pour toutes vos classes.</span>
   </form>`;
 }
+function partSelCard(c,T){const D=T.dates;if(!D.length)return "";const n=D.filter(k=>T.PS.has(k)).length;
+  return `<details class="card form fold"><summary><h2>Séances comptées pour la participation (${n}/${D.length})</h2></summary><span class="hint">Par défaut : les séances où au moins un élève a une participation notée. Décochez une séance sans participation des élèves, cochez-en une autre si besoin. Un absent n'est compté que sur les séances où il était présent.</span>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:4px">${D.map(k=>{const ki=keyInfo(c,k)||{};const on=T.PS.has(k);const lab=(ki.date?fmtD(ki.date):k)+(ki.lab&&ki.lab!=="Séance"?" · "+ki.lab:"");return `<label style="display:flex;gap:6px;align-items:center;font-size:.85rem"><input type="checkbox" data-psel="${k}" ${on?"checked":""}>${esc(lab)}</label>`}).join("")}</div></details>`}
 const LEVELS=["1AC","2AC","3AC","Autre"];
 const iso=d=>new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
 const fmtD=x=>new Date(x+"T12:00").toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"});
@@ -2887,6 +2920,7 @@ document.addEventListener("click",async e=>{
   if(a==="clearSeats"){c.seats={};S.edSeat=null;await saveClass(c);toast("Plan vidé");return render()}
   if(a==="pres"){const p=mark(id).p||"P",np=p==="P"?"A":p==="A"?"R":"P";setMark(id,{p:np});render();if(np==="R")lateCheck(c,id);return}
   if(a==="cah"){const o=["","ok","abs","inc"];const cur=mark(id).cah||"";const nv=o[(o.indexOf(cur)+1)%4];setMark(id,{cah:nv});render();if(nv==="abs")cahCheck(c,id);return}
+  if(a==="partTog"&&c){const k=dk(),on=partOn(c,k);c.partSel={...(c.partSel||{}),[k]:!on};await saveClass(c);toast(on?"Séance retirée de la participation":"Séance comptée pour la participation");return render()}
   if(a==="cahAll"){let n=0;sorted(c).forEach(s=>{const m=mark(s.id);if((m.p||"P")!=="A"&&!m.cah){setMark(s.id,{cah:"ok"});n++}});toast(n+" cahier(s) marqué(s) complet(s)");return render()}
   if(a==="dec"){const k=t.dataset.k;setMark(id,{[k]:(mark(id)[k]||0)-1});return render()}
   if(a==="q"){const fromPick=t.closest(".pick,.sheet");const delta=(S.undo&&!fromPick)?-1:1;if(delta>0&&qSem(c,id)>=QMAX)return toast("Plafond atteint : 3 points de bonus pour ce semestre.");setMark(id,{q:(mark(id).q||0)+delta});if(delta>0)toast("+0,25 · bonus du semestre : "+(qSem(c,id)*.25).toFixed(2)+" / 3");return render()}
@@ -2930,6 +2964,7 @@ document.addEventListener("click",async e=>{
     delete S.classes[cid];const next=Object.keys(S.classes)[0]||null;toast(nm+" supprimée");selectClass(next);setSync(api.label);return}
   if(a==="csv"||a==="copy"){const T=totals(c);T.rows.sort((x,y)=>(x.num||0)-(y.num||0));const head=["N° Massar","Code Massar","N° carte Plickers","Élève","Absences","Retards","Exercices faits","Exercices non faits","Bonnes réponses","Sans réponse","% réponses","Comportement","Cahier غير متوفر","دروس ناقصة","Points","Note/20"];
     const lines=T.rows.map(r=>[r.num,r.massar||"",r.card||"",r.name,r.A,r.R,r.exD,r.exN,r.plus,r.nr,r.rate==null?"":r.rate,r.minus,r.cA,r.cI,+r.score.toFixed(2),r.note.toFixed(2).replace(".",",")]);
+    if(T.comp){head.splice(14,1,"Comportement /"+T.w.bMax,"Exercices /"+T.w.eMax,"Participation /"+T.w.pMax,"Cahier /"+T.w.cMax);lines.forEach((l,i)=>{const r=T.rows[i];l.splice(14,1,r.cBeh,r.cEx,r.cPart,r.cCah)})}
     if(a==="copy"){const txt=[head,...lines].map(l=>l.join("\t")).join("\n");try{await navigator.clipboard.writeText(txt);toast("Tableau copié, collez-le dans Excel")}catch(err){toast("Copie refusée par l'appareil")}return}
     const csv="﻿"+[head,...lines].map(l=>l.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(";")).join("\r\n");
     await saveFile(`notes-${(c.name||"classe").replace(/\W+/g,"-")}-${S.period}-${today()}.csv`,new Blob([csv],{type:"text/csv"}));return}
@@ -2972,10 +3007,12 @@ document.addEventListener("submit",async e=>{e.preventDefault();
     {const mv=(($("#sfMassar")||{}).value||"").trim().toUpperCase();if(mv){if(!MCODE.test(mv))return toast("Code Massar invalide : une lettre suivie de 8 à 10 chiffres.");const o=classList().flatMap(x=>(x.students||[]).map(y=>({y,x}))).find(o=>o.y.massar===mv&&o.y.id!==sid);if(o)return toast(`Ce code Massar appartient déjà à ${o.y.name} (${o.x.name}).`);s.massar=mv}else delete s.massar}
     s.name=nm;if(num!==s.num){const o=c.students.find(x=>x.num===num&&x.id!==sid);if(o)o.num=s.num;s.num=num}
     S.edStu=null;await saveClass(c);render();toast("Élève modifié")}
-  if(e.target.id==="wForm"){const s={};for(const k of Object.keys(DEF)){const v=parseFloat($("#"+k).value);s[k]=isNaN(v)?DEF[k]:v}let n=0;for(const cc of classList()){cc.settings={...s};await saveClass(cc);n++}render();toast("Barème appliqué aux "+n+" classes")}
+  if(e.target.id==="wForm"){const s={};for(const k of Object.keys(DEF)){const v=parseFloat($("#"+k).value);s[k]=isNaN(v)?DEF[k]:v}
+    for(const k of Object.keys(CDEF)){if(k==="gm"){s.gm=($("#gm")||{}).value==="comp"?"comp":"pts";continue}const el=$("#"+k),v=el?parseFloat(el.value):NaN;s[k]=isNaN(v)?CDEF[k]:v}let n=0;for(const cc of classList()){cc.settings={...s};await saveClass(cc);n++}render();toast("Barème appliqué aux "+n+" classes")}
 });
 document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.dataset&&d.dataset.ctd)S.ctOpen=d.open;if(d&&d.dataset&&d.dataset.sched)S.schedOpen=d.open;if(d&&d.dataset&&d.dataset.ram)S.ramOpen=d.open;if(d&&d.dataset&&d.dataset.exo){if(d.open)S.exOpen=d.dataset.exo;else if(S.exOpen===d.dataset.exo)S.exOpen=null}if(d&&d.dataset&&d.dataset.plo){if(d.open)S.plkOpen=d.dataset.plo;else if(S.plkOpen===d.dataset.plo)S.plkOpen=null}},true);
 document.addEventListener("change",async e=>{
+  if(e.target.dataset&&e.target.dataset.psel!==undefined&&e.target.type==="checkbox"){const c=cls();if(!c)return;c.partSel={...(c.partSel||{}),[e.target.dataset.psel]:e.target.checked};await saveClass(c);return render()}
   if((e.target.id==="restoreIn"||e.target.id==="restoreIn2")&&e.target.files&&e.target.files[0]){try{const B=JSON.parse(await e.target.files[0].text());if(!B||!B.classes)throw 0;
     if(B.kind==="partial"){setSync("Import…");const n=await importPartial(B);const m=await dedupeClasses();setSync(api.label);toast(n+" séance(s) importée(s)"+(m?" · doublons fusionnés":""));e.target.value="";return selectClass(S.cid&&S.classes[S.cid]?S.cid:Object.keys(S.classes)[0])}
     S.pendingRestore={B,name:e.target.files[0].name};S.tab="details";saveUI();render();window.scrollTo(0,0)}catch(err){setSync(api.label);toast("Fichier non reconnu : choisissez une sauvegarde Rclass.")}e.target.value="";return}
