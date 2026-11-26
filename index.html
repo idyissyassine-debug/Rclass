@@ -1229,10 +1229,17 @@ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest
  document.addEventListener("touchend",e=>{const p=e.changedTouches[0];if(p)end(p.clientX,p.clientY)},{passive:true});
  document.addEventListener("pointerdown",e=>{if(e.pointerType==="mouse")start(e.target,e.clientX,e.clientY)},{passive:true});
  document.addEventListener("pointerup",e=>{if(e.pointerType==="mouse")end(e.clientX,e.clientY)},{passive:true})}
-function render(){if(S.cours&&S.tab!=="seance"){S.cours=false;wakeOff()}document.body.classList.toggle("cours",!!S.cours);document.body.classList.toggle("home",S.tab==="home");navHist();render0();demoDecor();
+/* v82 : garde à l'écran l'élément que l'on vient de toucher quand la vue est redessinée
+   (évitait des sauts de page, par ex. en changeant le niveau du programme dans Détails). */
+const ANC={el:null,t:0,tab:null};
+["pointerdown","focusin","change","keydown"].forEach(ev=>document.addEventListener(ev,e=>{const el=e.target&&e.target.closest&&e.target.closest("#view [id],#view [data-act],#view select,#view input,#view textarea,#view button,#view summary");if(el){ANC.el=el;ANC.t=Date.now();ANC.tab=S.tab}},true));
+function ancSig(el){if(el.id)return {q:"#"+CSS.escape(el.id),i:0};const q="#view "+el.tagName.toLowerCase()+["data-act","data-n","data-k","data-s","data-id","data-plt","data-plq","data-ix","name"].filter(x=>el.hasAttribute(x)).map(x=>`[${x}="${CSS.escape(el.getAttribute(x))}"]`).join("");return {q,i:Math.max(0,[...document.querySelectorAll(q)].indexOf(el))}}
+function ancTake(){try{if(!ANC.el||Date.now()-ANC.t>4000||ANC.tab!==S.tab||S.tab==="seance"||!ANC.el.isConnected)return null;return {...ancSig(ANC.el),top:ANC.el.getBoundingClientRect().top,tab:S.tab}}catch(e){return null}}
+function ancKeep(A){try{if(!A||A.tab!==S.tab)return;const el=document.querySelectorAll(A.q)[A.i];if(!el)return;const d=el.getBoundingClientRect().top-A.top;if(Math.abs(d)>2)window.scrollBy(0,d);ANC.el=el}catch(e){}}
+function render(){const A0=ancTake();if(S.cours&&S.tab!=="seance"){S.cours=false;wakeOff()}document.body.classList.toggle("cours",!!S.cours);document.body.classList.toggle("home",S.tab==="home");navHist();render0();demoDecor();
   try{const v=$("#view");if(S.tab==="bilan"&&!S.stu&&cls()&&!(cls().students||[]).length&&!v.querySelector(".evalsep"))v.insertAdjacentHTML("beforeend",evalPart());
     {const so=S.tab==="seance"&&S.selStu&&document.querySelector(".plan .seat.on");if(so){const r=so.getBoundingClientRect();if(r.bottom>innerHeight-84||r.top<0)so.scrollIntoView({block:"center"})}}toolTop();if(S.tflash){const sx=document.querySelector(`.seat[data-id="${S.tflash}"]`);S.tflash=null;if(sx){sx.classList.remove("tflash");void sx.offsetWidth;sx.classList.add("tflash")}}foldCards();document.querySelectorAll(".numstrip .on").forEach(o=>{const p=o.parentElement;p.scrollLeft=o.offsetLeft-p.offsetLeft-p.clientWidth/2+o.clientWidth/2});
-    {const hb=$("#histBox");if(hb)hb.innerHTML=S.hist?histHtml():""}if(S.tab==="bilan"&&(S.fold||{}).cmp&&!S.cmpDays&&!S.cmpLoading)cmpLoad()}catch(e){console.warn(e)}}
+    {const hb=$("#histBox");if(hb)hb.innerHTML=S.hist?histHtml():""}if(S.tab==="bilan"&&(S.fold||{}).cmp&&!S.cmpDays&&!S.cmpLoading)cmpLoad()}catch(e){console.warn(e)}ancKeep(A0)}
 function foldCards(){const v=$("#view");if(!v)return;const tab=S.tab==="eval"?"bilan":S.tab;
   v.querySelectorAll(".card").forEach(cd=>{if(cd.tagName==="DETAILS"||cd.classList.contains("fcard")||cd.closest("details")||cd.parentElement.closest(".card"))return;
     if(/\b(summary|demobar|empty|qp|confirm)\b/.test(cd.className))return;let h=cd.firstElementChild;if(!h)return;let hd=null,ht=null;
@@ -2558,7 +2565,7 @@ function teamEditor(c){const T=teamsOf(c),st=sorted(c),by=Object.fromEntries(st.
     <div class="tools" style="align-items:center"><label style="flex-direction:row;align-items:center;gap:8px">Répartir au hasard en <input type="number" id="tmN" min="2" max="12" value="${T.length||4}" style="width:64px"> équipes</label><button class="btn" data-act="tmAuto">Répartir</button></div>
     <span class="hint">« Répartir » remplace les équipes actuelles par des équipes équilibrées (notes mélangées). Vous pouvez ensuite déplacer des élèves.</span>
     ${T.length?(S.tmClear?`<div class="confirm">Supprimer toutes les équipes ? <button class="btn danger" data-act="tmClearYes">Oui</button><button class="btn" data-act="tmClearNo">Non</button></div>`:`<div><button class="linkbtn" data-act="tmClear" style="color:var(--bad)">Supprimer toutes les équipes</button></div>`):""}</div>`}
-const APPV="v81"; // à garder égal à VERSION dans sw.js
+const APPV="v82"; // à garder égal à VERSION dans sw.js
 function viewDetails(){const c=cls();
   return `${restoreCard()}${dupCard()}${modCard()}${adminCard()}${journalCard()}${soutCard()}
   <div class="card form"><h2>Sauvegarde · نسخة احتياطية</h2><p class="hint" style="margin:0">Enregistrez toutes vos classes, plans, horaires et notes dans un fichier. La restauration ajoute ou remplace les classes du fichier sans effacer les autres. Ce bouton accepte aussi les fichiers « séance » et « journée ».</p>
